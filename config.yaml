@@ -1,0 +1,5 @@
+relay-tcp-server-port: 9900
+relay-tls-server-port: 49900
+remote-tls-server-ip: 10.10.1.6
+remote-tls-server-port: 49990
+local-tcp-server-port: 8000
