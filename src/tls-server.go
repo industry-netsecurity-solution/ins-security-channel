@@ -5,11 +5,14 @@ import (
 	"encoding/binary"
 	"flag"
 	"fmt"
+	"github.com/industry-netsecurity-solution/ins-security-channel/common"
 	"github.com/industry-netsecurity-solution/ins-security-channel/config"
 	"github.com/industry-netsecurity-solution/ins-security-channel/tls"
+	"github.com/industry-netsecurity-solution/ins-security-channel/utils"
 	"github.com/spf13/viper"
 	"net"
 	"os"
+	"time"
 )
 
 var ServerConfig config.ServerConfigurations
@@ -38,6 +41,29 @@ func LoadServerConfiguration(configFile string) {
 	// Reading config file
 	fmt.Println("Reading config file")
 	fmt.Println("LocalTlsServerPort is\t", ServerConfig.LocalTlsServerPort)
+}
+
+func handle_error_log(err error) {
+	EventLogUrl := ServerConfig.EventLogUrl
+	if len(EventLogUrl) == 0 {
+		return
+	}
+
+	// 로그 기록
+	evt := common.EventLog{}
+	evt.SetEventGatewayType("IoT 보안 시스템")
+	evt.SetEventType("IoT 보안 시스템")
+	evt.SetEventGatewayId(ServerConfig.SourceId)
+	t := time.Now()
+	evt.SetEventTime(fmt.Sprintf("%d-%02d-%02dT%02d:%02d:%02d",
+		t.Year(), t.Month(), t.Day(),
+		t.Hour(), t.Minute(), t.Second()))
+
+	evt.SetEventStatus("점검")
+	evt.SetEventMessage(err.Error())
+	evt.SetEventContent(err.Error())
+	utils.ReportLog(evt)
+
 }
 
 /**
@@ -134,7 +160,35 @@ func receiveData(conn net.Conn) error {
 	// tag := binary.LittleEndian.Uint16(buf2)
 	// length := binary.LittleEndian.Uint32(buf4)
 
-	file, err := os.Create(fileName)
+	var dirpath string
+
+	if fileType == 1 {
+		dirpath = "./video0/normal"
+	} else if fileType == 2 {
+		dirpath = "./video1/normal"
+	} else if fileType == 3 {
+		dirpath = "./video0/collision"
+	} else if fileType == 4 {
+		dirpath = "./video1/collision"
+	} else if fileType == 5 {
+		dirpath = "./video0/approach"
+	} else if fileType == 6 {
+		dirpath = "./video1/approach"
+	}
+
+	var filePath string
+	if 0 < len(dirpath) {
+		err = os.MkdirAll(dirpath, 0755)
+		if err != nil {
+			fmt.Println(err)
+			return err
+		}
+		filePath = fmt.Sprintf("%s/%s", dirpath, fileName)
+	} else {
+		filePath = fileName
+	}
+
+	file, err := os.Create(filePath)
 	if err != nil {
 		fmt.Println(err)
 		return err
@@ -155,7 +209,7 @@ func receiveData(conn net.Conn) error {
 			return err
 		}
 
-		fmt.Printf("rlen = %d\n", rlen)
+		//fmt.Printf("rlen = %d\n", rlen)
 
 		res := make([]byte, rlen)
 		copy(res, buf[:rlen])
@@ -174,6 +228,8 @@ func receiveData(conn net.Conn) error {
 func main() {
 
 	configPath := flag.String("c", "config.yaml", "configuration path(default:config.yaml)")
+	srcId := flag.String("s", "ins-security-server", "IoT 보안 시스템")
+
 	flag.Parse()
 
 	LoadServerConfiguration(*configPath)
@@ -181,6 +237,7 @@ func main() {
 	LocalTlsServerPort := ServerConfig.LocalTlsServerPort
 	TlsCert := ServerConfig.TlsCert
 	TlsKey := ServerConfig.TlsKey
+	ServerConfig.SourceId = *srcId
 
 	if &LocalTlsServerPort == nil || LocalTlsServerPort == 0 {
 		fmt.Println("LocalTlsServerPort Required...")

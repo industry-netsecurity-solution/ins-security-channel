@@ -35,7 +35,7 @@ func CopyFromTCP(conn net.Conn) chan []byte {
 	return c
 }
 
-func Relay(conn1 net.Conn, conn2 net.Conn) {
+func Relay(conn1 net.Conn, conn2 net.Conn, callback_error func(err error)) {
 	chan1 := CopyFromTCP(conn1)
 	chan2 := CopyFromTCP(conn2)
 
@@ -45,13 +45,23 @@ func Relay(conn1 net.Conn, conn2 net.Conn) {
 			if b1 == nil {
 				return
 			} else {
-				conn2.Write(b1)
+				_, err := conn2.Write(b1)
+				if err != nil {
+					if callback_error != nil {
+						callback_error(err)
+					}
+				}
 			}
 		case b2 := <-chan2:
 			if b2 == nil {
 				return
 			} else {
-				conn1.Write(b2)
+				_, err := conn1.Write(b2)
+				if err != nil {
+					if callback_error != nil {
+						callback_error(err)
+					}
+				}
 			}
 		}
 	}

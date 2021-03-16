@@ -3,10 +3,13 @@ package main
 import (
 	"flag"
 	"fmt"
+	"github.com/industry-netsecurity-solution/ins-security-channel/common"
 	"github.com/industry-netsecurity-solution/ins-security-channel/config"
 	"github.com/industry-netsecurity-solution/ins-security-channel/tls"
+	"github.com/industry-netsecurity-solution/ins-security-channel/utils"
 	"github.com/spf13/viper"
 	"os"
+	"time"
 )
 
 var RelayConfig config.RelayConfigurations
@@ -44,9 +47,34 @@ func LoadRelayConfiguration(configFile string) {
 	fmt.Println("RemoteTlsServerPort is\t\t", RelayConfig.RemoteTlsServerPort)
 }
 
+func callbck_handle_error(err error) {
+	EventLogUrl := RelayConfig.EventLogUrl
+	if len(EventLogUrl) == 0 {
+		return
+	}
+
+	// 로그 기록
+	evt := common.EventLog{}
+	evt.SetEventGatewayType("집중게이트웨이")
+	evt.SetEventType("데이터 브로커")
+	evt.SetEventGatewayId(RelayConfig.SourceId)
+	t := time.Now()
+	evt.SetEventTime(fmt.Sprintf("%d-%02d-%02dT%02d:%02d:%02d",
+		t.Year(), t.Month(), t.Day(),
+		t.Hour(), t.Minute(), t.Second()))
+
+	evt.SetEventStatus("점검")
+	evt.SetEventMessage(err.Error())
+	evt.SetEventContent(err.Error())
+	utils.ReportLog(evt)
+
+}
+
 func main() {
 
 	configPath := flag.String("c", "config.yaml", "configuration path(default:config.yaml)")
+	srcId := flag.String("s", "center-gw-01", "gateway name")
+
 	flag.Parse()
 
 	// Confing
@@ -57,6 +85,7 @@ func main() {
 	RemoteTlsServerPort := RelayConfig.RemoteTlsServerPort
 	TlsCert := RelayConfig.TlsCert
 	TlsKey := RelayConfig.TlsKey
+	RelayConfig.SourceId = *srcId
 
 	if &LocalTlsServerPort == nil || LocalTlsServerPort == 0 {
 		fmt.Println("LocalTlsServerPort Required...")
@@ -83,5 +112,5 @@ func main() {
 		return
 	}
 
-	tls.InitTLS2TLS(RemoteTlsServerIp, RemoteTlsServerPort, LocalTlsServerPort, TlsCert, TlsKey)
+	tls.InitTLS2TLS(RemoteTlsServerIp, RemoteTlsServerPort, LocalTlsServerPort, TlsCert, TlsKey, callbck_handle_error)
 }
