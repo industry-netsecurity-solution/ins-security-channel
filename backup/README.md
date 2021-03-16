@@ -31,18 +31,9 @@
 
 ## 테스트의 실행
 
-~~~
-# Key considerations for algorithm "RSA" ≥ 2048-bit
-$ openssl genrsa -out server.key 2048
+어떻게 테스트가 이 시스템에서 돌아가는지에 대한 설명을 합니다
 
-# Key considerations for algorithm "ECDSA" ≥ secp384r1
-# List ECDSA the supported curves (openssl ecparam -list_curves)
-$ openssl ecparam -genkey -name secp384r1 -out server.key
-
-Generation of self-signed(x509) public key (PEM-encodings .pem|.crt) based on the private (.key)
-$ openssl req -new -x509 -sha256 -key server.key -out server.crt -days 3650
-~~~
-
+### 테스트는 이런 식으로 동작합니다
 
 왜 이렇게 동작하는지, 설명합니다
 
