@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"encoding/binary"
 	"flag"
 	"fmt"
 	"github.com/industry-netsecurity-solution/ins-security-channel/config"
@@ -20,7 +21,7 @@ func LoadServerConfiguration(configFile string) {
 	viper.AutomaticEnv()
 
 	if err := viper.ReadInConfig(); err != nil {
-		fmt.Printf("Error reading config file, %s", err)
+		fmt.Printf("Error reading config file, %s\n", err)
 	}
 
 	dir, err := os.Getwd()
@@ -31,7 +32,7 @@ func LoadServerConfiguration(configFile string) {
 
 	err = viper.Unmarshal(&ServerConfig)
 	if err != nil {
-		fmt.Printf("Unable to decode into struct, %v", err)
+		fmt.Printf("Unable to decode into struct, %v\n", err)
 	}
 
 	// Reading config file
@@ -44,7 +45,96 @@ func LoadServerConfiguration(configFile string) {
  */
 func receiveData(conn net.Conn) error {
 
-	file, err := os.Create("/tmp/dat2")
+	buf2 := make([]byte, 2)
+	buf4 := make([]byte, 4)
+
+	var sourceId string
+	var fileType uint16
+	var fileName string
+	var filesize uint32
+
+	// Tag
+	rlen, err := conn.Read(buf2)
+	if err != nil {
+		fmt.Println(err)
+		return err
+	}
+
+	fmt.Printf("recv tag: %d\n", rlen)
+
+	// Length
+	rlen, err = conn.Read(buf4)
+	if err != nil {
+		fmt.Println(err)
+		return err
+	}
+
+	fmt.Printf("recv length: %d\n", rlen)
+	payloadLength := binary.LittleEndian.Uint32(buf4)
+	fmt.Printf("payload length: %d\n", payloadLength)
+
+	for i := 0; i < 4; i++ {
+		// Tag
+		rlen, err = conn.Read(buf2)
+		if err != nil {
+			fmt.Println(err)
+			return err
+		}
+
+		// Tag
+		rlen, err = conn.Read(buf4)
+		if err != nil {
+			fmt.Println(err)
+			return err
+		}
+
+		tag := binary.LittleEndian.Uint16(buf2)
+		length := binary.LittleEndian.Uint32(buf4)
+
+		fmt.Printf("tag: %d\n", tag)
+		fmt.Printf("length: %d\n", length)
+
+		bufdata := make([]byte, length)
+		// Tag
+		rlen, err = conn.Read(bufdata)
+		if err != nil {
+			fmt.Println(err)
+			return err
+		}
+
+		if tag == 0 {
+			sourceId = string(bufdata)
+			fmt.Printf("Source: %s\n", sourceId)
+		} else if tag == 1 {
+			fileType = binary.LittleEndian.Uint16(bufdata)
+			fmt.Printf("fileType: %d\n", fileType)
+		} else if tag == 2 {
+			fileName = string(bufdata)
+			fmt.Printf("fileName: %s\n", fileName)
+		} else if tag == 3 {
+			filesize = binary.LittleEndian.Uint32(bufdata)
+			fmt.Printf("filesize: %d\n", filesize)
+		}
+	}
+
+	// Tag
+	rlen, err = conn.Read(buf2)
+	if err != nil {
+		fmt.Println(err)
+		return err
+	}
+
+	// Length
+	rlen, err = conn.Read(buf4)
+	if err != nil {
+		fmt.Println(err)
+		return err
+	}
+
+	// tag := binary.LittleEndian.Uint16(buf2)
+	// length := binary.LittleEndian.Uint32(buf4)
+
+	file, err := os.Create(fileName)
 	if err != nil {
 		fmt.Println(err)
 		return err
@@ -55,7 +145,7 @@ func receiveData(conn net.Conn) error {
 	defer func() {
 		writer.Flush()
 		file.Close()
-	} ()
+	}()
 
 	for {
 		buf := make([]byte, 4096)
