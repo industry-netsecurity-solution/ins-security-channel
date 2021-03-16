@@ -21,6 +21,14 @@
 예시
 ```
 
+### 빌드
+~~~
+$ cd src
+$ go build -o ../bin/tls_server tls-server.go 
+$ go build -o ../bin/tls_client tls-client.go
+$ go build -o ../bin/tls_relay  tls-relay.go 
+~~~
+
 ### 설치
 
 아래 사항들로 현 프로젝트에 관한 모듈들을 설치할 수 있습니다.
@@ -41,6 +49,15 @@ $ openssl ecparam -genkey -name secp384r1 -out server.key
 
 Generation of self-signed(x509) public key (PEM-encodings .pem|.crt) based on the private (.key)
 $ openssl req -new -x509 -sha256 -key server.key -out server.crt -days 3650
+~~~
+
+### tls_server 실행
+~~~
+~~~
+
+
+~~~
+$ ./bin/tls_client -c ./config-client.yaml  -f 0 -s "sender"  send_file.dat
 ~~~
 
 
