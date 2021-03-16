@@ -53,9 +53,15 @@ $ openssl req -new -x509 -sha256 -key server.key -out server.crt -days 3650
 
 ### tls_server 실행
 ~~~
+$ ./bin/tls_server -c ./config-server.yaml
 ~~~
 
+### tls_relay 실행
+~~~
+$ ./bin/tls_relay -c ./config-relay.yaml
+~~~
 
+### tls_client 실행
 ~~~
 $ ./bin/tls_client -c ./config-client.yaml  -f 0 -s "sender"  send_file.dat
 ~~~
