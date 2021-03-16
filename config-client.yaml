@@ -1,2 +1,3 @@
 remoteTlsServerIp: "127.0.0.1"
 remoteTlsServerPort: 9990
+eventLogUrl: "http://10.10.1.15:9091/event/gateway"
