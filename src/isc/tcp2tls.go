@@ -1,9 +1,8 @@
-package tls
+package isc
 
 import (
 	"crypto/tls"
 	"fmt"
-	"github.com/industry-netsecurity-solution/ins-security-channel/utils"
 	"net"
 	"strconv"
 )
@@ -40,7 +39,7 @@ func proxyConnection2TLS(conn net.Conn, tlsServerIp string, tlsport int, callbac
 	}
 
 	// tcp conn <--> tls conn 간 상호 전달
-	utils.Relay(conn, rConn, callback_error)
+	Relay(conn, rConn, callback_error)
 	defer rConn.Close()
 
 }

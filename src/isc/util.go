@@ -1,4 +1,4 @@
-package utils
+package isc
 
 import (
 	"bytes"
@@ -6,7 +6,6 @@ import (
 	"encoding/binary"
 	"fmt"
 	"github.com/go-resty/resty/v2"
-	"github.com/industry-netsecurity-solution/ins-security-channel/common"
 	"io"
 	"net"
 	"os"
@@ -116,7 +115,7 @@ func TransferHttp(url string, data []byte) error {
 	return nil
 }
 
-func ReportLog(log common.EventLog) error {
+func ReportLog(log EventLog) error {
 
 	//data, _e := json.Marshal(log)
 	data, _e := log.EventLog()

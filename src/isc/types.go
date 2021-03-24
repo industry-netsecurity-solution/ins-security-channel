@@ -1,4 +1,4 @@
-package common
+package isc
 
 import (
 	"encoding/json"

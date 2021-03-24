@@ -1,4 +1,4 @@
-package config
+package isc
 
 type RelayConfigurations struct {
 	TlsCert             string

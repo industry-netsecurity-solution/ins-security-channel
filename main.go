@@ -1,5 +1,0 @@
-package isc
-
-func main() {
-}
-
