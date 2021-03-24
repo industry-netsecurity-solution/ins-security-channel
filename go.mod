@@ -1,4 +1,4 @@
-module github.com/industry-netsecurity-solution/ins-security-channel/isc
+module github.com/industry-netsecurity-solution/ins-security-channel
 
 go 1.15
 
