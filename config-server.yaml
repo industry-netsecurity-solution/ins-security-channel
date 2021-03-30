@@ -1,3 +1,0 @@
-TlsCert: "server.crt"
-TlsKey: "server.key"
-LocalTlsServerPort: 49990

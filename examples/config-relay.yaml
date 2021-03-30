@@ -1,0 +1,5 @@
+TlsCert: "server.crt"
+TlsKey: "server.key"
+LocalTlsServerPort: 9990
+remoteTlsServerIp: 127.0.0.1
+remoteTlsServerPort: 49990
