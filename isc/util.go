@@ -9,6 +9,7 @@ import (
 	"io"
 	"net"
 	"os"
+	"time"
 )
 
 func CopyFromTCP(conn net.Conn) chan []byte {
@@ -202,4 +203,15 @@ func SendFileOverTls(file *os.File, params map[int][]byte, conn *tls.Conn) error
 		}
 	}
 	return nil
+}
+
+func TimeYYmmddHHMMSS(t *time.Time) string {
+	if t == nil {
+		tm := time.Now()
+		t = &tm;
+	}
+
+	return fmt.Sprintf("%d-%02d-%02dT%02d:%02d:%02d",
+		t.Year(), t.Month(), t.Day(),
+		t.Hour(), t.Minute(), t.Second())
 }
