@@ -63,7 +63,7 @@ func callbck_handle_error(err error) {
 	evt.SetEventStatus("점검")
 	evt.SetEventMessage(err.Error())
 	evt.SetEventContent(err.Error())
-	isc.ReportLog(evt)
+	isc.ReportLog(EventLogUrl, evt)
 
 }
 

@@ -137,7 +137,7 @@ func main() {
 				evt.SetEventStatus("점검")
 				evt.SetEventMessage(fmt.Sprintf("%s 파일 전송 실패", sendname))
 				evt.SetEventContent(err.Error())
-				isc.ReportLog(evt)
+				isc.ReportLog(EventLogUrl, evt)
 			}
 
 			panic(err)
@@ -160,7 +160,7 @@ func main() {
 				evt.SetEventStatus("점검")
 				evt.SetEventMessage(fmt.Sprintf("%s 파일 전송 실패", sendname))
 				evt.SetEventContent(err.Error())
-				isc.ReportLog(evt)
+				isc.ReportLog(EventLogUrl, evt)
 			}
 
 			panic(err)
@@ -194,7 +194,7 @@ func main() {
 				evt.SetEventStatus("점검")
 				evt.SetEventMessage(fmt.Sprintf("%s 파일 전송 실패", sendname))
 				evt.SetEventContent(err.Error())
-				isc.ReportLog(evt)
+				isc.ReportLog(EventLogUrl, evt)
 			}
 
 			panic(err)
@@ -209,7 +209,7 @@ func main() {
 
 			evt.SetEventStatus("정상")
 			evt.SetEventMessage(fmt.Sprintf("%s 파일 전송 성공", sendname))
-			isc.ReportLog(evt)
+			isc.ReportLog(EventLogUrl, evt)
 		}
 	}
 }

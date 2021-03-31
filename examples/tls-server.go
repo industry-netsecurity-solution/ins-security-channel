@@ -59,7 +59,7 @@ func handle_error_log(err error) {
 	evt.SetEventStatus("점검")
 	evt.SetEventMessage(err.Error())
 	evt.SetEventContent(err.Error())
-	isc.ReportLog(evt)
+	isc.ReportLog(EventLogUrl, evt)
 
 }
 

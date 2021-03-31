@@ -115,7 +115,7 @@ func TransferHttp(url string, data []byte) error {
 	return nil
 }
 
-func ReportLog(log EventLog) error {
+func ReportLog(url string, log EventLog) error {
 
 	//data, _e := json.Marshal(log)
 	data, _e := log.EventLog()
@@ -125,7 +125,7 @@ func ReportLog(log EventLog) error {
 
 	fmt.Println(string(data))
 
-	TransferHttp("http://10.10.1.15:9091/event/gateway", data)
+	TransferHttp(url, data)
 	return nil
 
 }
