@@ -1,215 +1,287 @@
 package main
 
 import (
+	"bytes"
 	"crypto/tls"
 	"encoding/binary"
 	"flag"
 	"fmt"
 	isc "github.com/industry-netsecurity-solution/ins-security-channel/isc"
 	"github.com/spf13/viper"
+	"io"
+	"log"
 	"net"
 	"os"
 	"path"
 	"strconv"
-	"time"
 )
 
 var ClientConfig isc.ClientConfigurations
 
-func LoadClientConfiguration(configFile string) {
-	// Set the file name of the configurations file
-	//viper.AddConfigPath(configFile)
-	viper.SetConfigFile(configFile)
-	viper.AutomaticEnv()
+var GConfigPath *string = nil
+var GSrcId *string = nil
+var GOptname *string = nil
+var GFileType *uint = nil
+var GArgs []string = nil
 
-	if err := viper.ReadInConfig(); err != nil {
-		fmt.Printf("Error reading config file, %s", err)
-	}
+var Log *log.Logger = nil
 
-	dir, err := os.Getwd()
-	if err != nil {
-		return
-	}
-	fmt.Printf("%s", dir)
-
-	err = viper.Unmarshal(&ClientConfig)
-	if err != nil {
-		fmt.Printf("Unable to decode into struct, %v", err)
-	}
-
-	// Reading config file
-	fmt.Println("Reading config file")
-	fmt.Println("RemoteTlsServerIp is\t", ClientConfig.RemoteTlsServerIp)
-	fmt.Println("RemoteTlsServerPort is\t\t", ClientConfig.RemoteTlsServerPort)
-}
-
-func main() {
-
-	configPath := flag.String("c", "config.yaml", "configuration path(default:config.yaml)")
-	fileType := flag.Uint("f", 0, "file type (0: normal, 1: front video, 2: rear video, 3: front collision, 4: rear collision, 5: front approach, 6: rear approach)")
-	srcId := flag.String("s", "smart-gw-01", "gateway name")
-	optname := flag.String("n", "", "gateway name")
+/*
+ *	parse command line
+ */
+func ParseOptions() int {
+	GConfigPath = flag.String("c", "config.yaml", "configuration path(default:config.yaml)")
+	GFileType = flag.Uint("f", 0, "file type (0: normal, 1: front video, 2: rear video, 3: front collision, 4: rear collision, 5: front approach, 6: rear approach)")
+	GSrcId = flag.String("s", "bb-01", "gateway name")
+	GOptname = flag.String("n", "", "gateway name")
 
 	flag.Parse()
 
-	// 프로그램 인자 확인
-	args := flag.Args()
-
-	if args == nil || len(args) == 0 {
-		fmt.Println("Filename Required...")
-		return
+	if GFileType == nil {
+		Log.Println("FileType Required...")
+		return -1
 	}
 
-	if fileType == nil {
-		fmt.Println("FileType Required...")
+	GArgs = flag.Args()
+	if GArgs == nil || len(GArgs) == 0 {
+		Log.Println("Filename Required...")
+		return -1
+	}
+
+	return 0
+}
+
+func PrintConfig() {
+	// Reading config ClientConfig
+	for _, item := range  ClientConfig.ToString() {
+		Log.Println(item)
+	}
+}
+
+/*
+ * load configuration
+ */
+func LoadConfiguration() int {
+	if GConfigPath == nil {
+		return -1
+	}
+
+	// Set the file name of the configurations file
+	//viper.AddConfigPath(configFile)
+	viper.SetConfigFile(*GConfigPath)
+	viper.AutomaticEnv()
+
+	if err := viper.ReadInConfig(); err != nil {
+		Log.Printf("Error reading config file, %s", err.Error())
+	}
+
+	err := viper.Unmarshal(&ClientConfig)
+	if err != nil {
+		Log.Printf("Unable to decode into struct, %v", err)
+		return -1
+	}
+
+	if len(ClientConfig.RemoteServerIp) == 0 {
+		Log.Println("RemoteTlsServerIp Required...")
+		return -1
+	}
+
+	if ClientConfig.RemoteServerPort == 0 {
+		Log.Println("RemoteTlsServerPort Required...")
+		return -1
+	}
+
+	// Reading config file
+	PrintConfig()
+
+	return 0
+}
+
+func GetServerURL() *string {
+	// TLS 서버 접속 정보
+	if len(ClientConfig.RemoteServerIp) == 0 {
+		Log.Println("RemoteTlsServerIp Required...")
+		return nil
+	}
+
+	if ClientConfig.RemoteServerPort == 0 {
+		Log.Println("RemoteTlsServerPort Required...")
+		return nil
+	}
+
+	tlsServerURL := ClientConfig.RemoteServerIp + ":" + strconv.Itoa(ClientConfig.RemoteServerPort)
+
+	return &tlsServerURL
+}
+
+func GetTCPAddr() (*net.TCPAddr, error) {
+
+	// TLS 서버 주소
+	serverURL := GetServerURL()
+	if serverURL == nil {
+		return nil, nil
+	}
+
+	rAddr, err := net.ResolveTCPAddr("tcp", *serverURL)
+	if err != nil {
+		Log.Println(err)
+		return nil, err
+	}
+
+	return rAddr, nil
+}
+
+// 유미테크 Tag
+func DefaultTag() []byte {
+	ymtechType := []byte{0xef, 0xf0}
+	return ymtechType
+}
+
+/**
+ * file 전송
+ */
+func SendFileOverTls(file *os.File, params map[int][]byte, conn *tls.Conn) error {
+
+	var buffer bytes.Buffer
+	var payloadBuffer bytes.Buffer
+
+	buf2 := make([]byte, 2)
+	buf4 := make([]byte, 4)
+
+	// EFF0  {Length}, {payload}
+	// payload: [0, {source}], [1, {file type}], [2, {file name}], [3, {file size}], [4, {file contents}],
+
+	// file size
+	fileSize := binary.LittleEndian.Uint32(params[3])
+
+	// [0, {source}], [1, {file type}], [2, {file name}], [3, {file size}]
+	encodedParams := isc.EncodeMap(params)
+	payloadBuffer.Write(encodedParams)
+
+	// [4, {file contents}],
+	// TAG: file contents
+	binary.LittleEndian.PutUint16(buf2, uint16(4))
+	payloadBuffer.Write(buf2)
+
+	// LENGTH: file size
+	binary.LittleEndian.PutUint32(buf4, uint32(fileSize))
+	payloadBuffer.Write(buf4)
+
+	// file 내용을 제외한 데이터
+	data := payloadBuffer.Bytes()
+
+	payloadLength := uint32(len(data)) + fileSize
+
+	binary.LittleEndian.PutUint32(buf4, uint32(payloadLength))
+
+	// 전체 패킷
+	tag := DefaultTag()
+	buffer.Write(tag)
+	buffer.Write(buf4)
+	buffer.Write(data)
+
+	_, err := conn.Write(buffer.Bytes())
+	if err != nil {
+		fmt.Println(err)
+		return err
+	}
+
+	// 실제 파일 내용
+	for {
+		buf := make([]byte, 4096)
+		rlen, err := file.Read(buf)
+		if err != nil {
+			if err == io.EOF {
+				break
+			}
+			fmt.Println(err)
+			return err
+		}
+
+		res := make([]byte, rlen)
+		copy(res, buf[:rlen])
+
+		_, err = conn.Write(res)
+		if err != nil {
+			fmt.Println(err)
+			return err
+		}
+	}
+	return nil
+}
+
+func sendfile() {
+
+}
+func main() {
+	Log = log.New(os.Stdout, "", log.LstdFlags)
+
+	// 프로그램 인자 확인
+	if ParseOptions() == -1 {
 		return
 	}
 
 	// 설정 파일 읽기
-	LoadClientConfiguration(*configPath)
-
-	// TLS 서버 접속 정보
-	RemoteTlsServerIp := ClientConfig.RemoteTlsServerIp
-	RemoteTlsServerPort := ClientConfig.RemoteTlsServerPort
-	EventLogUrl := ClientConfig.EventLogUrl
-
-	if &RemoteTlsServerIp == nil || len(RemoteTlsServerIp) == 0 {
-		fmt.Println("RemoteTlsServerIp Required...")
+	if LoadConfiguration() == -1 {
 		return
 	}
 
-	if &RemoteTlsServerPort == nil || RemoteTlsServerPort == 0 {
-		fmt.Println("RemoteTlsServerPort Required...")
+	rAddr, _ := GetTCPAddr()
+	if rAddr == nil {
 		return
-	}
-
-	// TLS 서버 주소
-	tlsServerURL := RemoteTlsServerIp + ":" + strconv.Itoa(RemoteTlsServerPort)
-	rAddr, err := net.ResolveTCPAddr("tcp", tlsServerURL)
-	if err != nil {
-		fmt.Println(err)
 	}
 
 	conf := &tls.Config{
 		InsecureSkipVerify: true,
 	}
 
-	// 로그 기록
-	evt := isc.EventLog{}
-	evt.SetEventGatewayType("스마트게이트웨이")
-	if *fileType == 0 {
-		evt.SetEventType("regular 파일")
-	} else if *fileType == 1 {
-		evt.SetEventType("전방 영상")
-	} else if *fileType == 2 {
-		evt.SetEventType("후방 영상")
-	} else if *fileType == 3 {
-		evt.SetEventType("전방 충돌 이벤트")
-	} else if *fileType == 4 {
-		evt.SetEventType("후방 충돌 이벤트")
-	} else if *fileType == 5 {
-		evt.SetEventType("전방 접근 감지 이벤트")
-	} else if *fileType == 6 {
-		evt.SetEventType("후방 접근 감지 이벤트")
+	filename := GArgs[0]
+
+	var sendname string
+	if GOptname != nil && 0 < len(*GOptname) {
+		Log.Printf("send: %s -> %s\n", filename, *GOptname)
+		sendname = *GOptname
+	} else {
+		Log.Printf("send: %s", filename)
+		sendname = filename
 	}
 
-	evt.SetEventGatewayId(*srcId)
-
-	for _, filename := range args {
-
-		var sendname string
-		if optname != nil && 0 < len(*optname) {
-			fmt.Printf("send: %s -> %s\n", filename, *optname)
-			sendname = *optname
-		} else {
-			fmt.Printf("send: %s", filename)
-			sendname = filename
-		}
-
-		stat, err := os.Stat(filename)
-		if err != nil {
-			if 0 < len(EventLogUrl) {
-				t := time.Now()
-				evt.SetEventTime(fmt.Sprintf("%d-%02d-%02dT%02d:%02d:%02d",
-					t.Year(), t.Month(), t.Day(),
-					t.Hour(), t.Minute(), t.Second()))
-
-				evt.SetEventStatus("점검")
-				evt.SetEventMessage(fmt.Sprintf("%s 파일 전송 실패", sendname))
-				evt.SetEventContent(err.Error())
-				isc.ReportLog(EventLogUrl, evt)
-			}
-
-			panic(err)
-			break
-		}
-
-		file, err := os.Open(filename)
-		defer file.Close()
-
-		// TLS 연결
-		tlsConn, err := tls.Dial("tcp", rAddr.String(), conf)
-		if err != nil {
-			//fmt.Println(err)
-			if 0 < len(EventLogUrl) {
-				t := time.Now()
-				evt.SetEventTime(fmt.Sprintf("%d-%02d-%02dT%02d:%02d:%02d",
-					t.Year(), t.Month(), t.Day(),
-					t.Hour(), t.Minute(), t.Second()))
-
-				evt.SetEventStatus("점검")
-				evt.SetEventMessage(fmt.Sprintf("%s 파일 전송 실패", sendname))
-				evt.SetEventContent(err.Error())
-				isc.ReportLog(EventLogUrl, evt)
-			}
-
-			panic(err)
-			break
-		}
-
-		params := make(map[int][]byte)
-
-		// source
-		params[0] = []byte(*srcId)
-
-		// file type
-		params[1] = make([]byte, 2)
-		binary.LittleEndian.PutUint16(params[1], uint16(*fileType))
-
-		// file name
-		params[2] = []byte(path.Base(sendname))
-
-		// file size
-		params[3] = make([]byte, 4)
-		binary.LittleEndian.PutUint32(params[3], uint32(stat.Size()))
-
-		err = isc.SendFileOverTls(file, params, tlsConn)
-		if err != nil {
-			if 0 < len(EventLogUrl) {
-				t := time.Now()
-				evt.SetEventTime(fmt.Sprintf("%d-%02d-%02dT%02d:%02d:%02d",
-					t.Year(), t.Month(), t.Day(),
-					t.Hour(), t.Minute(), t.Second()))
-
-				evt.SetEventStatus("점검")
-				evt.SetEventMessage(fmt.Sprintf("%s 파일 전송 실패", sendname))
-				evt.SetEventContent(err.Error())
-				isc.ReportLog(EventLogUrl, evt)
-			}
-
-			panic(err)
-			break
-		}
-
-		if 0 < len(EventLogUrl) {
-			t := time.Now()
-			evt.SetEventTime(fmt.Sprintf("%04d-%02d-%02dT%02d:%02d:%02d",
-				t.Year(), t.Month(), t.Day(),
-				t.Hour(), t.Minute(), t.Second()))
-
-			evt.SetEventStatus("정상")
-			evt.SetEventMessage(fmt.Sprintf("%s 파일 전송 성공", sendname))
-			isc.ReportLog(EventLogUrl, evt)
-		}
+	stat, err := os.Stat(filename)
+	if err != nil {
+		panic(err)
 	}
+
+	file, err := os.Open(filename)
+	defer file.Close()
+
+	// TLS 연결
+	tlsConn, err := tls.Dial("tcp", rAddr.String(), conf)
+	if err != nil {
+		panic(err)
+	}
+
+	defer tlsConn.Close()
+
+	params := make(map[int][]byte)
+
+	// source
+	params[0] = []byte(*GSrcId)
+
+	// file type
+	params[1] = make([]byte, 2)
+	binary.LittleEndian.PutUint16(params[1], uint16(*GFileType))
+
+	// file name
+	params[2] = []byte(path.Base(sendname))
+
+	// file size
+	params[3] = make([]byte, 4)
+	binary.LittleEndian.PutUint32(params[3], uint32(stat.Size()))
+
+	err = SendFileOverTls(file, params, tlsConn)
+	if err != nil {
+		panic(err)
+	}
+
+	Log.Printf("%s 파일 전송 성공\n", sendname)
 }

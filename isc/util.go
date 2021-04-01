@@ -2,13 +2,10 @@ package isc
 
 import (
 	"bytes"
-	"crypto/tls"
 	"encoding/binary"
 	"fmt"
 	"github.com/go-resty/resty/v2"
-	"io"
 	"net"
-	"os"
 	"time"
 )
 
@@ -35,7 +32,10 @@ func CopyFromTCP(conn net.Conn) chan []byte {
 	return c
 }
 
-func Relay(conn1 net.Conn, conn2 net.Conn, callback_error func(err error)) {
+func Relay(conn1 net.Conn, conn2 net.Conn, callback_event func([]byte, []byte, *error)) int {
+	var len1 int = -1
+	var len2 int = -1
+
 	chan1 := CopyFromTCP(conn1)
 	chan2 := CopyFromTCP(conn2)
 
@@ -43,34 +43,55 @@ func Relay(conn1 net.Conn, conn2 net.Conn, callback_error func(err error)) {
 		select {
 		case b1 := <-chan1:
 			if b1 == nil {
-				return
+				return 0
 			} else {
+				if len1 < 0 {
+					len1 = len(b1)
+				} else {
+					len1 += len(b1)
+				}
+
+				// 수신한 데이터
+				if callback_event != nil {
+					callback_event(b1, nil, nil)
+				}
+
 				_, err := conn2.Write(b1)
 				if err != nil {
-					if callback_error != nil {
-						callback_error(err)
+					if callback_event != nil {
+						callback_event(nil, nil, &err)
 					}
+
+					return -1
 				}
 			}
 		case b2 := <-chan2:
 			if b2 == nil {
-				return
+				return 0
 			} else {
+				if len2 < 0 {
+					len2 = len(b2)
+				} else {
+					len2 += len(b2)
+				}
+
+				if callback_event != nil {
+					callback_event(nil, b2, nil)
+				}
+
 				_, err := conn1.Write(b2)
 				if err != nil {
-					if callback_error != nil {
-						callback_error(err)
+					if callback_event != nil {
+						callback_event(nil, nil, &err)
 					}
+
+					return -1
 				}
 			}
 		}
 	}
-}
 
-// 유미테크 Tag
-func DefaultTag() []byte {
-	ymtechType := []byte{0xef, 0xf0}
-	return ymtechType
+	return 0
 }
 
 func EncodeMap(params map[int][]byte) []byte {
@@ -129,80 +150,6 @@ func ReportLog(url string, log EventLog) error {
 	TransferHttp(url, data)
 	return nil
 
-}
-
-/**
- * file 전송
- */
-func SendFileOverTls(file *os.File, params map[int][]byte, conn *tls.Conn) error {
-
-	var buffer bytes.Buffer
-	var payloadBuffer bytes.Buffer
-
-	buf2 := make([]byte, 2)
-	buf4 := make([]byte, 4)
-
-	// EFF0  {Length}, {payload}
-	// payload: [0, {source}], [1, {file type}], [2, {file name}], [3, {file size}], [4, {file contents}],
-
-	// file size
-	fileSize := binary.LittleEndian.Uint32(params[3])
-
-	// [0, {source}], [1, {file type}], [2, {file name}], [3, {file size}]
-	encodedParams := EncodeMap(params)
-	payloadBuffer.Write(encodedParams)
-
-	// [4, {file contents}],
-	// TAG: file contents
-	binary.LittleEndian.PutUint16(buf2, uint16(4))
-	payloadBuffer.Write(buf2)
-
-	// LENGTH: file size
-	binary.LittleEndian.PutUint32(buf4, uint32(fileSize))
-	payloadBuffer.Write(buf4)
-
-	// file 내용을 제외한 데이터
-	data := payloadBuffer.Bytes()
-
-	payloadLength := uint32(len(data)) + fileSize
-
-	binary.LittleEndian.PutUint32(buf4, uint32(payloadLength))
-
-	// 전체 패킷
-	tag := DefaultTag()
-	buffer.Write(tag)
-	buffer.Write(buf4)
-	buffer.Write(data)
-
-	//
-	_, err := conn.Write(buffer.Bytes())
-	if err != nil {
-		fmt.Println(err)
-		return err
-	}
-
-	// 실제 파일 내용
-	for {
-		buf := make([]byte, 4096)
-		rlen, err := file.Read(buf)
-		if err != nil {
-			if err == io.EOF {
-				break
-			}
-			fmt.Println(err)
-			return err
-		}
-
-		res := make([]byte, rlen)
-		copy(res, buf[:rlen])
-
-		_, err = conn.Write(res)
-		if err != nil {
-			fmt.Println(err)
-			return err
-		}
-	}
-	return nil
 }
 
 func TimeYYmmddHHMMSS(t *time.Time) string {

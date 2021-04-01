@@ -7,37 +7,67 @@ import (
 	"fmt"
 	isc "github.com/industry-netsecurity-solution/ins-security-channel/isc"
 	"github.com/spf13/viper"
+	"log"
 	"net"
 	"os"
 	"time"
 )
 
+var GConfigPath *string = nil
+var GSrcId *string = nil
+
 var ServerConfig isc.ServerConfigurations
 
-func LoadServerConfiguration(configFile string) {
+var Log *log.Logger = nil
+
+/*
+ *	parse command line
+ */
+func ParseOptions() int {
+	GConfigPath = flag.String("c", "config.yaml", "configuration path(default:config.yaml)")
+	GSrcId = flag.String("s", "vip-server", "지능형 플랫폼")
+
+	flag.Parse()
+
+	return 0
+}
+
+/*
+ * load configuration
+ */
+func LoadConfiguration() int {
+
+	if GConfigPath == nil {
+		return -1
+	}
+
 	// Set the file name of the configurations file
 	//viper.AddConfigPath(configFile)
-	viper.SetConfigFile(configFile)
+	viper.SetConfigFile(*GConfigPath)
 	viper.AutomaticEnv()
 
 	if err := viper.ReadInConfig(); err != nil {
-		fmt.Printf("Error reading config file, %s\n", err)
+		Log.Printf("Error reading config file, %s\n", err)
 	}
 
 	dir, err := os.Getwd()
 	if err != nil {
-		return
+		return -1
 	}
-	fmt.Printf("%s", dir)
+	Log.Printf("%s", dir)
 
 	err = viper.Unmarshal(&ServerConfig)
 	if err != nil {
-		fmt.Printf("Unable to decode into struct, %v\n", err)
+		Log.Printf("Unable to decode into struct, %v\n", err)
+		return -1
 	}
 
 	// Reading config file
-	fmt.Println("Reading config file")
-	fmt.Println("LocalTlsServerPort is\t", ServerConfig.LocalTlsServerPort)
+	for _, item := range  ServerConfig.ToString() {
+		Log.Println(item)
+	}
+
+	return 0
 }
 
 func handle_error_log(err error) {
@@ -223,23 +253,26 @@ func receiveData(conn net.Conn) error {
  * 파일 수신 TLS 서버
  */
 func main() {
+	Log = log.New(os.Stdout, "", log.LstdFlags)
 
-	configPath := flag.String("c", "config.yaml", "configuration path(default:config.yaml)")
-	srcId := flag.String("s", "ins-security-server", "IoT 보안 시스템")
+	// 프로그램 인자 확인
+	if ParseOptions() == -1 {
+		return
+	}
 
-	flag.Parse()
+	// 설정 파일 읽기
+	if LoadConfiguration() == -1 {
+		return
+	}
 
-	LoadServerConfiguration(*configPath)
-
-	LocalTlsServerPort := ServerConfig.LocalTlsServerPort
-	TlsCert := ServerConfig.TlsCert
-	TlsKey := ServerConfig.TlsKey
-	ServerConfig.SourceId = *srcId
-
-	if &LocalTlsServerPort == nil || LocalTlsServerPort == 0 {
+	if ServerConfig.LocalServerPort == 0 {
 		fmt.Println("LocalTlsServerPort Required...")
 		return
 	}
 
-	isc.ReadyTLSServer(LocalTlsServerPort, TlsCert, TlsKey, receiveData)
+	if 0 < len(*GSrcId) {
+		ServerConfig.SourceId = *GSrcId
+	}
+
+	isc.ReadyServer(&ServerConfig, receiveData)
 }

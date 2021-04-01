@@ -7,14 +7,14 @@ import (
 	"strconv"
 )
 
-func proxyConnectionTLS2TCP(conn net.Conn, tcpport int, callback_error func(err error)) {
+func proxyConnectionTLS2TCP(conn net.Conn, tcpport int, callback_event func([]byte, []byte, *error)) {
 	localTCP := "127.0.0.1:" + strconv.Itoa(tcpport)
 	defer conn.Close()
 
 	rAddr, err := net.ResolveTCPAddr("tcp", localTCP)
 	if err != nil {
-		if callback_error != nil {
-			callback_error(err)
+		if callback_event != nil {
+			callback_event(nil, nil, &err)
 		}
 		fmt.Println(err)
 		return
@@ -22,8 +22,8 @@ func proxyConnectionTLS2TCP(conn net.Conn, tcpport int, callback_error func(err 
 
 	rConn, err := net.DialTCP("tcp", nil, rAddr)
 	if err != nil {
-		if callback_error != nil {
-			callback_error(err)
+		if callback_event != nil {
+			callback_event(nil, nil, &err)
 		}
 		fmt.Println(err)
 		return
@@ -31,17 +31,17 @@ func proxyConnectionTLS2TCP(conn net.Conn, tcpport int, callback_error func(err 
 
 	defer rConn.Close()
 
-	Relay(conn, rConn, callback_error)
+	Relay(conn, rConn, callback_event)
 
 	fmt.Println("Handle Connection end...")
 }
 
-func InitTLS2TCP(tlsport int, tcpport int, callback_error func(err error)) {
+func InitTLS2TCP(tlsport int, tcpport int, callback_event func([]byte, []byte, *error)) {
 	localTLS := strconv.Itoa(tlsport)
 	cer, err := tls.LoadX509KeyPair("server.pem", "server.key")
 	if err != nil {
-		if callback_error != nil {
-			callback_error(err)
+		if callback_event != nil {
+			callback_event(nil, nil, &err)
 		}
 		panic(err)
 	}
@@ -57,40 +57,60 @@ func InitTLS2TCP(tlsport int, tcpport int, callback_error func(err error)) {
 	for {
 		conn, err := ln.Accept()
 		if err != nil {
-			if callback_error != nil {
-				callback_error(err)
+			if callback_event != nil {
+				callback_event(nil, nil, &err)
 			}
 			fmt.Println(err)
 			continue
 		}
 
-		go proxyConnectionTLS2TCP(conn, tcpport, callback_error)
+		go proxyConnectionTLS2TCP(conn, tcpport, callback_event)
 	}
 }
 
-func ReadyTLSServer(tlsport int, tlsCert string, tlskey string, callback func(net.Conn) error) {
+func ReadyServer(serverConfig *ServerConfigurations, callback func(net.Conn) error) int {
+
+	if serverConfig == nil {
+		return -1
+	}
 
 	if callback == nil {
-		return
+		return -1
 	}
 
-	localTLS := "0.0.0.0:" + strconv.Itoa(tlsport)
-	//cer, err := tls.LoadX509KeyPair("server.pem", "server.key")
-	cer, err := tls.LoadX509KeyPair(tlsCert, tlskey)
-	if err != nil {
-		panic(err)
+
+	var listener net.Listener = nil
+
+	localurl := "0.0.0.0:" + strconv.Itoa(serverConfig.LocalServerPort)
+	if serverConfig.EnableLocalTls {
+		var config *tls.Config = nil
+		//cer, err := tls.LoadX509KeyPair("server.pem", "server.key")
+		cer, err := tls.LoadX509KeyPair(serverConfig.TlsCert, serverConfig.TlsKey)
+		if err != nil {
+			panic(err)
+			return -1
+		}
+
+		config = &tls.Config{Certificates: []tls.Certificate{cer}}
+		listener, err = tls.Listen("tcp", localurl, config)
+		if err != nil {
+			panic(err)
+			return -1
+		}
+	} else {
+		addr, err := net.ResolveTCPAddr("tcp", localurl)
+		listener, err = net.ListenTCP("tcp", addr)
+		if err != nil {
+			panic(err)
+			return -1
+		}
 	}
 
-	config := &tls.Config{Certificates: []tls.Certificate{cer}}
-	ln, err := tls.Listen("tcp", localTLS, config)
-	if err != nil {
-		panic(err)
-	}
 
-	defer ln.Close()
+	defer listener.Close()
 
 	for {
-		conn, err := ln.Accept()
+		conn, err := listener.Accept()
 		if err != nil {
 			fmt.Println(err)
 			continue
@@ -98,4 +118,6 @@ func ReadyTLSServer(tlsport int, tlsCert string, tlskey string, callback func(ne
 
 		go callback(conn)
 	}
+
+	return 0
 }

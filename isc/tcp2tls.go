@@ -10,57 +10,76 @@ import (
 /**
  * TCP connection을 TLS connection으로 변경하여 전달한다.
  */
-func proxyConnection2TLS(conn net.Conn, tlsServerIp string, tlsport int, callback_error func(err error)) {
+func proxyConnection2TLS(conn net.Conn, relayConfig RelayConfigurations, callback_event func([]byte, []byte, *error)) {
 	defer conn.Close()
 
 	// TLS 서버 주소
-	tlsServerURL := tlsServerIp + ":" + strconv.Itoa(tlsport)
+	tlsServerURL := relayConfig.RemoteServerIp + ":" + strconv.Itoa(relayConfig.RemoteServerPort)
 	rAddr, err := net.ResolveTCPAddr("tcp", tlsServerURL)
 	if err != nil {
-		if callback_error != nil {
-			callback_error(err)
+		if callback_event != nil {
+			callback_event(nil, nil, &err)
 		}
 		fmt.Println(err)
 		return
 	}
 
-	conf := &tls.Config{
-		InsecureSkipVerify: true,
+	var rConn net.Conn = nil
+	if relayConfig.EnableRemoteTls {
+		var config *tls.Config = nil
+		config = &tls.Config{
+			InsecureSkipVerify: true,
+		}
+		// TCP/TLS 연결
+		rConn, err = tls.Dial("tcp", rAddr.String(), config)
+		if err != nil {
+			if callback_event != nil {
+				callback_event(nil, nil, &err)
+			}
+			fmt.Println(err)
+			return
+		}
+	} else {
+
+		rConn, err = net.DialTCP("tcp", nil, rAddr)
+		if err != nil {
+			if callback_event != nil {
+				callback_event(nil, nil, &err)
+			}
+			fmt.Println(err)
+			return
+		}
+
 	}
 
-	// TLS 연결
-	rConn, err := tls.Dial("tcp", rAddr.String(), conf)
-	if err != nil {
-		if callback_error != nil {
-			callback_error(err)
-		}
-		fmt.Println(err)
-		return
-	}
 
 	// tcp conn <--> tls conn 간 상호 전달
-	Relay(conn, rConn, callback_error)
-	defer rConn.Close()
+	if Relay(conn, rConn, callback_event) == 0 {
+		if callback_event != nil {
+			callback_event(nil, nil, nil)
+		}
+	}
 
+	defer rConn.Close()
 }
 
 /**
  * 로컬 수신 대기
  */
-func InitTCP2TLS(tlsServerIp string, tlsport int, tcpport int, callback_error func(err error)) {
-	localTCP := "127.0.0.1:" + strconv.Itoa(tcpport)
-	addr, err := net.ResolveTCPAddr("tcp", localTCP)
+func InitTCP2TLS(relayConfig RelayConfigurations, callback_event func([]byte, []byte, *error)) {
+	localurl := "0.0.0.0:" + strconv.Itoa(relayConfig.LocalServerPort)
+	addr, err := net.ResolveTCPAddr("tcp", localurl)
 	if err != nil {
-		if callback_error != nil {
-			callback_error(err)
+		if callback_event != nil {
+			callback_event(nil, nil, &err)
 		}
 		panic(err)
 	}
 
 	listener, err := net.ListenTCP("tcp", addr)
 	if err != nil {
-		if callback_error != nil {
-			callback_error(err)
+		if callback_event != nil {
+			callback_event(nil, nil, &err)
 		}
 		panic(err)
 	}
@@ -74,32 +93,46 @@ func InitTCP2TLS(tlsServerIp string, tlsport int, tcpport int, callback_error fu
 
 		fmt.Println("Accepted:", conn.RemoteAddr())
 
-		fmt.Println("Send Server : ", tlsServerIp)
-		go proxyConnection2TLS(conn, tlsServerIp, tlsport, callback_error)
+		fmt.Println("Send Server : ", relayConfig.RemoteServerIp)
+		go proxyConnection2TLS(conn, relayConfig, callback_event)
 	}
 }
 
 /**
  * 로컬 수신 대기
  */
-func InitTLS2TLS(remoteTlsServerIp string, remoteTlsPort int, localTlsPort int, tlsCert string, tlskey string, callback_error func(err error)) {
-	localTLS := "0.0.0.0:" + strconv.Itoa(localTlsPort)
+func InitTLS2TLS(relayConfig RelayConfigurations, callback_event func([]byte, []byte, *error)) {
+	localurl := "0.0.0.0:" + strconv.Itoa(relayConfig.LocalServerPort)
 	//cer, err := tls.LoadX509KeyPair("server.crt", "server.key")
-	cer, err := tls.LoadX509KeyPair(tlsCert, tlskey)
-	if err != nil {
-		if callback_error != nil {
-			callback_error(err)
-		}
-		panic(err)
-	}
 
-	config := &tls.Config{Certificates: []tls.Certificate{cer}}
-	listener, err := tls.Listen("tcp", localTLS, config)
-	if err != nil {
-		if callback_error != nil {
-			callback_error(err)
+	var listener net.Listener = nil
+	if relayConfig.EnableLocalTls {
+		var config *tls.Config = nil
+		cer, err := tls.LoadX509KeyPair(relayConfig.TlsCert, relayConfig.TlsKey)
+		if err != nil {
+			if callback_event != nil {
+				callback_event(nil, nil, &err)
+			}
+			panic(err)
 		}
-		panic(err)
+
+		config = &tls.Config{Certificates: []tls.Certificate{cer}}
+		listener, err = tls.Listen("tcp", localurl, config)
+		if err != nil {
+			if callback_event != nil {
+				callback_event(nil, nil, &err)
+			}
+			panic(err)
+		}
+	} else {
+		addr, err := net.ResolveTCPAddr("tcp", localurl)
+		listener, err = net.ListenTCP("tcp", addr)
+		if err != nil {
+			if callback_event != nil {
+				callback_event(nil, nil, &err)
+			}
+			panic(err)
+		}
 	}
 
 	defer listener.Close()
@@ -113,6 +146,6 @@ func InitTLS2TLS(remoteTlsServerIp string, remoteTlsPort int, localTlsPort int, 
 		}
 		fmt.Println("Accepted:", conn.RemoteAddr())
 
-		go proxyConnection2TLS(conn, remoteTlsServerIp, remoteTlsPort, callback_error)
+		go proxyConnection2TLS(conn, relayConfig, callback_event)
 	}
 }
