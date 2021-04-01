@@ -162,3 +162,121 @@ func TimeYYmmddHHMMSS(t *time.Time) string {
 		t.Year(), t.Month(), t.Day(),
 		t.Hour(), t.Minute(), t.Second())
 }
+
+/*
+ * LittleEndian
+ */
+func EncLETL(tag uint16, length uint32) []byte {
+	buf2 := make([]byte, 2)
+	buf4 := make([]byte, 4)
+
+	var buffer bytes.Buffer
+
+	binary.LittleEndian.PutUint16(buf2, tag)
+	buffer.Write(buf2)
+
+	binary.LittleEndian.PutUint32(buf4, length)
+	buffer.Write(buf4)
+
+	return buffer.Bytes()
+}
+
+func EncLETLV(tag uint16, data []byte) []byte {
+	buf2 := make([]byte, 2)
+	buf4 := make([]byte, 4)
+
+	var buffer bytes.Buffer
+
+	binary.LittleEndian.PutUint16(buf2, tag)
+	buffer.Write(buf2)
+
+	if data == nil {
+		binary.LittleEndian.PutUint32(buf4, uint32(0))
+		buffer.Write(buf4)
+		return buffer.Bytes()
+	}
+
+	binary.LittleEndian.PutUint32(buf4, uint32(len(data)))
+	buffer.Write(buf4)
+
+	buffer.Write(data)
+
+	return buffer.Bytes()
+}
+
+func EncLEString(tag uint16, data string) []byte {
+	return EncLETLV(tag, []byte(data))
+}
+
+func EncLEUint16(tag uint16, data uint16) []byte {
+	buf2 := make([]byte, 2)
+	binary.LittleEndian.PutUint16(buf2, data)
+
+	return EncLETLV(tag, buf2)
+}
+
+func EncLEUint32(tag uint16, data uint32) []byte {
+	buf4 := make([]byte, 4)
+	binary.LittleEndian.PutUint32(buf4, data)
+
+	return EncLETLV(tag, buf4)
+}
+
+/*
+ * BigEndian
+ */
+func EncBETL(tag uint16, length uint32) []byte {
+	buf2 := make([]byte, 2)
+	buf4 := make([]byte, 4)
+
+	var buffer bytes.Buffer
+
+	binary.BigEndian.PutUint16(buf2, tag)
+	buffer.Write(buf2)
+
+	binary.BigEndian.PutUint32(buf4, length)
+	buffer.Write(buf4)
+
+	return buffer.Bytes()
+}
+
+func EncBETLV(tag uint16, data []byte) []byte {
+	buf2 := make([]byte, 2)
+	buf4 := make([]byte, 4)
+
+	var buffer bytes.Buffer
+
+	binary.BigEndian.PutUint16(buf2, tag)
+	buffer.Write(buf2)
+
+	if data == nil {
+		binary.BigEndian.PutUint32(buf4, uint32(0))
+		buffer.Write(buf4)
+		return buffer.Bytes()
+	}
+
+	binary.BigEndian.PutUint32(buf4, uint32(len(data)))
+	buffer.Write(buf4)
+
+	buffer.Write(data)
+
+	return buffer.Bytes()
+}
+
+func EncBEString(tag uint16, data string) []byte {
+	return EncBETLV(tag, []byte(data))
+}
+
+func EncBEUint16(tag uint16, data uint16) []byte {
+	buf2 := make([]byte, 2)
+	binary.BigEndian.PutUint16(buf2, data)
+
+	return EncBETLV(tag, buf2)
+}
+
+func EncBEUint32(tag uint16, data uint32) []byte {
+	buf4 := make([]byte, 4)
+	binary.BigEndian.PutUint32(buf4, data)
+
+	return EncBETLV(tag, buf4)
+}
