@@ -9,8 +9,8 @@ import (
 )
 
 type ConnectionData struct {
-	buffer1 bytes.Buffer
-	buffer2 bytes.Buffer
+	Buffer1 bytes.Buffer
+	Buffer2 bytes.Buffer
 }
 
 /**
