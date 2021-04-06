@@ -5,11 +5,12 @@ import (
 	"encoding/binary"
 	"fmt"
 	"github.com/go-resty/resty/v2"
+	"io"
 	"net"
 	"time"
 )
 
-func CopyFromTCP(conn net.Conn) chan []byte {
+func CopyFromTCP(conn net.Conn, callback_event func([]byte, []byte, *error)) chan []byte {
 	c := make(chan []byte)
 
 	go func() {
@@ -23,6 +24,14 @@ func CopyFromTCP(conn net.Conn) chan []byte {
 			}
 
 			if err != nil {
+				if err == io.EOF {
+					c <- nil
+					break
+				}
+
+				if callback_event != nil {
+					callback_event(nil, nil, &err)
+				}
 				c <- nil
 				break
 			}
@@ -32,12 +41,46 @@ func CopyFromTCP(conn net.Conn) chan []byte {
 	return c
 }
 
+func FilterFromTCP(conn net.Conn, callback_event func([]byte, []byte, *error)([]byte, int)) chan []byte {
+	c := make(chan []byte)
+
+	go func() {
+		b := make([]byte, 4096)
+		for {
+			n, err := conn.Read(b)
+			if n > 0 {
+				res := make([]byte, n)
+				copy(res, b[:n])
+				c <- res
+			}
+
+			if err != nil {
+				if err == io.EOF {
+					c <- nil
+					break
+				}
+
+				if callback_event != nil {
+					callback_event(nil, nil, &err)
+				}
+				c <- nil
+				break
+			}
+		}
+	}()
+
+	return c
+}
+
+/**
+ *  있는 그대로 읽고 전달한다.
+ */
 func Relay(conn1 net.Conn, conn2 net.Conn, callback_event func([]byte, []byte, *error)) int {
 	var len1 int = -1
 	var len2 int = -1
 
-	chan1 := CopyFromTCP(conn1)
-	chan2 := CopyFromTCP(conn2)
+	chan1 := CopyFromTCP(conn1, callback_event)
+	chan2 := CopyFromTCP(conn2, callback_event)
 
 	for {
 		select {
@@ -94,6 +137,69 @@ func Relay(conn1 net.Conn, conn2 net.Conn, callback_event func([]byte, []byte, *
 	return 0
 }
 
+/**
+ * 데이터를 받아서, 처리하고 결과를 전달한다.
+ */
+func RelayBroker(conn1 net.Conn, conn2 net.Conn, broker_event func([]byte, []byte, *error) ([]byte, int)) int {
+
+	if broker_event != nil {
+		return -1
+	}
+
+	var len1 int = -1
+	var len2 int = -1
+
+	chan1 := FilterFromTCP(conn1, broker_event)
+	chan2 := FilterFromTCP(conn2, broker_event)
+
+	for {
+		select {
+		case b1 := <-chan1:
+			if b1 == nil {
+				return 0
+			} else {
+				if len1 < 0 {
+					len1 = len(b1)
+				} else {
+					len1 += len(b1)
+				}
+
+				// conn1에서 수신한 데이터
+				data, nlen := broker_event(b1, nil, nil)
+				if 0 < nlen {
+					_, err := conn2.Write(data)
+					if err != nil {
+						broker_event(nil, nil, &err)
+						return -1
+					}
+				}
+			}
+		case b2 := <-chan2:
+			if b2 == nil {
+				return 0
+			} else {
+				if len2 < 0 {
+					len2 = len(b2)
+				} else {
+					len2 += len(b2)
+				}
+
+				// conn2에서 수신한 데이터
+				data, nlen := broker_event(nil, b2, nil)
+				if 0 < nlen {
+					_, err := conn1.Write(data)
+					if err != nil {
+						broker_event(nil, nil, &err)
+						return -1
+					}
+				}
+			}
+		}
+	}
+
+	return 0
+}
+
 func EncodeMap(params map[int][]byte) []byte {
 	buf2 := make([]byte, 2)
 	buf4 := make([]byte, 4)
@@ -121,6 +227,7 @@ func EncodeMap(params map[int][]byte) []byte {
 // HTTP를 통한 데이터 전송
 func TransferHttp(url string, data []byte) error {
 	client := resty.New()
+	client.SetCloseConnection(true)
 	resp, err := client.R().
 		SetHeader("Content-Type", "application/json").
 		SetBody(data).
@@ -132,7 +239,7 @@ func TransferHttp(url string, data []byte) error {
 
 	fmt.Println(resp)
 
-	//resp.RawBody().Close()
+	// resp.RawBody().Close()
 
 	return nil
 }
@@ -163,6 +270,66 @@ func TimeYYmmddHHMMSS(t *time.Time) string {
 		t.Hour(), t.Minute(), t.Second())
 }
 
+func EncTagLn(order binary.ByteOrder, tag []byte, size uint, length uint32) []byte {
+	var buffer = new(bytes.Buffer)
+	binary.Write(buffer, order, tag)
+
+	if size == 16 {
+		binary.Write(buffer, order, uint16(length))
+	} else if size == 32 {
+		binary.Write(buffer, order, uint32(length))
+	} else if size == 64 {
+		binary.Write(buffer, order, uint64(length))
+	} else {
+		return nil
+	}
+
+	return buffer.Bytes()
+}
+
+func EncTagLnV(order binary.ByteOrder, tag []byte, size uint, data []byte) []byte {
+	var buffer = new(bytes.Buffer)
+	binary.Write(buffer, order, tag)
+
+	if data == nil {
+		if size == 16 {
+			binary.Write(buffer, order, uint16(0))
+		} else if size == 32 {
+			binary.Write(buffer, order, uint32(0))
+		} else if size == 64 {
+			binary.Write(buffer, order, uint64(0))
+		} else {
+			return nil
+		}
+
+		return buffer.Bytes()
+	}
+
+	if size == 16 {
+		binary.Write(buffer, order, uint16(len(data)))
+	} else if size == 32 {
+		binary.Write(buffer, order, uint32(len(data)))
+	} else if size == 64 {
+		binary.Write(buffer, order, uint64(len(data)))
+	} else {
+		return nil
+	}
+
+	buffer.Write(data)
+
+	return buffer.Bytes()
+}
+
+func EncTagLnString(order binary.ByteOrder, tag []byte, size uint, data string) []byte {
+	return EncTagLnV(order, tag, size, []byte(data))
+}
+
+func EncTagLnUInt32(order binary.ByteOrder, tag []byte, size uint, data uint32) []byte {
+	buf4 := make([]byte, 4)
+	order.PutUint32(buf4, data)
+	return EncTagLnV(order, tag, size, buf4)
+}
+
 /*
  * LittleEndian
  */
@@ -177,6 +344,51 @@ func EncLETL(tag uint16, length uint32) []byte {
 
 	binary.LittleEndian.PutUint32(buf4, length)
 	buffer.Write(buf4)
+
+	return buffer.Bytes()
+}
+
+func EncLETLnV(tag uint16, size uint, data []byte) []byte {
+	buf2 := make([]byte, 2)
+	buf4 := make([]byte, 4)
+	buf8 := make([]byte, 8)
+
+	var buffer bytes.Buffer
+
+	binary.LittleEndian.PutUint16(buf2, tag)
+	buffer.Write(buf2)
+
+	if data == nil {
+		if size == 16 {
+			binary.LittleEndian.PutUint16(buf2, uint16(0))
+			buffer.Write(buf2)
+		} else if size == 32 {
+			binary.LittleEndian.PutUint32(buf4, uint32(0))
+			buffer.Write(buf4)
+		} else if size == 64 {
+			binary.LittleEndian.PutUint64(buf8, uint64(0))
+			buffer.Write(buf8)
+		} else {
+			return nil
+		}
+
+		return buffer.Bytes()
+	}
+
+	if size == 16 {
+		binary.LittleEndian.PutUint16(buf2, uint16(len(data)))
+		buffer.Write(buf2)
+	} else if size == 32 {
+		binary.LittleEndian.PutUint32(buf4, uint32(len(data)))
+		buffer.Write(buf4)
+	} else if size == 64 {
+		binary.LittleEndian.PutUint64(buf8, uint64(len(data)))
+		buffer.Write(buf8)
+	} else {
+		return nil
+	}
+
+	buffer.Write(data)
 
 	return buffer.Bytes()
 }
