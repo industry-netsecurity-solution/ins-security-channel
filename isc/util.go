@@ -144,7 +144,7 @@ func Relay(conn1 net.Conn, conn2 net.Conn, callback_event func([]byte, []byte, *
  */
 func RelayBroker(conn1 net.Conn, conn2 net.Conn,
 	broker_event func(*ConnectionData, []byte, []byte, *error) ([]byte, int),
-	userdata *ConnectionData}) int {
+	userdata *ConnectionData) int {
 
 	if broker_event != nil {
 		return -1
