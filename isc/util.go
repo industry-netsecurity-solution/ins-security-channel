@@ -41,7 +41,9 @@ func CopyFromTCP(conn net.Conn, callback_event func([]byte, []byte, *error)) cha
 	return c
 }
 
-func FilterFromTCP(conn net.Conn, callback_event func([]byte, []byte, *error)([]byte, int)) chan []byte {
+func FilterFromTCP(conn net.Conn,
+	callback_event func(*ConnectionData, []byte, []byte, *error)([]byte, int),
+	userdata *ConnectionData) chan []byte {
 	c := make(chan []byte)
 
 	go func() {
@@ -61,7 +63,7 @@ func FilterFromTCP(conn net.Conn, callback_event func([]byte, []byte, *error)([]
 				}
 
 				if callback_event != nil {
-					callback_event(nil, nil, &err)
+					callback_event(userdata, nil, nil, &err)
 				}
 				c <- nil
 				break
@@ -140,7 +142,9 @@ func Relay(conn1 net.Conn, conn2 net.Conn, callback_event func([]byte, []byte, *
 /**
  * 데이터를 받아서, 처리하고 결과를 전달한다.
  */
-func RelayBroker(conn1 net.Conn, conn2 net.Conn, broker_event func([]byte, []byte, *error) ([]byte, int)) int {
+func RelayBroker(conn1 net.Conn, conn2 net.Conn,
+	broker_event func(*ConnectionData, []byte, []byte, *error) ([]byte, int),
+	userdata *ConnectionData}) int {
 
 	if broker_event != nil {
 		return -1
@@ -149,8 +153,8 @@ func RelayBroker(conn1 net.Conn, conn2 net.Conn, broker_event func([]byte, []byt
 	var len1 int = -1
 	var len2 int = -1
 
-	chan1 := FilterFromTCP(conn1, broker_event)
-	chan2 := FilterFromTCP(conn2, broker_event)
+	chan1 := FilterFromTCP(conn1, broker_event, userdata)
+	chan2 := FilterFromTCP(conn2, broker_event, userdata)
 
 	for {
 		select {
@@ -165,11 +169,11 @@ func RelayBroker(conn1 net.Conn, conn2 net.Conn, broker_event func([]byte, []byt
 				}
 
 				// conn1에서 수신한 데이터
-				data, nlen := broker_event(b1, nil, nil)
+				data, nlen := broker_event(userdata, b1, nil, nil)
 				if 0 < nlen {
 					_, err := conn2.Write(data)
 					if err != nil {
-						broker_event(nil, nil, &err)
+						broker_event(userdata, nil, nil, &err)
 						return -1
 					}
 				}
@@ -185,11 +189,11 @@ func RelayBroker(conn1 net.Conn, conn2 net.Conn, broker_event func([]byte, []byt
 				}
 
 				// conn2에서 수신한 데이터
-				data, nlen := broker_event(nil, b2, nil)
+				data, nlen := broker_event(userdata, nil, b2, nil)
 				if 0 < nlen {
 					_, err := conn1.Write(data)
 					if err != nil {
-						broker_event(nil, nil, &err)
+						broker_event(userdata, nil, nil, &err)
 						return -1
 					}
 				}
