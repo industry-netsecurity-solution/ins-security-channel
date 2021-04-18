@@ -12,6 +12,7 @@ type RelayConfigurations struct {
 	RemoteServerPort    int
 	SourceId            string
 	EventLogUrl         string
+	DiagInterval        int
 }
 
 type ClientConfigurations struct {
@@ -20,6 +21,7 @@ type ClientConfigurations struct {
 	RemoteServerPort    int
 	SourceId            string
 	EventLogUrl         string
+	DiagInterval        int
 }
 
 type ServerConfigurations struct {
@@ -42,6 +44,7 @@ func (v RelayConfigurations) ToString() []string {
 	strings = append(strings, fmt.Sprintf("RemoteServerPort: %d", v.RemoteServerPort))
 	strings = append(strings, fmt.Sprintf("SourceId: %s", v.SourceId))
 	strings = append(strings, fmt.Sprintf("EventLogUrl: %s", v.EventLogUrl))
+	strings = append(strings, fmt.Sprintf("DiagInterval: %d", v.DiagInterval))
 
 	return strings
 }
@@ -53,6 +56,7 @@ func (v ClientConfigurations) ToString() []string {
 	strings = append(strings, fmt.Sprintf("RemoteServerPort: %d", v.RemoteServerPort))
 	strings = append(strings, fmt.Sprintf("SourceId: %s", v.SourceId))
 	strings = append(strings, fmt.Sprintf("EventLogUrl: %s", v.EventLogUrl))
+	strings = append(strings, fmt.Sprintf("DiagInterval: %d", v.DiagInterval))
 
 	return strings
 }
