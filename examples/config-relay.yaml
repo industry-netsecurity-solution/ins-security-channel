@@ -1,5 +1,9 @@
-TlsCert: "server.crt"
-TlsKey: "server.key"
-LocalTlsServerPort: 9990
-remoteTlsServerIp: 127.0.0.1
-remoteTlsServerPort: 49990
+Service:
+  EnableTLS: true
+  TlsCert: "server.crt"
+  TlsKey: "server.key"
+  Address: 0.0.0.0
+  Port: 9990
+Remote:
+  Address: 127.0.0.1
+  Port: 49990

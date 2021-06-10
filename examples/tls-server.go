@@ -5,52 +5,155 @@ import (
 	"encoding/binary"
 	"flag"
 	"fmt"
-	isc "github.com/industry-netsecurity-solution/ins-security-channel/isc"
+	"github.com/industry-netsecurity-solution/ins-security-channel/ins"
 	"github.com/spf13/viper"
+	"log"
 	"net"
 	"os"
 	"time"
 )
 
-var ServerConfig isc.ServerConfigurations
+var Config ins.RelayConfigurations
 
-func LoadServerConfiguration(configFile string) {
+var GConfigPath *string = nil
+var GSrcId *string = nil
+
+var GServiceEnableTls *bool = nil
+var GServiceAddress *string = nil
+var GServicePort *int = nil
+
+var Log *log.Logger = nil
+
+/*
+ *	parse command line
+ */
+func ParseFlagOptions() int {
+
+	GConfigPath = flag.String("c", "config.yaml", "configuration path(default:config.yaml)")
+	GSrcId = flag.String("source", "ins-security-server", "IoT 보안 시스템")
+
+	GServiceEnableTls = flag.Bool("service.enabletls", false, "The address of service.")
+	GServiceAddress = flag.String("service.address", "0.0.0.0", "The address of service.")
+	GServicePort = flag.Int("service.port", 9980, "The port of service.")
+
+	flag.Parse()
+
+	return 0
+}
+
+/*
+ * load configuration
+ */
+func LoadConfiguration() int {
+	if GConfigPath == nil || len(*GConfigPath) <= 0 {
+		return 0
+	}
+
+	viper.SetConfigType("yaml") // or viper.SetConfigType("YAML")
+
 	// Set the file name of the configurations file
 	//viper.AddConfigPath(configFile)
-	viper.SetConfigFile(configFile)
+	viper.SetConfigFile(*GConfigPath)
 	viper.AutomaticEnv()
 
 	if err := viper.ReadInConfig(); err != nil {
-		fmt.Printf("Error reading config file, %s\n", err)
+		Log.Printf("Error reading config file, %s", err.Error())
 	}
 
-	dir, err := os.Getwd()
-	if err != nil {
-		return
+	if viper.Get("Service.EnableTls") == nil {
+		viper.SetDefault("Service.EnableTls", false)
 	}
-	fmt.Printf("%s", dir)
 
-	err = viper.Unmarshal(&ServerConfig)
+	if viper.Get("Service.Address") == nil {
+		viper.SetDefault("Service.Address", "0.0.0.0")
+	}
+
+	if viper.Get("Service.Port") == nil {
+		viper.SetDefault("Service.Port", 9980)
+	}
+
+	err := viper.Unmarshal(&Config)
 	if err != nil {
-		fmt.Printf("Unable to decode into struct, %v\n", err)
+		Log.Printf("Unable to decode into struct, %v", err)
+		return -1
+	}
+
+	return 0
+}
+
+/*
+ * load configuration
+ */
+func UpdateConfiguration() int {
+
+	// Service
+	if ins.IsFlagPassed("service.enabletls") {
+		Config.Service.EnableTls = *GServiceEnableTls
+	}
+	if ins.IsFlagPassed("service.address") {
+		Config.Service.Address = *GServiceAddress
+	} else {
+		if len(Config.Service.Address) == 0 {
+			Config.Service.Address = *GServiceAddress
+		}
+	}
+
+	if ins.IsFlagPassed("service.port") {
+		Config.Service.Port = *GServicePort
+	} else {
+		if Config.Service.Port == 0 {
+			Config.Service.Port = *GServicePort
+		}
+	}
+
+	//
+	if ins.IsFlagPassed("source") {
+		Config.SourceId = *GSrcId
+	} else {
+		if len(Config.SourceId) == 0 {
+			Config.SourceId = *GSrcId
+		}
 	}
 
 	// Reading config file
-	fmt.Println("Reading config file")
-	fmt.Println("LocalTlsServerPort is\t", ServerConfig.LocalTlsServerPort)
+	Config.PrintConfigurations()
+
+	return 0
+}
+
+func ParseOptions() int {
+
+	// 프로그램 인자 확인
+	if ParseFlagOptions() == -1 {
+		return -1
+	}
+
+	// 설정 파일 읽기
+	if LoadConfiguration() == -1 {
+		return -1
+	}
+
+	// 설정 파일 읽기
+	if UpdateConfiguration() == -1 {
+		return -1
+	}
+
+	Config.PrintConfigurations()
+
+	return 0
 }
 
 func handle_error_log(err error) {
-	EventLogUrl := ServerConfig.EventLogUrl
+	EventLogUrl := Config.EventLogUrl
 	if len(EventLogUrl) == 0 {
 		return
 	}
 
 	// 로그 기록
-	evt := isc.EventLog{}
+	evt := ins.EventLog{}
 	evt.SetEventGatewayType("IoT 보안 시스템")
 	evt.SetEventType("IoT 보안 시스템")
-	evt.SetEventGatewayId(ServerConfig.SourceId)
+	evt.SetEventGatewayId(Config.SourceId)
 	t := time.Now()
 	evt.SetEventTime(fmt.Sprintf("%d-%02d-%02dT%02d:%02d:%02d",
 		t.Year(), t.Month(), t.Day(),
@@ -59,7 +162,7 @@ func handle_error_log(err error) {
 	evt.SetEventStatus("점검")
 	evt.SetEventMessage(err.Error())
 	evt.SetEventContent(err.Error())
-	isc.ReportLog(EventLogUrl, evt)
+	ins.ReportEvent(EventLogUrl, evt)
 
 }
 
@@ -219,27 +322,29 @@ func receiveData(conn net.Conn) error {
 	}
 }
 
+func callback(conn net.Conn, ud interface{}) error {
+
+	for {
+		data, err := ins.RecvTLV(conn, binary.LittleEndian)
+		if err != nil {
+			return err
+		}
+		fmt.Println(data)
+	}
+
+	return nil
+}
+
 /**
- * 파일 수신 TLS 서버
+ * 파일 수신 서버
  */
 func main() {
 
-	configPath := flag.String("c", "config.yaml", "configuration path(default:config.yaml)")
-	srcId := flag.String("s", "ins-security-server", "IoT 보안 시스템")
+	Log = log.New(os.Stdout, "", log.LstdFlags)
 
-	flag.Parse()
-
-	LoadServerConfiguration(*configPath)
-
-	LocalTlsServerPort := ServerConfig.LocalTlsServerPort
-	TlsCert := ServerConfig.TlsCert
-	TlsKey := ServerConfig.TlsKey
-	ServerConfig.SourceId = *srcId
-
-	if &LocalTlsServerPort == nil || LocalTlsServerPort == 0 {
-		fmt.Println("LocalTlsServerPort Required...")
+	if ParseOptions() != 0 {
 		return
 	}
 
-	isc.ReadyTLSServer(LocalTlsServerPort, TlsCert, TlsKey, receiveData)
+	ins.ReadyServer(&Config.Service, nil, callback)
 }
