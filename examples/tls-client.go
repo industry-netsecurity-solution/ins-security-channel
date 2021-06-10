@@ -8,9 +8,11 @@ import (
 	"fmt"
 	"github.com/industry-netsecurity-solution/ins-security-channel/ins"
 	"github.com/spf13/viper"
+	"io"
 	"log"
 	"net"
 	"os"
+	"path"
 	"strconv"
 )
 
@@ -105,7 +107,6 @@ func GetServerURL() *string {
 }
 
 func GetTCPAddr() (*net.TCPAddr, error) {
-
 	// TLS 서버 주소
 	serverURL := GetServerURL()
 	if serverURL == nil {
@@ -147,7 +148,6 @@ func SendMessage(data []byte, conn net.Conn) (int, error) {
 
 func main() {
 	Log = log.New(os.Stdout, "", log.LstdFlags)
-
 	// 프로그램 인자 확인
 	if ParseOptions() == -1 {
 		return
