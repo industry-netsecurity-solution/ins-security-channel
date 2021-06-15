@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"io"
 	"net"
+	"time"
 )
 
 func NewTLSConfig() *tls.Config {
@@ -81,16 +82,39 @@ func RecvTLV(conn net.Conn, order binary.ByteOrder) ([]byte, error) {
 		return buf.Bytes(), nil
 	}
 
-	dataArray := make([]byte, length)
-	n, err = conn.Read(dataArray)
-	if err != nil {
-		return nil, err
-	}
-	if n != int(length) {
-		return nil, errors.New("The value is not enough length.")
+	dataArray := make([]byte, 4096)
+	dataLength := 0
+
+	for {
+		if int(length) <= dataLength {
+			break
+		}
+		if int(length) - dataLength < len(dataArray) {
+			r := int(length) - dataLength
+			n, err = conn.Read(dataArray[:r])
+		} else {
+			n, err = conn.Read(dataArray)
+		}
+
+		if 0 < n {
+			buf.Write(dataArray[:n])
+			dataLength += n
+		}
+
+		if err != nil {
+			// 접속 종료
+			if err == io.EOF {
+				break
+			}
+
+			// 기타 오류
+			return nil, err
+		}
 	}
 
-	buf.Write(dataArray)
+	if dataLength < int(length) {
+		return nil, errors.New("The value is not enough length.")
+	}
 
 	return buf.Bytes(), nil
 }
@@ -153,13 +177,21 @@ func ReadyServer(serviceConfig *ServiceConfigurations, ud interface{}, callback 
 	return 0
 }
 
-func Dial(remote *ServiceConfigurations) (net.Conn, error) {
-
+/**
+ * remote 서비스에 연결을 시도한다.
+ * timeout 연결 대기 시간으로 <= 0 면, timeout을 지정하지 않는다.
+ */
+func Dial(remote *ServiceConfigurations, timeout time.Duration) (net.Conn, error) {
 	url := fmt.Sprintf("%s:%d", remote.Address, remote.Port)
 	addr, err := net.ResolveTCPAddr("tcp", url)
 	if err != nil {
-		fmt.Println(err)
 		return nil, err
+	}
+
+	var dialer *net.Dialer = nil
+	if 0 < timeout {
+		dialer := new(net.Dialer)
+		dialer.Timeout = timeout
 	}
 
 	var conn net.Conn = nil
@@ -168,16 +200,23 @@ func Dial(remote *ServiceConfigurations) (net.Conn, error) {
 		config = &tls.Config{
 			InsecureSkipVerify: true,
 		}
+
 		// TCP/TLS 연결
-		conn, err = tls.Dial("tcp", addr.String(), config)
+		if dialer == nil {
+			conn, err = tls.Dial("tcp", addr.String(), config)
+		} else {
+			conn, err = tls.DialWithDialer(dialer, "tcp", addr.String(), config)
+		}
 		if err != nil {
-			fmt.Println(err)
 			return nil, err
 		}
 	} else {
-		conn, err = net.DialTCP("tcp", nil, addr)
+		if dialer == nil {
+			conn, err = net.DialTCP("tcp", nil, addr)
+		} else {
+			conn, err = dialer.Dial("tcp", url)
+		}
 		if err != nil {
-			fmt.Println(err)
 			return nil, err
 		}
 	}
