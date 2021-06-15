@@ -23,6 +23,7 @@ type ServiceConfigurations struct {
 	TlsKey              string
 	Address             string
 	Port                int
+	Timeout             int64
 }
 
 type CenterGWConfigurations struct {
@@ -91,6 +92,7 @@ func (v ServiceConfigurations) ToString() []string {
 	strings = append(strings, fmt.Sprintf("TlsKey: %s", v.TlsKey))
 	strings = append(strings, fmt.Sprintf("Address: %s", v.Address))
 	strings = append(strings, fmt.Sprintf("Port: %d", v.Port))
+	strings = append(strings, fmt.Sprintf("Timeout: %d", v.Timeout))
 
 	return strings
 }

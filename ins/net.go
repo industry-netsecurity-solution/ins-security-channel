@@ -181,7 +181,7 @@ func ReadyServer(serviceConfig *ServiceConfigurations, ud interface{}, callback 
  * remote 서비스에 연결을 시도한다.
  * timeout 연결 대기 시간으로 <= 0 면, timeout을 지정하지 않는다.
  */
-func Dial(remote *ServiceConfigurations, timeout time.Duration) (net.Conn, error) {
+func Dial(remote *ServiceConfigurations) (net.Conn, error) {
 	url := fmt.Sprintf("%s:%d", remote.Address, remote.Port)
 	addr, err := net.ResolveTCPAddr("tcp", url)
 	if err != nil {
@@ -189,9 +189,9 @@ func Dial(remote *ServiceConfigurations, timeout time.Duration) (net.Conn, error
 	}
 
 	var dialer *net.Dialer = nil
-	if 0 < timeout {
-		dialer := new(net.Dialer)
-		dialer.Timeout = timeout
+	if 0 < remote.Timeout {
+		dialer = new(net.Dialer)
+		dialer.Timeout = time.Duration(remote.Timeout) * time.Second
 	}
 
 	var conn net.Conn = nil
