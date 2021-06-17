@@ -7,3 +7,4 @@ Service:
 Remote:
   Address: 127.0.0.1
   Port: 49990
+  Timeout: 30

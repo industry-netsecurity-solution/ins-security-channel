@@ -77,6 +77,12 @@ var GW_ELSSEN_SAFETY_HOOK = []byte{0x10, byte(ELSSEN_SAFETY_HOOK)}
 // 건설 현장 유해가스
 var GW_ELSSEN_TOXIC_GAS = []byte{0x10, byte(ELSSEN_TOXIC_GAS)}
 
+
+// 중계 -> 집중
+var BB_UWB_DISTANCE = []byte{0x00, 0x58}
+
+
+
 var NAME_CODE_WRAPPED = "Wrapped"
 var NAME_CODE_ELSSEN = "ELSSEN"
 var NAME_CODE_YMTECH = "YMTECH"

@@ -1,4 +1,5 @@
 Remote:
   Address: "127.0.0.1"
   Port: 9990
+  Timeout: 30
 EventLogUrl: "http://10.10.1.15:9091/event/gateway"
