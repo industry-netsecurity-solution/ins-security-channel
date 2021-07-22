@@ -3,8 +3,62 @@ package ins
 import (
 	"bytes"
 	"encoding/binary"
+	"errors"
 )
 
+type TL16V struct {
+	Type []byte
+	Length uint16
+	Value []byte
+}
+
+type TL32V struct {
+	Type []byte
+	Length uint32
+	Value []byte
+}
+
+type TL64V struct {
+	Type []byte
+	Length uint64
+	Value []byte
+}
+
+func DecTL16V(order binary.ByteOrder, data []byte, tlv *TL16V) error {
+	if tlv == nil || data == nil || len(data) < 4 {
+		return errors.New("The length is not enough length.")
+	}
+
+	tlv.Type = data[0:2]
+	tlv.Length = order.Uint16(data[2:4])
+	tlv.Value = data[4:]
+
+	return nil
+}
+
+func DecTL32V(order binary.ByteOrder, data []byte, tlv *TL32V) error {
+	if tlv == nil || data == nil || len(data) < 6 {
+		return errors.New("The length is not enough length.")
+	}
+
+	tlv.Type = data[0:2]
+	tlv.Length = order.Uint32(data[2:6])
+	tlv.Value = data[6:]
+
+	return nil
+}
+
+func DecTL64V(order binary.ByteOrder, data []byte, tlv *TL64V) error {
+	if tlv == nil || data == nil || len(data) < 10 {
+		return errors.New("The length is not enough length.")
+	}
+
+	tlv.Type = data[0:2]
+	tlv.Length = order.Uint64(data[2:10])
+	tlv.Value = data[10:]
+
+	return nil
+}
 
 func EncodeMap(order binary.ByteOrder, params map[int][]byte) []byte {
 	buf2 := make([]byte, 2)
@@ -85,9 +139,15 @@ func EncTagLnString(order binary.ByteOrder, tag []byte, size uint, data string) 
 }
 
 func EncTagLnUInt32(order binary.ByteOrder, tag []byte, size uint, data uint32) []byte {
-	buf4 := make([]byte, 4)
-	order.PutUint32(buf4, data)
-	return EncTagLnV(order, tag, size, buf4)
+	buf := make([]byte, 4)
+	order.PutUint32(buf, data)
+	return EncTagLnV(order, tag, size, buf)
+}
+
+func EncTagLnUInt64(order binary.ByteOrder, tag []byte, size uint, data uint64) []byte {
+	buf := make([]byte, 8)
+	order.PutUint64(buf, data)
+	return EncTagLnV(order, tag, size, buf)
 }
 
 /*

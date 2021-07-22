@@ -27,9 +27,28 @@ var BBx000F = []byte{0x00, 0x0F}
 var CODE_WRAPPED = []byte{0xEF, 0xF0}
 var CODE_ELSSEN = []byte{0xEA, 0xCE}
 var CODE_YMTECH = []byte{0xEF, 0xFE}
-var CODE_TELEFIELD = []byte{0xFF, 0x00}
-var CODE_ABRAIN = []byte{0xAA, 0x00}
+var CODE_TELEFIELD = []byte{0x8F, 0x8F}
+var CODE_ABRAIN = []byte{0xAB, 0xAB}
 
+
+// 제조현장 집중 GW
+var GW_TYPE_CENTER_FACTORY byte = 0x01
+// 제조현장 중계 GW
+var GW_TYPE_RELAY_FACTORY byte = 0x02
+// 제조현장 스마트 GW
+var GW_TYPE_SMART_FACTORY byte = 0x03
+// 제조현장 블랙박스
+var GW_TYPE_BLACKBOX_FACTORY byte = 0x04
+
+// 위험구역 집중 GW
+var GW_TYPE_CENTER_DANGERZONE byte = 0x11
+// 위험구혁 블랙박스
+var GW_TYPE_BLACKBOX_DANGERZONE byte = 0x14
+
+// 건설현장 이동
+var GW_TYPE_PORTABLE_CONSTRUCTION byte = 0x21
+// 건설현장 중계
+var GW_TYPE_RELAY_CONSTRUCTION byte = 0x22
 
 // 전방/후방 영상 파일
 var BB_FRONT_VIDEO = []byte{0x00, 0x01}
@@ -48,17 +67,17 @@ var BB_UWB_LOCATION = []byte{0x00, 0x08}
 var BB_EVENT_COLLISION = []byte{0x00, 0x09}
 
 // 제조현장
-var GW_CENTER_FACTORY = []byte{0x00, 0x81}
-var GW_RELAY_FACTORY = []byte{0x00, 0x82}
-var GW_SMART_FACTORY = []byte{0x00, 0x83}
+var GW_CENTER_STATUS_FACTORY = []byte{0x00, 0x81}
+var GW_RELAY_STATUS_FACTORY = []byte{0x00, 0x82}
+var GW_SMART_STATUS_FACTORY = []byte{0x00, 0x83}
 
 // 위험구역
-var GW_CENTER_DANGERZONE = []byte{0x00, 0x84}
-var GW_SMART_DANGERZONE = []byte{0x00, 0x85}
+var GW_CENTER_STATUS_DANGERZONE = []byte{0x00, 0x84}
+var GW_SMART_STATUS_DANGERZONE = []byte{0x00, 0x85}
 
 // 건설현장
-var GW_PORTABLE_CONSTRUCTION = []byte{0x00, 0x86}
-var GW_RELAY_CONSTRUCTION = []byte{0x00, 0x87}
+var GW_PORTABLE_STATUS_CONSTRUCTION = []byte{0x00, 0x86}
+var GW_RELAY_STATUS_CONSTRUCTION = []byte{0x00, 0x87}
 
 // 텔레필드 레이다(RADAR)
 var BB_RADAR_APPROACH = []byte{0x20, 0x01}
@@ -79,7 +98,10 @@ var GW_ELSSEN_TOXIC_GAS = []byte{0x10, byte(ELSSEN_TOXIC_GAS)}
 
 
 // 중계 -> 집중
-var BB_UWB_DISTANCE = []byte{0x00, 0x58}
+var BB_RELAY_DISTANCE = []byte{0x01, 0x08}
+
+// 스마트 -> 중계
+var BB_SMART_DISTANCE = []byte{0x02, 0x08}
 
 
 
@@ -106,17 +128,17 @@ var NAME_BB_UWB_LOCATION = "event.location"
 var NAME_BB_EVENT_COLLISION = "event.collision"
 
 // 제조현장
-var NAME_GW_CENTER_FACTORY = "center.gw.status"
-var NAME_GW_RELAY_FACTORY = "relay.gw.status"
-var NAME_GW_SMART_FACTORY = "스마트 게이트웨이"
+var NAME_GW_CENTER_STATUS_FACTORY = "center.gw.status"
+var NAME_GW_RELAY_STATUS_FACTORY = "relay.gw.status"
+var NAME_GW_SMART_STATUS_FACTORY = "스마트 게이트웨이"
 
 // 위험구역
-var NAME_GW_CENTER_DANGERZONE = "center.gw.status"
-var NAME_GW_SMART_DANGERZONE = "smart.gw.status"
+var NAME_GW_CENTER_STATUS_DANGERZONE = "center.gw.status"
+var NAME_GW_SMART_STATUS_DANGERZONE = "smart.gw.status"
 
 // 건설현장
-var NAME_GW_PORTABLE_CONSTRUCTION = "portable.gw.status"
-var NAME_GW_RELAY_CONSTRUCTION = "relay.gw.status"
+var NAME_GW_PORTABLE_STATUS_CONSTRUCTION = "portable.gw.status"
+var NAME_GW_RELAY_STATUS_CONSTRUCTION = "relay.gw.status"
 
 // 텔레필드 레이다(RADAR)
 var NAME_BB_RADAR_APPROACH = "radar.approach"
@@ -157,17 +179,17 @@ var TYPE_BB_UWB_LOCATION = "UWB 위치/속도"
 var TYPE_BB_EVENT_COLLISION = "가속도 충돌 이벤트"
 
 // 제조현장
-var TYPE_GW_CENTER_FACTORY = "집중 게이트웨이"
-var TYPE_GW_RELAY_FACTORY = "중계 게이트웨이"
-var TYPE_GW_SMART_FACTORY = "스마트 게이트웨이"
+var TYPE_GW_CENTER_STATUS_FACTORY = "집중 게이트웨이"
+var TYPE_GW_RELAY_STATUS_FACTORY = "중계 게이트웨이"
+var TYPE_GW_SMART_STATUS_FACTORY = "스마트 게이트웨이"
 
 // 위험구역
-var TYPE_GW_CENTER_DANGERZONE = "집중 게이트웨이"
-var TYPE_GW_SMART_DANGERZONE = "스마트 게이트웨이"
+var TYPE_GW_CENTER_STATUS_DANGERZONE = "집중 게이트웨이"
+var TYPE_GW_SMART_STATUS_DANGERZONE = "스마트 게이트웨이"
 
 // 건설현장
-var TYPE_GW_PORTABLE_CONSTRUCTION = "이동형 게이트웨이"
-var TYPE_GW_RELAY_CONSTRUCTION = "중계 게이트웨이"
+var TYPE_GW_PORTABLE_STATUS_CONSTRUCTION = "이동형 게이트웨이"
+var TYPE_GW_RELAY_STATUS_CONSTRUCTION = "중계 게이트웨이"
 
 // 텔레필드 레이다(RADAR)
 var TYPE_BB_RADAR_APPROACH = "접근 감지 레이다"
@@ -217,25 +239,25 @@ func GetTransmissionMethod4YMTECH(order binary.ByteOrder, data []byte) int {
 	} else if bytes.HasPrefix(data, BB_EVENT_COLLISION) {
 		// 제조현장 지게차 충돌 이벤트
 		return METHOD_MQTT
-	} else if bytes.HasPrefix(data, GW_CENTER_FACTORY) {
+	} else if bytes.HasPrefix(data, GW_CENTER_STATUS_FACTORY) {
 		// 제조현장 지게차 집중 GW
 		return METHOD_MQTT
-	} else if bytes.HasPrefix(data, GW_RELAY_FACTORY) {
+	} else if bytes.HasPrefix(data, GW_RELAY_STATUS_FACTORY) {
 		// 제조현장 지게차 중계 GW
 		return METHOD_MQTT
-	} else if bytes.HasPrefix(data, GW_SMART_FACTORY) {
+	} else if bytes.HasPrefix(data, GW_SMART_STATUS_FACTORY) {
 		// 제조현장 지게차 스마트 GW
 		return METHOD_MQTT
-	} else if bytes.HasPrefix(data, GW_CENTER_DANGERZONE) {
+	} else if bytes.HasPrefix(data, GW_CENTER_STATUS_DANGERZONE) {
 		// 제조현장 위험구역 집중 GW
 		return METHOD_MQTT
-	} else if bytes.HasPrefix(data, GW_SMART_DANGERZONE) {
+	} else if bytes.HasPrefix(data, GW_SMART_STATUS_DANGERZONE) {
 		// 제조현장 위험구역 스마트 GW
 		return METHOD_MQTT
-	} else if bytes.HasPrefix(data, GW_PORTABLE_CONSTRUCTION) {
+	} else if bytes.HasPrefix(data, GW_PORTABLE_STATUS_CONSTRUCTION) {
 		// 건설현장 이동형 GW
 		return METHOD_MQTT
-	} else if bytes.HasPrefix(data, GW_RELAY_CONSTRUCTION) {
+	} else if bytes.HasPrefix(data, GW_RELAY_STATUS_CONSTRUCTION) {
 		// 건설현장 중계 GW
 		return METHOD_MQTT
 	}
@@ -271,25 +293,25 @@ func GetTransmissionMethod4Wrap(order binary.ByteOrder, data []byte) int {
 	} else if bytes.HasPrefix(data, BB_EVENT_COLLISION) {
 		// 제조현장 지게차 충돌 이벤트
 		return METHOD_SOCKET
-	} else if bytes.HasPrefix(data, GW_CENTER_FACTORY) {
+	} else if bytes.HasPrefix(data, GW_CENTER_STATUS_FACTORY) {
 		// 제조현장 지게차 집중 GW
 		return METHOD_SOCKET
-	} else if bytes.HasPrefix(data, GW_RELAY_FACTORY) {
+	} else if bytes.HasPrefix(data, GW_RELAY_STATUS_FACTORY) {
 		// 제조현장 지게차 중계 GW
 		return METHOD_SOCKET
-	} else if bytes.HasPrefix(data, GW_SMART_FACTORY) {
+	} else if bytes.HasPrefix(data, GW_SMART_STATUS_FACTORY) {
 		// 제조현장 지게차 스마트 GW
 		return METHOD_SOCKET
-	} else if bytes.HasPrefix(data, GW_CENTER_DANGERZONE) {
+	} else if bytes.HasPrefix(data, GW_CENTER_STATUS_DANGERZONE) {
 		// 제조현장 위험구역 집중 GW
 		return METHOD_SOCKET
-	} else if bytes.HasPrefix(data, GW_SMART_DANGERZONE) {
+	} else if bytes.HasPrefix(data, GW_SMART_STATUS_DANGERZONE) {
 		// 제조현장 위험구역 스마트 GW
 		return METHOD_SOCKET
-	} else if bytes.HasPrefix(data, GW_PORTABLE_CONSTRUCTION) {
+	} else if bytes.HasPrefix(data, GW_PORTABLE_STATUS_CONSTRUCTION) {
 		// 건설현장 이동형 GW
 		return METHOD_SOCKET
-	} else if bytes.HasPrefix(data, GW_RELAY_CONSTRUCTION) {
+	} else if bytes.HasPrefix(data, GW_RELAY_STATUS_CONSTRUCTION) {
 		// 건설현장 중계 GW
 		return METHOD_SOCKET
 	} else if bytes.HasPrefix(data, BB_RADAR_APPROACH) {
@@ -387,27 +409,27 @@ func GetMessageType4YMTECH(order binary.ByteOrder, data []byte) string {
 	} else if bytes.HasPrefix(data, BB_EVENT_COLLISION) {
 		// 제조현장 지게차 충돌 이벤트
 		return TYPE_BB_EVENT_COLLISION
-	} else if bytes.HasPrefix(data, GW_CENTER_FACTORY) {
+	} else if bytes.HasPrefix(data, GW_CENTER_STATUS_FACTORY) {
 		// 제조현장 지게차 집중 GW
-		return TYPE_GW_CENTER_FACTORY
-	} else if bytes.HasPrefix(data, GW_RELAY_FACTORY) {
+		return TYPE_GW_CENTER_STATUS_FACTORY
+	} else if bytes.HasPrefix(data, GW_RELAY_STATUS_FACTORY) {
 		// 제조현장 지게차 중계 GW
-		return TYPE_GW_RELAY_FACTORY
-	} else if bytes.HasPrefix(data, GW_SMART_FACTORY) {
+		return TYPE_GW_RELAY_STATUS_FACTORY
+	} else if bytes.HasPrefix(data, GW_SMART_STATUS_FACTORY) {
 		// 제조현장 지게차 스마트 GW
-		return TYPE_GW_SMART_FACTORY
-	} else if bytes.HasPrefix(data, GW_CENTER_DANGERZONE) {
+		return TYPE_GW_SMART_STATUS_FACTORY
+	} else if bytes.HasPrefix(data, GW_CENTER_STATUS_DANGERZONE) {
 		// 제조현장 위험구역 집중 GW
-		return TYPE_GW_CENTER_DANGERZONE
-	} else if bytes.HasPrefix(data, GW_SMART_DANGERZONE) {
+		return TYPE_GW_CENTER_STATUS_DANGERZONE
+	} else if bytes.HasPrefix(data, GW_SMART_STATUS_DANGERZONE) {
 		// 제조현장 위험구역 스마트 GW
-		return TYPE_GW_SMART_DANGERZONE
-	} else if bytes.HasPrefix(data, GW_PORTABLE_CONSTRUCTION) {
+		return TYPE_GW_SMART_STATUS_DANGERZONE
+	} else if bytes.HasPrefix(data, GW_PORTABLE_STATUS_CONSTRUCTION) {
 		// 건설현장 이동형 GW
-		return TYPE_GW_PORTABLE_CONSTRUCTION
-	} else if bytes.HasPrefix(data, GW_RELAY_CONSTRUCTION) {
+		return TYPE_GW_PORTABLE_STATUS_CONSTRUCTION
+	} else if bytes.HasPrefix(data, GW_RELAY_STATUS_CONSTRUCTION) {
 		// 건설현장 중계 GW
-		return TYPE_GW_RELAY_CONSTRUCTION
+		return TYPE_GW_RELAY_STATUS_CONSTRUCTION
 	}
 
 	return TYPE_UNKNOWN
@@ -441,27 +463,27 @@ func GetMessageType4Wrap(order binary.ByteOrder, data []byte) string {
 	} else if bytes.HasPrefix(data, BB_EVENT_COLLISION) {
 		// 제조현장 지게차 충돌 이벤트
 		return TYPE_BB_EVENT_COLLISION
-	} else if bytes.HasPrefix(data, GW_CENTER_FACTORY) {
+	} else if bytes.HasPrefix(data, GW_CENTER_STATUS_FACTORY) {
 		// 제조현장 지게차 집중 GW
-		return TYPE_GW_CENTER_FACTORY
-	} else if bytes.HasPrefix(data, GW_RELAY_FACTORY) {
+		return TYPE_GW_CENTER_STATUS_FACTORY
+	} else if bytes.HasPrefix(data, GW_RELAY_STATUS_FACTORY) {
 		// 제조현장 지게차 중계 GW
-		return TYPE_GW_RELAY_FACTORY
-	} else if bytes.HasPrefix(data, GW_SMART_FACTORY) {
+		return TYPE_GW_RELAY_STATUS_FACTORY
+	} else if bytes.HasPrefix(data, GW_SMART_STATUS_FACTORY) {
 		// 제조현장 지게차 스마트 GW
-		return TYPE_GW_SMART_FACTORY
-	} else if bytes.HasPrefix(data, GW_CENTER_DANGERZONE) {
+		return TYPE_GW_SMART_STATUS_FACTORY
+	} else if bytes.HasPrefix(data, GW_CENTER_STATUS_DANGERZONE) {
 		// 제조현장 위험구역 집중 GW
-		return TYPE_GW_CENTER_DANGERZONE
-	} else if bytes.HasPrefix(data, GW_SMART_DANGERZONE) {
+		return TYPE_GW_CENTER_STATUS_DANGERZONE
+	} else if bytes.HasPrefix(data, GW_SMART_STATUS_DANGERZONE) {
 		// 제조현장 위험구역 스마트 GW
-		return TYPE_GW_SMART_DANGERZONE
-	} else if bytes.HasPrefix(data, GW_PORTABLE_CONSTRUCTION) {
+		return TYPE_GW_SMART_STATUS_DANGERZONE
+	} else if bytes.HasPrefix(data, GW_PORTABLE_STATUS_CONSTRUCTION) {
 		// 건설현장 이동형 GW
-		return TYPE_GW_PORTABLE_CONSTRUCTION
-	} else if bytes.HasPrefix(data, GW_RELAY_CONSTRUCTION) {
+		return TYPE_GW_PORTABLE_STATUS_CONSTRUCTION
+	} else if bytes.HasPrefix(data, GW_RELAY_STATUS_CONSTRUCTION) {
 		// 건설현장 중계 GW
-		return TYPE_GW_RELAY_CONSTRUCTION
+		return TYPE_GW_RELAY_STATUS_CONSTRUCTION
 	} else if bytes.HasPrefix(data, BB_RADAR_APPROACH) {
 		// 텔레필드
 		return TYPE_BB_RADAR_APPROACH
@@ -531,27 +553,27 @@ func GetMessageName4YMTECH(order binary.ByteOrder, data []byte) string {
 	} else if bytes.HasPrefix(data, BB_EVENT_COLLISION) {
 		// 제조현장 지게차 충돌 이벤트
 		return NAME_BB_EVENT_COLLISION
-	} else if bytes.HasPrefix(data, GW_CENTER_FACTORY) {
+	} else if bytes.HasPrefix(data, GW_CENTER_STATUS_FACTORY) {
 		// 제조현장 지게차 집중 GW
-		return NAME_GW_CENTER_FACTORY
-	} else if bytes.HasPrefix(data, GW_RELAY_FACTORY) {
+		return NAME_GW_CENTER_STATUS_FACTORY
+	} else if bytes.HasPrefix(data, GW_RELAY_STATUS_FACTORY) {
 		// 제조현장 지게차 중계 GW
-		return NAME_GW_RELAY_FACTORY
-	} else if bytes.HasPrefix(data, GW_SMART_FACTORY) {
+		return NAME_GW_RELAY_STATUS_FACTORY
+	} else if bytes.HasPrefix(data, GW_SMART_STATUS_FACTORY) {
 		// 제조현장 지게차 스마트 GW
-		return NAME_GW_SMART_FACTORY
-	} else if bytes.HasPrefix(data, GW_CENTER_DANGERZONE) {
+		return NAME_GW_SMART_STATUS_FACTORY
+	} else if bytes.HasPrefix(data, GW_CENTER_STATUS_DANGERZONE) {
 		// 제조현장 위험구역 집중 GW
-		return NAME_GW_CENTER_DANGERZONE
-	} else if bytes.HasPrefix(data, GW_SMART_DANGERZONE) {
+		return NAME_GW_CENTER_STATUS_DANGERZONE
+	} else if bytes.HasPrefix(data, GW_SMART_STATUS_DANGERZONE) {
 		// 제조현장 위험구역 스마트 GW
-		return NAME_GW_SMART_DANGERZONE
-	} else if bytes.HasPrefix(data, GW_PORTABLE_CONSTRUCTION) {
+		return NAME_GW_SMART_STATUS_DANGERZONE
+	} else if bytes.HasPrefix(data, GW_PORTABLE_STATUS_CONSTRUCTION) {
 		// 건설현장 이동형 GW
-		return NAME_GW_PORTABLE_CONSTRUCTION
-	} else if bytes.HasPrefix(data, GW_RELAY_CONSTRUCTION) {
+		return NAME_GW_PORTABLE_STATUS_CONSTRUCTION
+	} else if bytes.HasPrefix(data, GW_RELAY_STATUS_CONSTRUCTION) {
 		// 건설현장 중계 GW
-		return NAME_GW_RELAY_CONSTRUCTION
+		return NAME_GW_RELAY_STATUS_CONSTRUCTION
 	}
 
 	return NAME_UNKNOWN
@@ -612,27 +634,27 @@ func GetMessageName4Wrap(order binary.ByteOrder, data []byte) string {
 	} else if bytes.HasPrefix(data, BB_EVENT_COLLISION) {
 		// 제조현장 지게차 충돌 이벤트
 		return NAME_BB_EVENT_COLLISION
-	} else if bytes.HasPrefix(data, GW_CENTER_FACTORY) {
+	} else if bytes.HasPrefix(data, GW_CENTER_STATUS_FACTORY) {
 		// 제조현장 지게차 집중 GW
-		return NAME_GW_CENTER_FACTORY
-	} else if bytes.HasPrefix(data, GW_RELAY_FACTORY) {
+		return NAME_GW_CENTER_STATUS_FACTORY
+	} else if bytes.HasPrefix(data, GW_RELAY_STATUS_FACTORY) {
 		// 제조현장 지게차 중계 GW
-		return NAME_GW_RELAY_FACTORY
-	} else if bytes.HasPrefix(data, GW_SMART_FACTORY) {
+		return NAME_GW_RELAY_STATUS_FACTORY
+	} else if bytes.HasPrefix(data, GW_SMART_STATUS_FACTORY) {
 		// 제조현장 지게차 스마트 GW
-		return NAME_GW_SMART_FACTORY
-	} else if bytes.HasPrefix(data, GW_CENTER_DANGERZONE) {
+		return NAME_GW_SMART_STATUS_FACTORY
+	} else if bytes.HasPrefix(data, GW_CENTER_STATUS_DANGERZONE) {
 		// 제조현장 위험구역 집중 GW
-		return NAME_GW_CENTER_DANGERZONE
-	} else if bytes.HasPrefix(data, GW_SMART_DANGERZONE) {
+		return NAME_GW_CENTER_STATUS_DANGERZONE
+	} else if bytes.HasPrefix(data, GW_SMART_STATUS_DANGERZONE) {
 		// 제조현장 위험구역 스마트 GW
-		return NAME_GW_SMART_DANGERZONE
-	} else if bytes.HasPrefix(data, GW_PORTABLE_CONSTRUCTION) {
+		return NAME_GW_SMART_STATUS_DANGERZONE
+	} else if bytes.HasPrefix(data, GW_PORTABLE_STATUS_CONSTRUCTION) {
 		// 건설현장 이동형 GW
-		return NAME_GW_PORTABLE_CONSTRUCTION
-	} else if bytes.HasPrefix(data, GW_RELAY_CONSTRUCTION) {
+		return NAME_GW_PORTABLE_STATUS_CONSTRUCTION
+	} else if bytes.HasPrefix(data, GW_RELAY_STATUS_CONSTRUCTION) {
 		// 건설현장 중계 GW
-		return NAME_GW_RELAY_CONSTRUCTION
+		return NAME_GW_RELAY_STATUS_CONSTRUCTION
 	} else if bytes.HasPrefix(data, BB_RADAR_APPROACH) {
 		// 텔레필드
 		return NAME_BB_RADAR_APPROACH
@@ -704,4 +726,31 @@ func GetSubID4YMTECH(order binary.ByteOrder, data []byte) []byte {
 	}
 
 	return data[6:8]
+}
+
+/**
+ * 0xEF, 0xFE
+ */
+func GetSubID(order binary.ByteOrder, data []byte) []byte {
+	if data == nil || len(data) < 8 {
+		return nil
+	}
+
+	if bytes.HasPrefix(data, CODE_WRAPPED) == false {
+		return data[6:8]
+	} else if bytes.HasPrefix(data, CODE_YMTECH) == false {
+		return data[6:8]
+	} else if bytes.HasPrefix(data, CODE_ELSSEN) == false {
+		sudId := GetSubID4ELSSEN(order, data);
+		if sudId < 0 {
+			return nil
+		}
+		return []byte{0x00, byte(sudId)}
+	} else if bytes.HasPrefix(data, CODE_ABRAIN) == false {
+		return nil
+	} else if bytes.HasPrefix(data, CODE_TELEFIELD) == false {
+		return nil
+	}
+
+	return nil
 }

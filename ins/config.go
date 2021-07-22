@@ -22,17 +22,8 @@ type ServiceConfigurations struct {
 	TlsCert             string
 	TlsKey              string
 	Address             string
-	Port                int
+	Port                int64
 	Timeout             int64
-}
-
-type CenterGWConfigurations struct {
-	Service             ServiceConfigurations
-	UWBServer           ServiceConfigurations
-	MQTT                MQTTConfigurations
-	SourceId            string
-	EventLogUrl         string
-	DiagInterval        int
 }
 
 type PublishConfigurations struct {
@@ -41,7 +32,7 @@ type PublishConfigurations struct {
 	MQTT                MQTTConfigurations
 	SourceId            string
 	EventLogUrl         string
-	DiagInterval        int
+	DiagInterval        int64
 }
 
 type SubscribeConfigurations struct {
@@ -49,7 +40,7 @@ type SubscribeConfigurations struct {
 	MQTT                MQTTConfigurations
 	SourceId            string
 	EventLogUrl         string
-	DiagInterval        int
+	DiagInterval        int64
 }
 
 type RelayConfigurations struct {
@@ -57,21 +48,21 @@ type RelayConfigurations struct {
 	Remote              ServiceConfigurations
 	SourceId            string
 	EventLogUrl         string
-	DiagInterval        int
+	DiagInterval        int64
 }
 
 type ServerConfigurations struct {
 	Service             ServiceConfigurations
 	SourceId            string
 	EventLogUrl         string
-	DiagInterval        int
+	DiagInterval        int64
 }
 
 type ClientConfigurations struct {
 	Remote              ServiceConfigurations
 	SourceId            string
 	EventLogUrl         string
-	DiagInterval        int
+	DiagInterval        int64
 }
 
 func (v MQTTConfigurations) ToString() []string {
@@ -93,18 +84,6 @@ func (v ServiceConfigurations) ToString() []string {
 	strings = append(strings, fmt.Sprintf("Address: %s", v.Address))
 	strings = append(strings, fmt.Sprintf("Port: %d", v.Port))
 	strings = append(strings, fmt.Sprintf("Timeout: %d", v.Timeout))
-
-	return strings
-}
-
-func (v CenterGWConfigurations) ToString() []string {
-	strings := []string{}
-	strings = append(strings, fmt.Sprintf("Service: %s", v.Service.ToString()))
-	strings = append(strings, fmt.Sprintf("Remote: %s", v.UWBServer.ToString()))
-	strings = append(strings, fmt.Sprintf("MQTT: %s", v.MQTT.ToString()))
-	strings = append(strings, fmt.Sprintf("SourceId: %s", v.SourceId))
-	strings = append(strings, fmt.Sprintf("EventLogUrl: %s", v.EventLogUrl))
-	strings = append(strings, fmt.Sprintf("DiagInterval: %d", v.DiagInterval))
 
 	return strings
 }
@@ -176,18 +155,6 @@ func (v *PublishConfigurations) PrintConfigurations() {
 }
 
 /**
- * PublishConfigurations JSON 형태로 출력한다.
- */
-func (v *CenterGWConfigurations) PrintConfigurations() {
-	b, err := json.Marshal(v)
-	if err != nil {
-		log.Println(err)
-		return
-	}
-	log.Println(string(b))
-}
-
-/**
  * RelayConfigurations JSON 형태로 출력한다.
  */
 func (v *RelayConfigurations) PrintConfigurations() {
@@ -246,4 +213,98 @@ func IsFlagPassed(name string) bool {
 		}
 	})
 	return found
+}
+
+func GetFlagString(option *string, name string, param *string, deffunc func() string ) {
+	if IsFlagPassed(name) {
+		if param == nil {
+			return
+		}
+		*option = *param
+	} else if deffunc != nil {
+		*option = deffunc()
+	//} else {
+	//	if len(*option) == 0 {
+	//		if param != nil && 0 < len(*param) {
+	//			*option = *param
+	//		}
+	//	}
+	}
+}
+
+func GetFlagBoolean(option *bool, name string, param *bool, deffunc func() bool) {
+	if IsFlagPassed(name) {
+		if param == nil {
+			return
+		}
+		*option = *param
+	} else if deffunc != nil {
+		*option = deffunc()
+	}
+}
+
+func GetFlagInt(option *int, name string, param *int, deffunc func() int) {
+	if IsFlagPassed(name) {
+		if param == nil {
+			return
+		}
+		*option = *param
+	} else if deffunc != nil {
+		*option = deffunc()
+	}
+}
+
+func GetFlagInt32(option *int32, name string, param *int32, deffunc func() int32) {
+	if IsFlagPassed(name) {
+		if param == nil {
+			return
+		}
+		*option = *param
+	} else if deffunc != nil {
+		*option = deffunc()
+	}
+}
+
+func GetFlagInt64(option *int64, name string, param *int64, deffunc func() int64) {
+	if IsFlagPassed(name) {
+		if param == nil {
+			return
+		}
+		*option = *param
+	} else if deffunc != nil {
+		*option = deffunc()
+	}
+}
+
+func GetFlagUint(option *uint, name string, param *uint, deffunc func() uint) {
+	if IsFlagPassed(name) {
+		if param == nil {
+			return
+		}
+		*option = *param
+	} else if deffunc != nil {
+		*option = deffunc()
+	}
+}
+
+func GetFlagUint32(option *uint32, name string, param *uint32, deffunc func() uint32) {
+	if IsFlagPassed(name) {
+		if param == nil {
+			return
+		}
+		*option = *param
+	} else if deffunc != nil {
+		*option = deffunc()
+	}
+}
+
+func GetFlagUint64(option *uint64, name string, param *uint64, deffunc func() uint64) {
+	if IsFlagPassed(name) {
+		if param == nil {
+			return
+		}
+		*option = *param
+	} else if deffunc != nil {
+		*option = deffunc()
+	}
 }

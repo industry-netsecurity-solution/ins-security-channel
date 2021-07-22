@@ -7,6 +7,8 @@ import (
 	"encoding/binary"
 	"errors"
 	"fmt"
+	"github.com/go-resty/resty/v2"
+	"github.com/labstack/gommon/log"
 	"io"
 	"net"
 	"time"
@@ -337,4 +339,29 @@ func SendMessage(data []byte, conn net.Conn) (int, error) {
 	}
 
 	return n, nil
+}
+
+// HTTP를 통한 데이터 전송
+func HttpPost(url string, headers map[string]string, data []byte) error {
+	client := resty.New()
+	client.SetCloseConnection(true)
+
+	if _, ok := headers["Content-Type"]; ok == false {
+		headers["Content-Type"] = "application/json"
+	}
+
+	resp, err := client.R().
+		SetHeaders(headers).
+		SetBody(data).
+		Post(url)
+	if err != nil {
+		log.Error(err)
+		return err
+	}
+
+	log.Info(resp)
+
+	//resp.RawBody().Close()
+
+	return nil
 }

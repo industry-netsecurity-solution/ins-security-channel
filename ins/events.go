@@ -91,5 +91,9 @@ func ReportLog(url string, sourceId string, evtGwType string, evtType string, st
 		Content: content,
 	}
 
+	if len(url) == 0 {
+		return nil
+	}
+
 	return ReportEvent(url, evt)
 }
