@@ -20,7 +20,7 @@ var GSrcId *string = nil
 
 var GServiceEnableTls *bool = nil
 var GServiceAddress *string = nil
-var GServicePort *int = nil
+var GServicePort *int64 = nil
 
 var Log *log.Logger = nil
 
@@ -34,7 +34,7 @@ func ParseFlagOptions() int {
 
 	GServiceEnableTls = flag.Bool("service.enabletls", false, "The address of service.")
 	GServiceAddress = flag.String("service.address", "0.0.0.0", "The address of service.")
-	GServicePort = flag.Int("service.port", 9980, "The port of service.")
+	GServicePort = flag.Int64("service.port", 9980, "The port of service.")
 
 	flag.Parse()
 

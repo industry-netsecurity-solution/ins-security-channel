@@ -16,12 +16,12 @@ var Config ins.RelayConfigurations
 
 var GConfigPath *string = nil
 var GSourceId *string = nil
-var GDiag *int = nil
+var GDiag *int64 = nil
 
 var GServiceAddress *string = nil
-var GServicePort *int = nil
+var GServicePort *int64 = nil
 var GRemoteAddress *string = nil
-var GRemotePort *int = nil
+var GRemotePort *int64 = nil
 
 var Log *log.Logger = nil
 
@@ -32,12 +32,12 @@ func ParseFlagOptions() int {
 	GConfigPath = flag.String("c", "", "configuration path")
 
 	GSourceId = flag.String("source", "", "The mesage source id")
-	GDiag = flag.Int("diag", 0, "The diag interval")
+	GDiag = flag.Int64("diag", 0, "The diag interval")
 
 	GServiceAddress = flag.String("service.address", "0.0.0.0", "The address of service. default: 0.0.0.0")
-	GServicePort = flag.Int("service.port", 9980, "The port of service. default: 9980")
+	GServicePort = flag.Int64("service.port", 9980, "The port of service. default: 9980")
 	GRemoteAddress = flag.String("remote.address", "127.0.0.1", "The address to relay. default: 127.0.0.1")
-	GRemotePort = flag.Int("remote.port", 9990, "The port to relay. default: 9990")
+	GRemotePort = flag.Int64("remote.port", 9990, "The port to relay. default: 9990")
 
 	flag.Parse()
 
