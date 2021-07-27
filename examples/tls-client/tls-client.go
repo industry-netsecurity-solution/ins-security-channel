@@ -8,11 +8,9 @@ import (
 	"fmt"
 	"github.com/industry-netsecurity-solution/ins-security-channel/ins"
 	"github.com/spf13/viper"
-	"io"
 	"log"
 	"net"
 	"os"
-	"path"
 	"strconv"
 )
 
@@ -20,7 +18,7 @@ var ClientConfig ins.ServiceConfigurations
 
 var GConfigPath *string = nil
 var GRemoteServerIp *string = nil
-var GRemoteServerPort *int = nil
+var GRemoteServerPort *int64 = nil
 
 var Log *log.Logger = nil
 
@@ -30,7 +28,7 @@ var Log *log.Logger = nil
 func ParseOptions() int {
 	GConfigPath = flag.String("c", "", "configuration path")
 	GRemoteServerIp = flag.String("h", "", "remote address")
-	GRemoteServerPort = flag.Int("p", int(0), "remote port")
+	GRemoteServerPort = flag.Int64("p", 0, "remote port")
 
 	flag.Parse()
 
@@ -101,7 +99,7 @@ func GetServerURL() *string {
 		return nil
 	}
 
-	tlsServerURL := ClientConfig.Address + ":" + strconv.Itoa(ClientConfig.Port)
+	tlsServerURL := ClientConfig.Address + ":" + strconv.FormatInt(ClientConfig.Port, 10)
 
 	return &tlsServerURL
 }
@@ -158,7 +156,7 @@ func main() {
 		return
 	}
 
-	serverUrl := ClientConfig.Address + ":" + strconv.Itoa(ClientConfig.Port)
+	serverUrl := ClientConfig.Address + ":" + strconv.FormatInt(ClientConfig.Port, 10)
 	addr, err := net.ResolveTCPAddr("tcp", serverUrl)
 	if err != nil {
 		fmt.Println(err)
