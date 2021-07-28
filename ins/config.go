@@ -1,10 +1,12 @@
 package ins
 
 import (
+	"bytes"
 	"encoding/json"
 	"flag"
 	"fmt"
 	"log"
+	"strings"
 )
 
 type MQTTConfigurations struct {
@@ -23,6 +25,17 @@ type ServiceConfigurations struct {
 	TlsKey              string
 	Address             string
 	Port                int64
+	Timeout             int64
+}
+
+type HttpConfigurations struct {
+	EnableTls           bool
+	Authorization       string
+	TlsCert             string
+	TlsKey              string
+	Address             string
+	Port                int64
+	Path                string
 	Timeout             int64
 }
 
@@ -87,6 +100,56 @@ func (v ServiceConfigurations) ToString() []string {
 
 	return strings
 }
+
+func (v HttpConfigurations) ToString() []string {
+	strings := []string{}
+	strings = append(strings, fmt.Sprintf("EnableTls: %t", v.EnableTls))
+	strings = append(strings, fmt.Sprintf("Authorization: %s", v.Authorization))
+	strings = append(strings, fmt.Sprintf("TlsCert: %s", v.TlsCert))
+	strings = append(strings, fmt.Sprintf("TlsKey: %s", v.TlsKey))
+	strings = append(strings, fmt.Sprintf("Address: %s", v.Address))
+	strings = append(strings, fmt.Sprintf("Port: %d", v.Port))
+	strings = append(strings, fmt.Sprintf("Path: %s", v.Path))
+	strings = append(strings, fmt.Sprintf("Timeout: %d", v.Timeout))
+
+	return strings
+}
+
+func (v HttpConfigurations) Url() string {
+	var buffer bytes.Buffer
+
+	if v.EnableTls {
+		buffer.WriteString("HTTPS://")
+	} else {
+		buffer.WriteString("HTTP://")
+	}
+
+	buffer.WriteString(v.Address)
+
+	if v.Port != 0 {
+		if v.EnableTls {
+			if v.Port != 443 {
+				buffer.WriteString(fmt.Sprintf(":%d", v.Port))
+			}
+		} else {
+			if v.Port != 80 {
+				buffer.WriteString(fmt.Sprintf(":%d", v.Port))
+			}
+		}
+	}
+
+	if 0 < len(v.Path) {
+		if strings.HasPrefix(v.Path, "/") {
+			buffer.WriteString(v.Path)
+		} else {
+			buffer.WriteString("/")
+			buffer.WriteString(v.Path)
+		}
+	}
+
+	return buffer.String()
+}
+
 
 func (v PublishConfigurations) ToString() []string {
 	strings := []string{}
