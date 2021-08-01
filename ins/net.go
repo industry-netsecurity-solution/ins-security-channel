@@ -342,7 +342,7 @@ func SendMessage(data []byte, conn net.Conn) (int, error) {
 }
 
 // HTTP를 통한 데이터 전송
-func HttpPost(url string, headers map[string]string, data []byte) error {
+func HttpPost(url string, headers map[string]string, data []byte, handler func(*resty.Response)) (int, error) {
 	client := resty.New()
 	client.SetCloseConnection(true)
 
@@ -356,12 +356,15 @@ func HttpPost(url string, headers map[string]string, data []byte) error {
 		Post(url)
 	if err != nil {
 		log.Error(err)
-		return err
+		return 0, err
 	}
 
-	log.Info(resp)
+	if handler != nil {
+		handler(resp)
+	}
+	status := resp.StatusCode()
 
-	//resp.RawBody().Close()
+	defer resp.RawBody().Close()
 
-	return nil
+	return status, nil
 }
