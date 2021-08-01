@@ -11,6 +11,7 @@ import (
 	"github.com/labstack/gommon/log"
 	"io"
 	"net"
+	"net/http"
 	"time"
 )
 
@@ -342,7 +343,7 @@ func SendMessage(data []byte, conn net.Conn) (int, error) {
 }
 
 // HTTP를 통한 데이터 전송
-func HttpPost(url string, headers map[string]string, data []byte, handler func(*resty.Response)) (int, error) {
+func HttpPost(url string, headers map[string]string, data []byte, handler func(*http.Response)) (int, error) {
 	client := resty.New()
 	client.SetCloseConnection(true)
 
@@ -360,7 +361,7 @@ func HttpPost(url string, headers map[string]string, data []byte, handler func(*
 	}
 
 	if handler != nil {
-		handler(resp)
+		handler(resp.RawResponse)
 	}
 	status := resp.StatusCode()
 
