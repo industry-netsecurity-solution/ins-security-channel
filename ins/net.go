@@ -65,7 +65,7 @@ func RecvTLV(conn net.Conn, order binary.ByteOrder) ([]byte, error) {
 		return nil, err
 	}
 	if n != 2 {
-		return nil, errors.New("The tag is not enough length.")
+		return nil, errors.New("not enough data length: Tag")
 	}
 	buf.Write(tagArray)
 
@@ -74,7 +74,7 @@ func RecvTLV(conn net.Conn, order binary.ByteOrder) ([]byte, error) {
 		return nil, err
 	}
 	if n != 4 {
-		return nil, errors.New("The length is not enough length.")
+		return nil, errors.New("not enough data length: Length")
 	}
 	buf.Write(lengthArray)
 
@@ -115,7 +115,7 @@ func RecvTLV(conn net.Conn, order binary.ByteOrder) ([]byte, error) {
 	}
 
 	if dataLength < int(length) {
-		return nil, errors.New("The value is not enough length.")
+		return nil, errors.New("not enough data length: Value")
 	}
 
 	return buf.Bytes(), nil

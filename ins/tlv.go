@@ -26,7 +26,7 @@ type TL64V struct {
 
 func DecTL16V(order binary.ByteOrder, data []byte, tlv *TL16V) error {
 	if tlv == nil || data == nil || len(data) < 4 {
-		return errors.New("The length is not enough length.")
+		return errors.New("not enough data length")
 	}
 
 	tlv.Type = data[0:2]
@@ -38,7 +38,7 @@ func DecTL16V(order binary.ByteOrder, data []byte, tlv *TL16V) error {
 
 func DecTL32V(order binary.ByteOrder, data []byte, tlv *TL32V) error {
 	if tlv == nil || data == nil || len(data) < 6 {
-		return errors.New("The length is not enough length.")
+		return errors.New("not enough data length")
 	}
 
 	tlv.Type = data[0:2]
@@ -50,7 +50,7 @@ func DecTL32V(order binary.ByteOrder, data []byte, tlv *TL32V) error {
 
 func DecTL64V(order binary.ByteOrder, data []byte, tlv *TL64V) error {
 	if tlv == nil || data == nil || len(data) < 10 {
-		return errors.New("The length is not enough length.")
+		return errors.New("not enough data length")
 	}
 
 	tlv.Type = data[0:2]
