@@ -126,17 +126,7 @@ func (v ServiceConfigurations) Url() string {
 
 	buffer.WriteString(v.Address)
 
-	if v.Port != 0 {
-		if v.EnableTls {
-			if v.Port != 443 {
-				buffer.WriteString(fmt.Sprintf(":%d", v.Port))
-			}
-		} else {
-			if v.Port != 80 {
-				buffer.WriteString(fmt.Sprintf(":%d", v.Port))
-			}
-		}
-	}
+	buffer.WriteString(fmt.Sprintf(":%d", v.Port))
 
 	return buffer.String()
 }
