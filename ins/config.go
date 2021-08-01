@@ -115,6 +115,32 @@ func (v HttpConfigurations) ToString() []string {
 	return strings
 }
 
+func (v ServiceConfigurations) Url() string {
+	var buffer bytes.Buffer
+
+	if v.EnableTls {
+		buffer.WriteString("tcp://")
+	} else {
+		buffer.WriteString("ssl://")
+	}
+
+	buffer.WriteString(v.Address)
+
+	if v.Port != 0 {
+		if v.EnableTls {
+			if v.Port != 443 {
+				buffer.WriteString(fmt.Sprintf(":%d", v.Port))
+			}
+		} else {
+			if v.Port != 80 {
+				buffer.WriteString(fmt.Sprintf(":%d", v.Port))
+			}
+		}
+	}
+
+	return buffer.String()
+}
+
 func (v HttpConfigurations) Url() string {
 	var buffer bytes.Buffer
 
