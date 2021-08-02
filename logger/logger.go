@@ -32,18 +32,18 @@ type Logger struct {
 	NONE *log.Logger
 }
 
-func New(out io.Writer) *Logger {
+func New(out io.Writer, flag int) *Logger {
 
 	if out == nil {
 		out = os.Stdout
 	}
 
 	l := new (Logger)
-	l.ERROR = log.New(out, "[ERROR] ", 0)
-	l.WARN = log.New(out, "[WARN]  ", 0)
-	l.DEBUG = log.New(out, "[DEBUG] ", 0)
-	l.INFO = log.New(out, "[INFO] ", 0)
-	l.NONE = log.New(out, "", 0)
+	l.ERROR = log.New(out, "[ERROR] ", flag)
+	l.WARN = log.New(out, "[WARN]  ", flag)
+	l.DEBUG = log.New(out, "[DEBUG] ", flag)
+	l.INFO = log.New(out, "[INFO] ", flag)
+	l.NONE = log.New(out, "", flag)
 
 	return l
 }
