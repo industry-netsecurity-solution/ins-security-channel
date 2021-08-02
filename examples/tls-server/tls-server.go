@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"github.com/industry-netsecurity-solution/ins-security-channel/ins"
 	"github.com/spf13/viper"
+	"io"
 	"log"
 	"net"
 	"os"
@@ -327,6 +328,9 @@ func callback(conn net.Conn, ud interface{}) error {
 	for {
 		data, err := ins.RecvTLV(conn, binary.LittleEndian)
 		if err != nil {
+			if err != io.EOF {
+				//Log.Println(err)
+			}
 			return err
 		}
 		fmt.Println(data)

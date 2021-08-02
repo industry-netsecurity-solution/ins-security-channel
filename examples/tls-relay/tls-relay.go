@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"github.com/industry-netsecurity-solution/ins-security-channel/ins"
 	"github.com/spf13/viper"
+	"io"
 	"log"
 	"net"
 	"os"
@@ -174,6 +175,9 @@ func cb_session(conn net.Conn, data []byte, err error, ud interface{}) ([]byte, 
 func cb_session(conn net.Conn, ud interface{}) ([]byte, error) {
 	data, err := ins.RecvTLV(conn, binary.LittleEndian)
 	if err != nil {
+		if err != io.EOF {
+			//Log.Println(err)
+		}
 		return nil, err
 	}
 	buffer := make2CenterGW(data)
