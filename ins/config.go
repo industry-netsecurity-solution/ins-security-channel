@@ -222,6 +222,18 @@ func (v ClientConfigurations) ToString() []string {
 }
 
 /**
+ * RelayConfigurations JSON 형태로 출력한다.
+ */
+func (v *ServiceConfigurations) PrintConfigurations() {
+	b, err := json.Marshal(v)
+	if err != nil {
+		log.Println(err)
+		return
+	}
+	log.Println(string(b))
+}
+
+/**
  * PublishConfigurations JSON 형태로 출력한다.
  */
 func (v *PublishConfigurations) PrintConfigurations() {
