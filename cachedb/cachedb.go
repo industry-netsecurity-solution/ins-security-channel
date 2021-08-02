@@ -60,8 +60,6 @@ func (v *CacheDB) InsertData(table int, id int64, data []byte) (int64, error) {
 		return -1, errors.New("Not support table.")
 	}
 
-	fmt.Println(string(data))
-
 	query, err := getInsertQuery(v, table)
 	if err != nil {
 		return -1, err
