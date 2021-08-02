@@ -2,8 +2,8 @@ package logger
 
 import (
 	"io"
-	"os"
 	"log"
+	"os"
 )
 
 type LogWriter interface {
@@ -50,6 +50,60 @@ func New(out io.Writer, flag int) *Logger {
 
 func (v Logger) LogWriter() LogWriter {
 	return LogWriter(v)
+}
+
+func (v Logger) SetOutput(w io.Writer) {
+	v.ERROR.SetOutput(w)
+	v.WARN.SetOutput(w)
+	v.DEBUG.SetOutput(w)
+	v.INFO.SetOutput(w)
+	v.NONE.SetOutput(w)
+}
+
+// Fatalln is equivalent to l.Println() followed by a call to os.Exit(1).
+func (v Logger) Fatal(args ...interface{}) {
+	v.NONE.Fatal(args...)
+}
+
+// Fatalf is equivalent to l.Printf() followed by a call to os.Exit(1).
+func (v Logger) Fatalf(format string, args ...interface{}) {
+	v.NONE.Fatalf(format, args...)
+}
+
+// Fatalln is equivalent to l.Println() followed by a call to os.Exit(1).
+func (v Logger) Fatalln(args ...interface{}) {
+	v.NONE.Fatalln(args...)
+}
+
+// Panic is equivalent to l.Print() followed by a call to panic().
+func (v Logger) Panic(args ...interface{}) {
+	v.NONE.Panic(args...)
+}
+
+// Panicf is equivalent to l.Printf() followed by a call to panic().
+func (v Logger) Panicf(format string, args ...interface{}) {
+	v.NONE.Panicf(format, args...)
+}
+
+// Panicln is equivalent to l.Println() followed by a call to panic().
+func (v Logger) Panicln(args ...interface{}) {
+	v.NONE.Panicln(args...)
+}
+
+// Flags returns the output flags for the logger.
+// The flag bits are Ldate, Ltime, and so on.
+func (v Logger) Flags() int {
+	return v.NONE.Flags()
+}
+
+// SetFlags sets the output flags for the logger.
+// The flag bits are Ldate, Ltime, and so on.
+func (v Logger) SetFlags(flag int) {
+	v.ERROR.SetFlags(flag)
+	v.WARN.SetFlags(flag)
+	v.DEBUG.SetFlags(flag)
+	v.INFO.SetFlags(flag)
+	v.NONE.SetFlags(flag)
 }
 
 func (v Logger) Error(args ... interface{}) {
