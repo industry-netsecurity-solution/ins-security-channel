@@ -1,6 +1,7 @@
 package logger
 
 import (
+	"io"
 	"os"
 	"log"
 )
@@ -23,14 +24,19 @@ type Logger struct {
 	NONE *log.Logger
 }
 
-func New() LogWriter {
+func New(out io.Writer) LogWriter {
+
+	if out == nil {
+		out = os.Stdout
+	}
+
 	l := new (Logger)
-	l.ERROR = log.New(os.Stdout, "[ERROR] ", 0)
-	l.CRITICAL = log.New(os.Stdout, "[CRIT] ", 0)
-	l.WARN = log.New(os.Stdout, "[WARN]  ", 0)
-	l.DEBUG = log.New(os.Stdout, "[DEBUG] ", 0)
-	l.INFO = log.New(os.Stdout, "[INFO] ", 0)
-	l.NONE = log.New(os.Stdout, "", 0)
+	l.ERROR = log.New(out, "[ERROR] ", 0)
+	l.CRITICAL = log.New(out, "[CRIT] ", 0)
+	l.WARN = log.New(out, "[WARN]  ", 0)
+	l.DEBUG = log.New(out, "[DEBUG] ", 0)
+	l.INFO = log.New(out, "[INFO] ", 0)
+	l.NONE = log.New(out, "", 0)
 
 	return l
 }
