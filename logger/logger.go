@@ -53,61 +53,61 @@ func (v Logger) LogWriter() LogWriter {
 }
 
 func (v Logger) Error(args ... interface{}) {
-	v.ERROR.Print(args)
+	v.ERROR.Print(args...)
 }
 
 func (v Logger) Errorf(format string, args ... interface{}) {
-	v.ERROR.Printf(format, args)
+	v.ERROR.Printf(format, args...)
 }
 
 func (v Logger) Errorln(args ... interface{}) {
-	v.ERROR.Println(args)
+	v.ERROR.Println(args...)
 }
 
 func (v Logger) Warning(args ... interface{}) {
-	v.WARN.Print(args)
+	v.WARN.Print(args...)
 }
 
 func (v Logger) Warningf(format string, args ... interface{}) {
-	v.WARN.Printf(format, args)
+	v.WARN.Printf(format, args...)
 }
 
 func (v Logger) Warningln(args ... interface{}) {
-	v.WARN.Println(args)
+	v.WARN.Println(args...)
 }
 
 func (v Logger) Debug(args ... interface{}) {
-	v.DEBUG.Print(args)
+	v.DEBUG.Print(args...)
 }
 
 func (v Logger) Debugf(format string, args ... interface{}) {
-	v.DEBUG.Printf(format, args)
+	v.DEBUG.Printf(format, args...)
 }
 
 func (v Logger) Debugln(args ... interface{}) {
-	v.DEBUG.Println(args)
+	v.DEBUG.Println(args...)
 }
 
 func (v Logger) Info(args ... interface{}) {
-	v.INFO.Print(args)
+	v.INFO.Print(args...)
 }
 
 func (v Logger) Infof(format string, args ... interface{}) {
-	v.INFO.Printf(format, args)
+	v.INFO.Printf(format, args...)
 }
 
 func (v Logger) Infoln(args ... interface{}) {
-	v.INFO.Println(args)
+	v.INFO.Println(args...)
 }
 
 func (v Logger) Print(args ... interface{}) {
-	v.NONE.Print(args)
+	v.NONE.Print(args...)
 }
 
 func (v Logger) Printf(format string, args ... interface{}) {
-	v.NONE.Printf(format, args)
+	v.NONE.Printf(format, args...)
 }
 
 func (v Logger) Println(args ... interface{}) {
-	v.NONE.Println(args)
+	v.NONE.Println(args...)
 }
