@@ -11,6 +11,7 @@ type LogWriter interface {
 	Warning(args ... interface{})
 	Debug(args ... interface{})
 	Info(args ... interface{})
+	Println(args ... interface{})
 }
 
 type Logger struct {
@@ -19,6 +20,7 @@ type Logger struct {
 	WARN *log.Logger
 	DEBUG *log.Logger
 	INFO *log.Logger
+	NONE *log.Logger
 }
 
 func New() LogWriter {
@@ -28,6 +30,7 @@ func New() LogWriter {
 	l.WARN = log.New(os.Stdout, "[WARN]  ", 0)
 	l.DEBUG = log.New(os.Stdout, "[DEBUG] ", 0)
 	l.INFO = log.New(os.Stdout, "[INFO] ", 0)
+	l.NONE = log.New(os.Stdout, "", 0)
 
 	return l
 }
@@ -52,3 +55,6 @@ func (v Logger) Info(args ... interface{}) {
 	v.INFO.Println(args)
 }
 
+func (v Logger) Println(args ... interface{}) {
+	v.NONE.Println(args)
+}
