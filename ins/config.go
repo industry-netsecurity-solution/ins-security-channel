@@ -85,6 +85,16 @@ type ClientConfigurations struct {
 	DiagInterval        int64
 }
 
+func (v GatewayConfigurations) ToString() []string {
+	strings := []string{}
+	strings = append(strings, fmt.Sprintf("Date: %s", v.Date))
+	strings = append(strings, fmt.Sprintf("Model: %t", v.Model))
+	strings = append(strings, fmt.Sprintf("Manufacture: %s", v.Manufacture))
+	strings = append(strings, fmt.Sprintf("Serial: %s", v.Serial))
+
+	return strings
+}
+
 func (v MQTTConfigurations) ToString() []string {
 	strings := []string{}
 	strings = append(strings, fmt.Sprintf("Broker: %s", v.Broker))
@@ -173,7 +183,6 @@ func (v HttpConfigurations) Url() string {
 	return buffer.String()
 }
 
-
 func (v PublishConfigurations) ToString() []string {
 	strings := []string{}
 	strings = append(strings, fmt.Sprintf("Service: %s", v.Service.ToString()))
@@ -226,6 +235,15 @@ func (v ClientConfigurations) ToString() []string {
 	strings = append(strings, fmt.Sprintf("DiagInterval: %d", v.DiagInterval))
 
 	return strings
+}
+
+func (v *GatewayConfigurations) PrintConfigurations() {
+	b, err := json.Marshal(v)
+	if err != nil {
+		log.Println(err)
+		return
+	}
+	log.Println(string(b))
 }
 
 /**
