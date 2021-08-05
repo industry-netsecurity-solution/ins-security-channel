@@ -10,6 +10,7 @@ import (
 )
 
 type GatewayConfigurations struct {
+	Date                string
 	Model               string
 	Manufacture         string
 	Serial              string
