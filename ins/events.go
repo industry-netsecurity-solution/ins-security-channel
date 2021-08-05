@@ -2,8 +2,9 @@ package ins
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
-	resty "github.com/go-resty/resty/v2"
+	"net/http"
 )
 
 type EventLog struct {
@@ -61,6 +62,36 @@ func ReportEvent(url string, log EventLog) error {
 		return _e
 	}
 
+	headers := make(map[string]string)
+	headers["Content-Type"] = "application/json"
+/*
+	if 0 < len(Config.Report.Authorization) {
+		encoded := base64.StdEncoding.EncodeToString([]byte(Config.Report.Authorization))
+		headers["Authorization"] = fmt.Sprintf("Bearer %s", encoded)
+	}
+*/
+
+	statusCode, err := HttpPost(url, headers, data, func(resp *http.Response) {
+	})
+	if err != nil {
+		return err
+	}
+
+	if statusCode == 200 || statusCode == 201 || statusCode == 202 || statusCode == 205 {
+		return nil
+	}
+
+	return errors.New(fmt.Sprintf("%d %s - %s", statusCode, http.StatusText(statusCode), url))
+
+
+/*
+	//data, _e := json.Marshal(log)
+	data, _e := log.EventLog()
+	if _e != nil {
+		return _e
+	}
+
+
 	fmt.Println(string(data))
 
 	// HTTP를 통한 데이터 전송
@@ -78,6 +109,7 @@ func ReportEvent(url string, log EventLog) error {
 	fmt.Println(resp)
 
 	return nil
+*/
 }
 
 func ReportLog(url string, sourceId string, evtGwType string, evtType string, status string, message string, content string) error {

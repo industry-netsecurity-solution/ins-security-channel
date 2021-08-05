@@ -9,6 +9,12 @@ import (
 	"strings"
 )
 
+type GatewayConfigurations struct {
+	Model               string
+	Manufacture         string
+	Serial              string
+}
+
 type MQTTConfigurations struct {
 	Prefix              string
 	Broker              string
@@ -119,9 +125,9 @@ func (v ServiceConfigurations) Url() string {
 	var buffer bytes.Buffer
 
 	if v.EnableTls {
-		buffer.WriteString("tcp://")
-	} else {
 		buffer.WriteString("ssl://")
+	} else {
+		buffer.WriteString("tcp://")
 	}
 
 	buffer.WriteString(v.Address)
