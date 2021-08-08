@@ -50,6 +50,9 @@ var GW_TYPE_PORTABLE_CONSTRUCTION byte = 0x21
 // 건설현장 중계
 var GW_TYPE_RELAY_CONSTRUCTION byte = 0x22
 
+// 중첩 메시지
+var BB_WRAPPED = []byte{0xF0, 0x00}
+
 // 전방/후방 영상 파일
 var BB_FRONT_VIDEO = []byte{0x00, 0x01}
 var BB_REAR_VIDEO = []byte{0x00, 0x02}
@@ -443,7 +446,17 @@ func GetMessageType4Wrap(order binary.ByteOrder, data []byte) string {
 		return TYPE_UNKNOWN
 	}
 
-	if bytes.HasPrefix(data, BB_FRONT_VIDEO) {
+	if bytes.HasPrefix(data, BB_WRAPPED) {
+		tl32v, err := DecTL32V(order, data)
+		if err != nil {
+			return TYPE_UNKNOWN
+		}
+		mesgType := GetMessageType4Wrap(order, tl32v.Value)
+		if mesgType != TYPE_UNKNOWN {
+			return mesgType
+		}
+		return GetMessageType(order, tl32v.Value)
+	} else if bytes.HasPrefix(data, BB_FRONT_VIDEO) {
 		return TYPE_BB_FRONT_VIDEO
 	} else if bytes.HasPrefix(data, BB_REAR_VIDEO) {
 		return TYPE_BB_REAR_VIDEO
@@ -613,8 +626,17 @@ func GetMessageName4Wrap(order binary.ByteOrder, data []byte) string {
 	if data == nil || len(data) < 2 {
 		return NAME_UNKNOWN
 	}
-
-	if bytes.HasPrefix(data, BB_FRONT_VIDEO) {
+	if bytes.HasPrefix(data, BB_WRAPPED) {
+		tl32v, err := DecTL32V(order, data)
+		if err != nil {
+			return TYPE_UNKNOWN
+		}
+		mesgName := GetMessageName4Wrap(order, tl32v.Value)
+		if mesgName != NAME_UNKNOWN {
+			return mesgName
+		}
+		return GetMessageName(order, tl32v.Value)
+	} else if bytes.HasPrefix(data, BB_FRONT_VIDEO) {
 		return NAME_BB_FRONT_VIDEO
 	} else if bytes.HasPrefix(data, BB_REAR_VIDEO) {
 		return NAME_BB_REAR_VIDEO

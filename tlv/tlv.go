@@ -157,7 +157,7 @@ func (obj TL16V) Decode(order binary.ByteOrder, data []byte) (int64, error) {
 	obj.Length = order.Uint16(l)
 	length += int64(len(l))
 
-	v := data[4:]
+	v := data[4:4+obj.Length]
 	obj.Value = v
 	length += int64(len(v))
 
@@ -178,7 +178,7 @@ func (obj TL32V) Decode(order binary.ByteOrder, data []byte) (int64, error) {
 	obj.Length = order.Uint32(l)
 	length += int64(len(l))
 
-	v := data[6:]
+	v := data[6:6+obj.Length]
 	obj.Value = v
 	length += int64(len(v))
 
@@ -199,7 +199,7 @@ func (obj TL64V) Decode(order binary.ByteOrder, data []byte) (int64, error) {
 	obj.Length = order.Uint64(l)
 	length += int64(len(l))
 
-	v := data[10:]
+	v := data[10:10+obj.Length]
 	obj.Value = v
 	length += int64(len(v))
 

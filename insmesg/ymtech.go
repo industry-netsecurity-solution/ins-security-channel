@@ -18,9 +18,9 @@ func MakeWrappedPacketFor0xEFFE(data []byte, addtion ins.Map) *bytes.Buffer {
 	// GW 식별
 	gwid := addtion.Get(ins.MapKey([]byte {0x80, 0x01}))
 	if gwid == nil {
-		l3payload.Write(ins.EncTagLnV(binary.LittleEndian, []byte{0x80, 0x01}, 32, gwid.([]byte)))
-	} else {
 		l3payload.Write(ins.EncTagLnV(binary.LittleEndian, []byte{0x80, 0x01}, 32, []byte{}))
+	} else {
+		l3payload.Write(ins.EncTagLnV(binary.LittleEndian, []byte{0x80, 0x01}, 32, gwid.([]byte)))
 	}
 	// 시간 추가
 	unix32 := addtion.Get(ins.MapKey([]byte {0x80, 0x02}))
