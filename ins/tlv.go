@@ -24,40 +24,51 @@ type TL64V struct {
 	Value []byte
 }
 
-func DecTL16V(order binary.ByteOrder, data []byte, tlv *TL16V) error {
-	if tlv == nil || data == nil || len(data) < 4 {
-		return errors.New("not enough data length")
+func (v TL32V) Size() int {
+	length := len(v.Type)
+	length += 4
+	length += int(v.Length)
+
+	return length
+}
+
+func DecTL16V(order binary.ByteOrder, data []byte) (*TL16V, error) {
+	if data == nil || len(data) < 4 {
+		return nil, errors.New("not enough data length")
 	}
 
+	tlv := TL16V{}
 	tlv.Type = data[0:2]
 	tlv.Length = order.Uint16(data[2:4])
 	tlv.Value = data[4:]
 
-	return nil
+	return &tlv, nil
 }
 
-func DecTL32V(order binary.ByteOrder, data []byte, tlv *TL32V) error {
-	if tlv == nil || data == nil || len(data) < 6 {
-		return errors.New("not enough data length")
+func DecTL32V(order binary.ByteOrder, data []byte) (*TL32V, error) {
+	if data == nil || len(data) < 6 {
+		return nil, errors.New("not enough data length")
 	}
 
+	tlv := TL32V{}
 	tlv.Type = data[0:2]
 	tlv.Length = order.Uint32(data[2:6])
 	tlv.Value = data[6:]
 
-	return nil
+	return &tlv, nil
 }
 
-func DecTL64V(order binary.ByteOrder, data []byte, tlv *TL64V) error {
-	if tlv == nil || data == nil || len(data) < 10 {
-		return errors.New("not enough data length")
+func DecTL64V(order binary.ByteOrder, data []byte) (*TL64V, error) {
+	if data == nil || len(data) < 10 {
+		return nil, errors.New("not enough data length")
 	}
 
+	tlv := TL64V{}
 	tlv.Type = data[0:2]
 	tlv.Length = order.Uint64(data[2:10])
 	tlv.Value = data[10:]
 
-	return nil
+	return &tlv, nil
 }
 
 func EncodeMap(order binary.ByteOrder, params map[int][]byte) []byte {

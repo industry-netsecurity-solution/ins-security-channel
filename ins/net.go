@@ -56,6 +56,71 @@ func NewTLSConfig() *tls.Config {
 	}
 }
 
+func RecvTL32V(conn net.Conn, order binary.ByteOrder) (*TL32V, error) {
+	tagArray := make([]byte, 2)
+	lengthArray := make([]byte, 4)
+
+	n, err := conn.Read(tagArray)
+	if err != nil {
+		return nil, err
+	}
+	if n != 2 {
+		return nil, errors.New("not enough data length: Tag")
+	}
+
+	n, err = conn.Read(lengthArray)
+	if err != nil {
+		return nil, err
+	}
+	if n != 4 {
+		return nil, errors.New("not enough data length: Length")
+	}
+
+	length := order.Uint32(lengthArray)
+
+	if length == 0 {
+		ret := TL32V{tagArray, uint32(length), nil}
+		return &ret, nil
+	}
+
+	dataArray := make([]byte, 4096)
+	dataLength := 0
+
+	buf := bytes.Buffer{}
+	for {
+		if int(length) <= dataLength {
+			break
+		}
+		if int(length) - dataLength < len(dataArray) {
+			r := int(length) - dataLength
+			n, err = conn.Read(dataArray[:r])
+		} else {
+			n, err = conn.Read(dataArray)
+		}
+
+		if 0 < n {
+			buf.Write(dataArray[:n])
+			dataLength += n
+		}
+
+		if err != nil {
+			// 접속 종료
+			if err == io.EOF {
+				break
+			}
+
+			// 기타 오류
+			return nil, err
+		}
+	}
+
+	if dataLength < int(length) {
+		return nil, errors.New("not enough data length: Value")
+	}
+	ret := TL32V{tagArray, uint32(length), buf.Bytes()}
+	return &ret, nil
+}
+
 func RecvTLV(conn net.Conn, order binary.ByteOrder) ([]byte, error) {
 	buf := bytes.Buffer{}
 	tagArray := make([]byte, 2)
