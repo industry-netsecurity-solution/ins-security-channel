@@ -92,7 +92,7 @@ func ReportEvent(url string, log EventLog) error {
 	}
 
 
-	fmt.Println(string(data))
+	logger.Println(string(data))
 
 	// HTTP를 통한 데이터 전송
 	client := resty.New()
@@ -102,11 +102,11 @@ func ReportEvent(url string, log EventLog) error {
 		SetBody(data).
 		Post(url)
 	if err != nil {
-		fmt.Println(err)
+		logger.Println(err)
 		return err
 	}
 
-	fmt.Println(resp)
+	logger.Println(resp)
 
 	return nil
 */

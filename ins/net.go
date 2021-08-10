@@ -36,7 +36,7 @@ func NewTLSConfig() *tls.Config {
 	//if err != nil {
 	//	panic(err)
 	//}
-	//fmt.Println(cert.Leaf)
+	//logger.Println(cert.Leaf)
 
 	// Create net.Config with desired net properties
 	return &tls.Config{
@@ -235,8 +235,8 @@ func ReadyServer(serviceConfig *ServiceConfigurations, ud interface{}, callback 
 	for {
 		conn, err := listener.Accept()
 		if err != nil {
-			fmt.Println(err)
-			continue
+			panic(err)
+			return -1
 		}
 
 		go callback(conn, ud)
@@ -400,7 +400,6 @@ func SendMessage(data []byte, conn net.Conn) (int, error) {
 
 	n, err := conn.Write(packet.Bytes())
 	if err != nil {
-		fmt.Println(err)
 		return -1, err
 	}
 
