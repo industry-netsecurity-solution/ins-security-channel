@@ -1,12 +1,12 @@
 package ins
 
 import (
-	"bytes"
 	"encoding/json"
 	"flag"
 	"fmt"
 	"log"
-	"strings"
+	"net/url"
+	"path"
 )
 
 type GatewayConfigurations struct {
@@ -132,55 +132,81 @@ func (v HttpConfigurations) ToString() []string {
 	return strings
 }
 
-func (v ServiceConfigurations) Url() string {
-	var buffer bytes.Buffer
-
-	if v.EnableTls {
-		buffer.WriteString("ssl://")
-	} else {
-		buffer.WriteString("tcp://")
+func (v ServiceConfigurations) Url(args...string) (*url.URL,  error) {
+	var s string = ""
+	for _, v := range args {
+		s += "/" + v
 	}
 
-	buffer.WriteString(v.Address)
+	var u *url.URL = nil
+	var err  error
+	if len(s) == 0 {
+		u = new(url.URL)
+	} else {
+		u, err = url.Parse(path.Clean(s))
+		if err != nil {
+			return nil, err
+		}
+	}
 
-	buffer.WriteString(fmt.Sprintf(":%d", v.Port))
+	if v.EnableTls {
+		u.Scheme = "ssl"
+	} else {
+		u.Scheme = "tcp"
+	}
 
-	return buffer.String()
+	if v.Port == 0 {
+		u.Host = v.Address
+	} else {
+		u.Host = fmt.Sprintf("%s:%d", v.Address, v.Port)
+	}
+
+	return u, nil
 }
 
-func (v HttpConfigurations) Url() string {
-	var buffer bytes.Buffer
+func (v HttpConfigurations) Url(args...string) (*url.URL,  error) {
+
+	var s string = v.Path
+	for _, v := range args {
+		s += "/" + v
+	}
+
+	var u *url.URL = nil
+	var err  error
+	if len(s) == 0 {
+		u = new(url.URL)
+	} else {
+		u, err = url.Parse(path.Clean(s))
+		if err != nil {
+			return nil, err
+		}
+	}
 
 	if v.EnableTls {
-		buffer.WriteString("HTTPS://")
+		u.Scheme = "https"
 	} else {
-		buffer.WriteString("HTTP://")
+		u.Scheme = "http"
 	}
 
-	buffer.WriteString(v.Address)
-
-	if v.Port != 0 {
+	if v.Port == 0 {
+		u.Host = v.Address
+	} else {
 		if v.EnableTls {
-			if v.Port != 443 {
-				buffer.WriteString(fmt.Sprintf(":%d", v.Port))
+			if v.Port == 443 {
+				u.Host = v.Address
+			} else {
+				u.Host = fmt.Sprintf("%s:%d", v.Address, v.Port)
 			}
 		} else {
-			if v.Port != 80 {
-				buffer.WriteString(fmt.Sprintf(":%d", v.Port))
+			if v.Port == 80 {
+				u.Host = v.Address
+			} else {
+				u.Host = fmt.Sprintf("%s:%d", v.Address, v.Port)
 			}
 		}
 	}
 
-	if 0 < len(v.Path) {
-		if strings.HasPrefix(v.Path, "/") {
-			buffer.WriteString(v.Path)
-		} else {
-			buffer.WriteString("/")
-			buffer.WriteString(v.Path)
-		}
-	}
-
-	return buffer.String()
+	return u, nil
 }
 
 func (v PublishConfigurations) ToString() []string {

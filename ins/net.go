@@ -245,6 +245,66 @@ func ReadyServer(serviceConfig *ServiceConfigurations, ud interface{}, callback 
 	return 0
 }
 
+
+func StartServer(serviceConfig *ServiceConfigurations, ud interface{}, callback func(net.Conn, interface{}) error) net.Listener {
+
+	if serviceConfig == nil {
+		return nil
+	}
+
+	if callback == nil {
+		return nil
+	}
+
+	var listener net.Listener = nil
+	var localurl string
+
+	if len(serviceConfig.Address) == 0 {
+		localurl = fmt.Sprintf("0.0.0.0:%d", serviceConfig.Port)
+	} else {
+		localurl = fmt.Sprintf("%s:%d", serviceConfig.Address, serviceConfig.Port)
+	}
+
+	if serviceConfig.EnableTls {
+		var config *tls.Config = nil
+		//cer, err := tls.LoadX509KeyPair("server.pem", "server.key")
+		cer, err := tls.LoadX509KeyPair(serviceConfig.TlsCert, serviceConfig.TlsKey)
+		if err != nil {
+			panic(err)
+			return nil
+		}
+
+		config = &tls.Config{Certificates: []tls.Certificate{cer}}
+		listener, err = tls.Listen("tcp", localurl, config)
+		if err != nil {
+			panic(err)
+			return nil
+		}
+	} else {
+		addr, err := net.ResolveTCPAddr("tcp", localurl)
+		listener, err = net.ListenTCP("tcp", addr)
+		if err != nil {
+			panic(err)
+			return nil
+		}
+	}
+
+	go func(listener net.Listener) {
+		for {
+			conn, err := listener.Accept()
+			if err != nil {
+				fmt.Println(err)
+				continue
+			}
+
+			go callback(conn, ud)
+		}
+	} (listener)
+
+	return listener
+}
+
+
 /**
  * remote 서비스에 연결을 시도한다.
  * timeout 연결 대기 시간으로 <= 0 면, timeout을 지정하지 않는다.
