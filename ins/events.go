@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/go-resty/resty/v2"
 	"net/http"
 )
 
@@ -71,7 +72,7 @@ func ReportEvent(url string, log EventLog) error {
 	}
 */
 
-	statusCode, err := HttpPost(url, headers, data, func(resp *http.Response) {
+	statusCode, err := HttpPost(url, headers, data, func(resp *resty.Response) {
 	})
 	if err != nil {
 		return err

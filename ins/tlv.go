@@ -149,6 +149,12 @@ func EncTagLnString(order binary.ByteOrder, tag []byte, size uint, data string) 
 	return EncTagLnV(order, tag, size, []byte(data))
 }
 
+func EncTagLnUInt16(order binary.ByteOrder, tag []byte, size uint, data uint16) []byte {
+	buf := make([]byte, 2)
+	order.PutUint16(buf, data)
+	return EncTagLnV(order, tag, size, buf)
+}
+
 func EncTagLnUInt32(order binary.ByteOrder, tag []byte, size uint, data uint32) []byte {
 	buf := make([]byte, 4)
 	order.PutUint32(buf, data)
