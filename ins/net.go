@@ -467,7 +467,7 @@ func SendMessage(data []byte, conn net.Conn) (int, error) {
 // HTTP를 통한 데이터 전송
 func HttpPost(url string, headers map[string]string, data []byte, handler func(*resty.Response)) (int, error) {
 	client := resty.New()
-	//client.SetCloseConnection(true)
+	client.SetCloseConnection(true)
 
 	if _, ok := headers["Content-Type"]; ok == false {
 		headers["Content-Type"] = "application/json"
