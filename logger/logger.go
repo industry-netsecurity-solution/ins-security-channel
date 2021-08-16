@@ -1,6 +1,7 @@
 package logger
 
 import (
+	"fmt"
 	"io"
 	"log"
 	"os"
@@ -107,69 +108,89 @@ func (v Logger) SetFlags(flag int) {
 }
 
 func (v Logger) Error(args ... interface{}) {
-	v.ERROR.Print(args...)
+	v.ERROR.Output(2, fmt.Sprint(args...))
 }
 
 func (v Logger) Errorf(format string, args ... interface{}) {
-	v.ERROR.Printf(format, args...)
+	v.ERROR.Output(2, fmt.Sprintf(format, args...))
 }
 
 func (v Logger) Errorln(args ... interface{}) {
-	v.ERROR.Println(args...)
+	v.ERROR.Output(2, fmt.Sprintln(args...))
+}
+
+func (v Logger) ErrorOutput(calldepth int, s string) {
+	v.ERROR.Output(calldepth, s)
 }
 
 func (v Logger) Warning(args ... interface{}) {
-	v.WARN.Print(args...)
+	v.WARN.Output(2, fmt.Sprint(args...))
 }
 
 func (v Logger) Warningf(format string, args ... interface{}) {
-	v.WARN.Printf(format, args...)
+	v.WARN.Output(2, fmt.Sprintf(format, args...))
 }
 
 func (v Logger) Warningln(args ... interface{}) {
-	v.WARN.Println(args...)
+	v.WARN.Output(2, fmt.Sprintln(args...))
+}
+
+func (v Logger) WarningOutput(calldepth int, s string) {
+	v.WARN.Output(calldepth, s)
 }
 
 func (v Logger) Debug(args ... interface{}) {
-	v.DEBUG.Print(args...)
+	v.DEBUG.Output(2, fmt.Sprint(args...))
 }
 
 func (v Logger) Debugf(format string, args ... interface{}) {
-	v.DEBUG.Printf(format, args...)
+	v.DEBUG.Output(2, fmt.Sprintf(format, args...))
 }
 
 func (v Logger) Debugln(args ... interface{}) {
-	v.DEBUG.Println(args...)
+	v.DEBUG.Output(2, fmt.Sprintln(args...))
+}
+
+func (v Logger) DebugOutput(calldepth int, s string) {
+	v.DEBUG.Output(calldepth, s)
 }
 
 func (v Logger) Info(args ... interface{}) {
-	v.INFO.Print(args...)
+	v.INFO.Output(2, fmt.Sprint(args...))
 }
 
 func (v Logger) Infof(format string, args ... interface{}) {
-	v.INFO.Printf(format, args...)
+	v.INFO.Output(2, fmt.Sprintf(format, args...))
 }
 
 func (v Logger) Infoln(args ... interface{}) {
-	v.INFO.Println(args...)
+	v.INFO.Output(2, fmt.Sprintln(args...))
+}
+
+func (v Logger) InfoOutput(calldepth int, s string) {
+	v.INFO.Output(calldepth, s)
 }
 
 func (v Logger) Print(args ... interface{}) {
-	v.NONE.Print(args...)
+	v.NONE.Output(2, fmt.Sprint(args...))
 }
 
 func (v Logger) Printf(format string, args ... interface{}) {
-	v.NONE.Printf(format, args...)
+	v.NONE.Output(2, fmt.Sprintf(format, args...))
 }
 
 func (v Logger) Println(args ... interface{}) {
-	v.NONE.Println(args...)
+	v.NONE.Output(2, fmt.Sprintln(args...))
+}
+
+func (v Logger) DefaultOutput(calldepth int, s string) {
+	v.NONE.Output(calldepth, s)
 }
 
 
 //-----------------------------------------------------
 
-var std = New(os.Stderr, log.LstdFlags)
+var std = New(os.Stderr, log.LstdFlags|log.Lshortfile)
 
 
 func Writer() LogWriter {
@@ -223,61 +244,88 @@ func SetFlags(flag int) {
 }
 
 func Error(args ... interface{}) {
-	std.Error(args...)
+	std.ErrorOutput(3, fmt.Sprint(args...))
+
 }
 
 func Errorf(format string, args ... interface{}) {
-	std.Errorf(format, args...)
+	std.ErrorOutput(3, fmt.Sprintf(format, args...))
+
 }
 
 func Errorln(args ... interface{}) {
-	std.Errorln(args...)
+	std.ErrorOutput(3, fmt.Sprint(args...))
+
 }
 
 func Warning(args ... interface{}) {
-	std.Warning(args...)
+	std.WarningOutput(3, fmt.Sprint(args...))
 }
 
 func Warningf(format string, args ... interface{}) {
-	std.Warningf(format, args...)
+	std.WarningOutput(3, fmt.Sprintf(format, args...))
+
 }
 
 func Warningln(args ... interface{}) {
-	std.Warningln(args...)
+	std.WarningOutput(3, fmt.Sprintln(args...))
+
 }
 
 func Debug(args ... interface{}) {
-	std.Debug(args...)
+	std.DebugOutput(3, fmt.Sprint(args...))
 }
 
 func Debugf(format string, args ... interface{}) {
-	std.Debugf(format, args...)
+	std.DebugOutput(3, fmt.Sprintf(format, args...))
+
 }
 
 func Debugln(args ... interface{}) {
-	std.Debugln(args...)
+	std.DebugOutput(3, fmt.Sprintln(args...))
 }
 
 func Info(args ... interface{}) {
-	std.Info(args...)
+	std.InfoOutput(3, fmt.Sprint(args...))
 }
 
 func Infof(format string, args ... interface{}) {
-	std.Infof(format, args...)
+	std.InfoOutput(3, fmt.Sprintf(format, args...))
 }
 
 func Infoln(args ... interface{}) {
-	std.Infoln(args...)
+	std.InfoOutput(3, fmt.Sprintln(args...))
 }
 
 func Print(args ... interface{}) {
-	std.Print(args...)
+	std.DefaultOutput(3, fmt.Sprint(args...))
 }
 
 func Printf(format string, args ... interface{}) {
-	std.Printf(format, args...)
+	std.DefaultOutput(3, fmt.Sprintf(format, args...))
 }
 
 func Println(args ... interface{}) {
-	std.Println(args...)
+	std.DefaultOutput(3, fmt.Sprintln(args...))
+}
+
+
+func GetError() *log.Logger {
+	return std.ERROR
+}
+
+func GetWarn() *log.Logger {
+	return std.WARN
+}
+
+func GetDebug() *log.Logger {
+	return std.DEBUG
+}
+
+func GetInfo() *log.Logger {
+	return std.INFO
+}
+
+func GetDefault() *log.Logger {
+	return std.NONE
 }
