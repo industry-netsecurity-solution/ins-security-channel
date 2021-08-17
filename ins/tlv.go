@@ -32,6 +32,15 @@ func (v TL32V) Size() int {
 	return length
 }
 
+func (v TL32V) Bytes(order binary.ByteOrder) []byte {
+	var buffer = new(bytes.Buffer)
+	binary.Write(buffer, order, v.Type)
+	binary.Write(buffer, order, v.Length)
+	binary.Write(buffer, order, v.Value)
+
+	return buffer.Bytes()
+}
+
 func DecTL16V(order binary.ByteOrder, data []byte) (*TL16V, error) {
 	if data == nil || len(data) < 4 {
 		return nil, errors.New("not enough data length")
