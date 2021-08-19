@@ -1,6 +1,7 @@
 package cachedb
 
 import (
+	"container/list"
 	"database/sql"
 	"errors"
 	"fmt"
@@ -11,6 +12,11 @@ import (
 type CacheDB struct {
 	conn         *sql.DB
 	tables        int
+}
+
+type Data struct {
+	Id            int64
+	Data        []byte
 }
 
 func ConnectDB(datasource string) (*CacheDB, error) {
@@ -109,6 +115,48 @@ func (v *CacheDB) GetNextData(table int, curr int64) (int64, []byte, error){
 
 	return -1, nil, nil
 }
+
+func getNextLimitDataQuery(db *CacheDB, table int, limit int64) (string, error) {
+	if db.tables <= table {
+		return "", errors.New("Not support table.")
+	}
+
+	tname := fmt.Sprintf("T%02d", table)
+	if limit <= 0 {
+		query := fmt.Sprintf("SELECT id, data FROM `%s` WHERE ? < id ORDER BY id ASC", tname)
+		return query, nil
+	}
+	query := fmt.Sprintf("SELECT id, data FROM `%s` WHERE ? < id ORDER BY id ASC LIMIT %d", tname, limit)
+
+	return query, nil
+}
+
+func (v *CacheDB) GetNextLimitData(table int, curr int64, limit int64) (*list.List, error){
+	// 데이터 조회
+	query, err := getNextLimitDataQuery(v, table, limit)
+	if err != nil {
+		return nil, err
+	}
+
+	rows, err := v.conn.Query(query, curr)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	results := list.New()
+	for rows.Next() {
+		row := new(Data)
+		err := rows.Scan(&row.Id, &row.Data)
+		if err != nil {
+			return nil, err
+		}
+		results.PushBack(row)
+	}
+
+	return results, nil
+}
+
 
 func getCountQuery(db *CacheDB, table int, min, max int64) (string, error) {
 	if db.tables <= table {

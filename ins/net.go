@@ -490,3 +490,27 @@ func HttpPost(url string, headers map[string]string, data []byte, handler func(*
 
 	return status, nil
 }
+
+type DataRelay interface {
+	DoSend(args ...interface{}) (interface{}, error)
+}
+
+type TcpRelay struct {
+	ServiceConfigurations
+}
+
+func (v TcpRelay) DoSend(args ...interface{}) (interface{}, error) {
+
+	conn, err := Dial(&v.ServiceConfigurations)
+	if err != nil {
+		return 0, err
+	}
+	defer  conn.Close()
+
+	nwrite, err := SendMessage(args[0].([]byte), conn)
+	if err != nil {
+		return 0, err
+	}
+
+	return nwrite, nil
+}
