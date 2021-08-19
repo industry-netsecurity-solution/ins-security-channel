@@ -85,6 +85,12 @@ type ClientConfigurations struct {
 	DiagInterval        int64
 }
 
+type FirmwareConfigurations struct {
+	ConfigFilepath      string
+	DownlaodFilepath    string
+	Http                HttpConfigurations
+}
+
 func (v GatewayConfigurations) ToString() []string {
 	strings := []string{}
 	strings = append(strings, fmt.Sprintf("Date: %s", v.Date))
