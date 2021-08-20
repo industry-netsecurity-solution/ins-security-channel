@@ -9,7 +9,6 @@ import (
 	"github.com/go-resty/resty/v2"
 	"github.com/google/uuid"
 	"github.com/industry-netsecurity-solution/ins-security-channel/ins"
-	"github.com/industry-netsecurity-solution/ins-security-channel/logger"
 	"io/ioutil"
 	"mime"
 	"net/http"
@@ -173,6 +172,7 @@ func CheckUpdate(Conf ins.FirmwareConfigurations) (*bytes.Buffer, error) {
 	// 기존의 Config file을 로딩한다.
 	var buf *bytes.Buffer = nil
 	var err error = nil
+
 	if buf, err = ins.ReadFile(Conf.ConfigFilepath); err != nil {
 		return nil, err
 	}
@@ -196,7 +196,6 @@ func CheckUpdate(Conf ins.FirmwareConfigurations) (*bytes.Buffer, error) {
 		contents := resp.Body()
 		err := json.Unmarshal(contents, results)
 		if err != nil {
-			logger.Println(err)
 			return err
 		}
 
@@ -245,7 +244,7 @@ func DownloadFirmware(Conf ins.FirmwareConfigurations, firmwareConfig *bytes.Buf
 
 	// 임시 파일로 저장한다.
 	uuidfirmware := uuid.New()
-	tempname := fmt.Sprintf("%s/%s", Conf.DownlaodFilepath, uuidfirmware.String())
+	tempfirmname := fmt.Sprintf("%s/%s", Conf.DownlaodFilepath, uuidfirmware.String())
 
 	firmwareParam := NewRequestParam()
 	firmwareParam.SetQuerypath("firmware/download")
@@ -253,7 +252,7 @@ func DownloadFirmware(Conf ins.FirmwareConfigurations, firmwareConfig *bytes.Buf
 	firmwareParam.SetHeader("Content-Type", "application/json")
 	firmwareParam.SetHeader("Accept", "application/octet-stream; charset=binary")
 	firmwareParam.SetData(firmwareConfig.Bytes())
-	firmwareParam.SetFilename(tempname)
+	firmwareParam.SetFilename(tempfirmname)
 
 	var mediatype string
 	var params map[string]string
@@ -267,19 +266,47 @@ func DownloadFirmware(Conf ins.FirmwareConfigurations, firmwareConfig *bytes.Buf
 		return e
 	}
 
-	uuidconfig := uuid.New()
-	tempconfname := uuidconfig.String()
+	firmwareInfo := new(ins.SMap)
+	if err = json.Unmarshal(firmwareConfig.Bytes(), firmwareInfo); err != nil {
+		_ = os.Remove(tempfirmname)
+		return err
+	}
 
-	ioutil.WriteFile(tempconfname, firmwareConfig.Bytes(), 0644)
-
-	if filename, ok :=  params["filename"]; ok {
-		newpath := fmt.Sprintf("%s/%s", Conf.DownlaodFilepath, filename)
-		if err := os.Rename(tempname, newpath); err != nil {
-			return err;
+	if v := firmwareInfo.Get("hash"); v != nil {
+		if hash, err := ins.SumSHA256(tempfirmname); err != nil {
+			_ = os.Remove(tempfirmname)
+			return err
+		} else {
+			if strings.EqualFold(v.(string), hash) == false {
+				return errors.New(fmt.Sprintf("mismatch hash: %s", hash))
+			}
 		}
 	}
 
+	uuidconfig := uuid.New()
+	tempconfname := uuidconfig.String()
+
+	if err = ioutil.WriteFile(tempconfname, firmwareConfig.Bytes(), 0644); err != nil {
+		_ = os.Remove(tempfirmname)
+		return err
+	}
+
+	var newpath string
+	if filename, ok :=  params["filename"]; ok {
+		newpath = fmt.Sprintf("%s/%s", Conf.DownlaodFilepath, filename)
+	} else {
+		newpath = fmt.Sprintf("%s/firmware.bin", Conf.DownlaodFilepath)
+	}
+
+	if err := os.Rename(tempfirmname, newpath); err != nil {
+		_ = os.Remove(tempfirmname)
+		_ = os.Remove(tempconfname)
+		return err;
+	}
+
 	if err := os.Rename(tempconfname, Conf.ConfigFilepath); err != nil {
+		_ = os.Remove(newpath)
+		_ = os.Remove(tempconfname)
 		return err;
 	}
 

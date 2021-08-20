@@ -2,7 +2,11 @@ package ins
 
 import (
 	"bytes"
+	"crypto/md5"
+	"crypto/sha256"
+	"encoding/hex"
 	"fmt"
+	"hash"
 	"io"
 	"os"
 	"reflect"
@@ -44,30 +48,50 @@ func GetGID() uint64 {
 }
 
 func ReadFile(filepath string) (*bytes.Buffer, error) {
-
 	var file *os.File = nil
 	var err error = nil
-
 	if file, err = os.Open(filepath); err != nil {
 		return nil, err
 	}
 	defer file.Close()
 
-	buffer := new(bytes.Buffer)
-	buf := make([]byte, 4096)
-	for {
-		var rlen int
-		if rlen, err = file.Read(buf); err != nil {
-			if err == io.EOF {
-				break
-			}
-			return nil, err
+	var n int64 = bytes.MinRead
+	if fi, err := file.Stat(); err == nil {
+		if size := fi.Size() + bytes.MinRead; size > n {
+			n = size
 		}
 
-		if _, err = buffer.Write(buf[:rlen]); err != nil {
-			return nil, err
-		}
 	}
 
+	buffer := new(bytes.Buffer)
+	if int64(int(n)) == n {
+		buffer.Grow(int(n))
+	}
+	_, err = buffer.ReadFrom(file)
+
 	return buffer, nil
+}
+
+func SumHash(filepath string, hash hash.Hash) (string, error) {
+	var file *os.File = nil
+	var err error
+	if file, err = os.Open(filepath); err != nil {
+		return "", err
+	}
+	defer file.Close()
+
+	if _, err := io.Copy(hash, file); err != nil {
+		return "", err
+	}
+	return hex.EncodeToString(hash.Sum(nil)), nil
+}
+
+func SumSHA256(filepath string) (string, error) {
+	hash := sha256.New()
+	return SumHash(filepath, hash)
+}
+
+func SumMD5(filepath string) (string, error) {
+	hash := md5.New()
+	return SumHash(filepath, hash)
 }
