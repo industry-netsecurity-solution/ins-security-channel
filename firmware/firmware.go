@@ -168,17 +168,13 @@ func (v HttpRequest) DoRequest(param *RequestParam, handler func(resp *resty.Res
 	return status, nil
 }
 
-func CheckUpdate(Conf ins.FirmwareConfigurations) error {
-
-	if Conf.Enable == false {
-		return nil
-	}
+func CheckUpdate(Conf ins.FirmwareConfigurations) (*bytes.Buffer, error) {
 
 	// 기존의 Config file을 로딩한다.
 	var buf *bytes.Buffer = nil
 	var err error = nil
 	if buf, err = ins.ReadFile(Conf.ConfigFilepath); err != nil {
-		return err
+		return nil, err
 	}
 
 	// 기존의 Config file로 firmware 업데이트가 있는지 검사한다.
@@ -191,7 +187,7 @@ func CheckUpdate(Conf ins.FirmwareConfigurations) error {
 
 	results := new(ins.SMap)
 	request := HttpRequest{Conf.Http}
-	if r, e := request.DoRequest(checkParam, func(resp *resty.Response) error {
+	if _, e := request.DoRequest(checkParam, func(resp *resty.Response) error {
 		status := resp.StatusCode()
 		if status != 200 && status != 201 && status != 202 && status != 205 {
 			return errors.New(fmt.Sprintf("%d %s - %s", status, http.StatusText(status), resp.Request.URL))
@@ -206,28 +202,46 @@ func CheckUpdate(Conf ins.FirmwareConfigurations) error {
 
 		return nil
 	}); e != nil {
-		return e
-	} else {
-		fmt.Println(r)
+		return nil, e
 	}
 
 	if v := results.Get("type"); v == nil {
-		return errors.New("firmware/check, unknown response")
+		err = errors.New("firmware/check, unknown response")
+		return nil, err
 	} else {
 		if strings.Compare(strings.ToLower(v.(string)), "success") != 0 {
-			return nil
+			if message := results.Get("message"); message == nil {
+				err = errors.New("unknown error")
+				return nil, err
+			} else {
+				err = errors.New(message.(string))
+				return nil, err
+			}
 		}
 	}
 
-	firmwareConfig := bytes.Buffer{}
-	if v:= results.Get("result"); v != nil {
+	if v := results.Get("result"); v == nil {
+		// result == null 이면 동일한 버전임
+		return nil, nil
+	} else {
 		contents := v.(map[string]interface{})
 		if cfg, e := json.MarshalIndent(contents, "", "    "); e == nil {
+			firmwareConfig := new(bytes.Buffer)
 			firmwareConfig.Write(cfg)
+			return firmwareConfig, nil
+		} else {
+			return nil, e
 		}
 	}
 
-	fmt.Println(string(firmwareConfig.Bytes()))
+	// Never Reached
+	return nil, nil
+}
+
+func DownloadFirmware(Conf ins.FirmwareConfigurations, firmwareConfig *bytes.Buffer) error {
+
+	var err error = nil
+	//fmt.Println(string(firmwareConfig.Bytes()))
 
 	// 임시 파일로 저장한다.
 	uuidfirmware := uuid.New()
@@ -243,15 +257,14 @@ func CheckUpdate(Conf ins.FirmwareConfigurations) error {
 
 	var mediatype string
 	var params map[string]string
-	if r, e := request.DoRequest(firmwareParam, func(resp *resty.Response) error {
+	request := HttpRequest{Conf.Http}
+	if _, e := request.DoRequest(firmwareParam, func(resp *resty.Response) error {
 		headers := resp.Header()
 		disposition := headers.Get("Content-Disposition")
 		mediatype , params , err = mime.ParseMediaType(disposition)
 		return nil
 	}); e != nil {
 		return e
-	} else {
-		fmt.Println(r)
 	}
 
 	uuidconfig := uuid.New()
@@ -271,4 +284,25 @@ func CheckUpdate(Conf ins.FirmwareConfigurations) error {
 	}
 
 	return nil
+}
+
+
+func UpdateFirmware(Conf ins.FirmwareConfigurations) error {
+
+	var firmwareConfig *bytes.Buffer
+	var err error
+
+	if Conf.Enable == false {
+		return nil
+	}
+
+	if firmwareConfig, err = CheckUpdate(Conf); err == nil {
+		if firmwareConfig == nil {
+			// 신규 버전 없음
+			return nil
+		}
+
+		err = DownloadFirmware(Conf, firmwareConfig)
+	}
+	return err
 }
