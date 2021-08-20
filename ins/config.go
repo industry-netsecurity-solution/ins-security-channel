@@ -86,6 +86,7 @@ type ClientConfigurations struct {
 }
 
 type FirmwareConfigurations struct {
+	Enable              bool
 	ConfigFilepath      string
 	DownlaodFilepath    string
 	Http                HttpConfigurations

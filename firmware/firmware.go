@@ -3,12 +3,18 @@ package firmware
 import (
 	"bytes"
 	"encoding/base64"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"github.com/go-resty/resty/v2"
 	"github.com/google/uuid"
 	"github.com/industry-netsecurity-solution/ins-security-channel/ins"
+	"github.com/industry-netsecurity-solution/ins-security-channel/logger"
+	"io/ioutil"
+	"mime"
 	"net/http"
+	"os"
+	"strings"
 )
 
 // POST http://{host}:9092/firmware/check
@@ -164,6 +170,10 @@ func (v HttpRequest) DoRequest(param *RequestParam, handler func(resp *resty.Res
 
 func CheckUpdate(Conf ins.FirmwareConfigurations) error {
 
+	if Conf.Enable == false {
+		return nil
+	}
+
 	// 기존의 Config file을 로딩한다.
 	var buf *bytes.Buffer = nil
 	var err error = nil
@@ -179,7 +189,7 @@ func CheckUpdate(Conf ins.FirmwareConfigurations) error {
 	checkParam.SetHeader("Accept", "application/json")
 	checkParam.SetData(buf.Bytes())
 
-	firmwareConfig := bytes.Buffer{}
+	results := new(ins.SMap)
 	request := HttpRequest{Conf.Http}
 	if r, e := request.DoRequest(checkParam, func(resp *resty.Response) error {
 		status := resp.StatusCode()
@@ -188,8 +198,12 @@ func CheckUpdate(Conf ins.FirmwareConfigurations) error {
 		}
 
 		contents := resp.Body()
-		firmwareConfig.Write(contents)
-		fmt.Println(string(contents))
+		err := json.Unmarshal(contents, results)
+		if err != nil {
+			logger.Println(err)
+			return err
+		}
+
 		return nil
 	}); e != nil {
 		return e
@@ -197,8 +211,27 @@ func CheckUpdate(Conf ins.FirmwareConfigurations) error {
 		fmt.Println(r)
 	}
 
+	if v := results.Get("type"); v == nil {
+		return errors.New("firmware/check, unknown response")
+	} else {
+		if strings.Compare(strings.ToLower(v.(string)), "success") != 0 {
+			return nil
+		}
+	}
+
+	firmwareConfig := bytes.Buffer{}
+	if v:= results.Get("result"); v != nil {
+		contents := v.(map[string]interface{})
+		if cfg, e := json.MarshalIndent(contents, "", "    "); e == nil {
+			firmwareConfig.Write(cfg)
+		}
+	}
+
+	fmt.Println(string(firmwareConfig.Bytes()))
+
 	// 임시 파일로 저장한다.
-	UUID := uuid.New()
+	uuidfirmware := uuid.New()
+	tempname := fmt.Sprintf("%s/%s", Conf.DownlaodFilepath, uuidfirmware.String())
 
 	firmwareParam := NewRequestParam()
 	firmwareParam.SetQuerypath("firmware/download")
@@ -206,16 +239,36 @@ func CheckUpdate(Conf ins.FirmwareConfigurations) error {
 	firmwareParam.SetHeader("Content-Type", "application/json")
 	firmwareParam.SetHeader("Accept", "application/octet-stream; charset=binary")
 	firmwareParam.SetData(firmwareConfig.Bytes())
-	firmwareParam.SetFilename(UUID.String())
+	firmwareParam.SetFilename(tempname)
 
-	if r, e := request.DoRequest(firmwareParam, nil); e != nil {
+	var mediatype string
+	var params map[string]string
+	if r, e := request.DoRequest(firmwareParam, func(resp *resty.Response) error {
+		headers := resp.Header()
+		disposition := headers.Get("Content-Disposition")
+		mediatype , params , err = mime.ParseMediaType(disposition)
+		return nil
+	}); e != nil {
 		return e
 	} else {
 		fmt.Println(r)
 	}
 
-	// TODO: firmwareConfig는 파일로 저장
-	// TODO: 임시 저장된 Firmware 파일
+	uuidconfig := uuid.New()
+	tempconfname := uuidconfig.String()
+
+	ioutil.WriteFile(tempconfname, firmwareConfig.Bytes(), 0644)
+
+	if filename, ok :=  params["filename"]; ok {
+		newpath := fmt.Sprintf("%s/%s", Conf.DownlaodFilepath, filename)
+		if err := os.Rename(tempname, newpath); err != nil {
+			return err;
+		}
+	}
+
+	if err := os.Rename(tempconfname, Conf.ConfigFilepath); err != nil {
+		return err;
+	}
 
 	return nil
 }
