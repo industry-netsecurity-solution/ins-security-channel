@@ -1,10 +1,100 @@
 package ins
 
 import (
+	"encoding/binary"
 	"errors"
 	"fmt"
 	"strconv"
+	"unsafe"
 )
+
+func NativeEndian() binary.ByteOrder {
+	buf := [2]byte{}
+	*(*uint16)(unsafe.Pointer(&buf[0])) = uint16(0xEFFE)
+
+	var nativeEndian binary.ByteOrder
+	switch buf {
+	case [2]byte{0xFE, 0xEF}:
+		nativeEndian = binary.LittleEndian
+	case [2]byte{0xEF, 0xFE}:
+		nativeEndian = binary.BigEndian
+	default:
+		panic("Could not determine native endianness.")
+	}
+
+	return nativeEndian
+}
+
+func AsBytes(value interface{}) ([]byte, error) {
+	if value == nil {
+		return nil, errors.New("Can not convert type 'nil' to 'string'.")
+	}
+
+	buf := [16]byte{}
+
+	switch value.(type) {
+	case bool:
+		*(*bool)(unsafe.Pointer(&buf[0])) = value.(bool)
+		return buf[:1], nil
+	case int:
+		sz := unsafe.Sizeof(value.(int))
+		*(*int)(unsafe.Pointer(&buf[0])) = value.(int)
+		return buf[:sz], nil
+	case int8:
+		sz := unsafe.Sizeof(value.(int8))
+		*(*int8)(unsafe.Pointer(&buf[0])) = value.(int8)
+		return buf[:sz], nil
+	case int16:
+		sz := unsafe.Sizeof(value.(int16))
+		*(*int16)(unsafe.Pointer(&buf[0])) = value.(int16)
+		return buf[:sz], nil
+	case int32:
+		sz := unsafe.Sizeof(value.(int32))
+		*(*int32)(unsafe.Pointer(&buf[0])) = value.(int32)
+		return buf[:sz], nil
+	case int64:
+		sz := unsafe.Sizeof(value.(int64))
+		*(*int64)(unsafe.Pointer(&buf[0])) = value.(int64)
+		return buf[:sz], nil
+	case uint:
+		sz := unsafe.Sizeof(value.(uint))
+		*(*uint)(unsafe.Pointer(&buf[0])) = value.(uint)
+		return buf[:sz], nil
+	case uint8:
+		sz := unsafe.Sizeof(value.(uint8))
+		*(*uint8)(unsafe.Pointer(&buf[0])) = value.(uint8)
+		return buf[:sz], nil
+	case uint16:
+		sz := unsafe.Sizeof(value.(uint16))
+		*(*uint16)(unsafe.Pointer(&buf[0])) = value.(uint16)
+		return buf[:sz], nil
+	case uint32:
+		sz := unsafe.Sizeof(value.(uint32))
+		*(*uint32)(unsafe.Pointer(&buf[0])) = value.(uint32)
+		return buf[:sz], nil
+	case uint64:
+		sz := unsafe.Sizeof(value.(uint64))
+		*(*uint64)(unsafe.Pointer(&buf[0])) = value.(uint64)
+		return buf[:sz], nil
+	case float32:
+		sz := unsafe.Sizeof(value.(float32))
+		*(*float32)(unsafe.Pointer(&buf[0])) = value.(float32)
+		return buf[:sz], nil
+	case float64:
+		sz := unsafe.Sizeof(value.(float64))
+		*(*float64)(unsafe.Pointer(&buf[0])) = value.(float64)
+		return buf[:sz], nil
+	case string:
+		return []byte(value.(string)), nil
+	case []byte:
+		return value.([]byte), nil
+	//... etc
+	default:
+		return nil, errors.New(fmt.Sprintf("Can not convert type '%s' to 'string'.", GetType(value)))
+	}
+
+	return value.([]byte), nil
+}
 
 func AsString(value interface{}) (string, error) {
 	if value == nil {
