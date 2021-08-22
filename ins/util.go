@@ -2,6 +2,7 @@ package ins
 
 import (
 	"bytes"
+	"container/list"
 	"crypto/md5"
 	"crypto/sha256"
 	"encoding/hex"
@@ -113,4 +114,16 @@ func PackAsString(args...interface{}) string {
 	}
 
 	return ""
+}
+
+func ListToStringArray(src *list.List) []string {
+	results := make([]string, src.Len())
+
+	var i int = 0
+	for e := src.Front(); e != nil; e = e.Next() {
+		results[i] = e.Value.(string)
+		i++
+	}
+
+	return results
 }
