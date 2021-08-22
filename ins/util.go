@@ -95,3 +95,22 @@ func SumMD5(filepath string) (string, error) {
 	hash := md5.New()
 	return SumHash(filepath, hash)
 }
+
+func Pack(args...interface{}) interface{} {
+	if args == nil {
+		return nil
+	}
+	if 0 < len(args) {
+		return args[0]
+	}
+
+	return nil
+}
+
+func PackAsString(args...interface{}) string {
+	if str, err := AsString(Pack(args...)); err == nil {
+		return str
+	}
+
+	return ""
+}

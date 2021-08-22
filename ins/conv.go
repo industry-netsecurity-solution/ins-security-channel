@@ -27,7 +27,7 @@ func NativeEndian() binary.ByteOrder {
 
 func AsBytes(value interface{}) ([]byte, error) {
 	if value == nil {
-		return nil, errors.New("Can not convert type 'nil' to 'string'.")
+		return nil, errors.New("Can not convert type 'nil' to '[]byte'.")
 	}
 
 	buf := [16]byte{}
@@ -133,6 +133,8 @@ func AsString(value interface{}) (string, error) {
 		return strconv.FormatFloat(float64(value.(float64)), 'f', -1, 64), nil
 	case string:
 		return value.(string), nil
+	case []byte:
+		return string(value.([]byte)), nil
 	//... etc
 	default:
 		return "", errors.New(fmt.Sprintf("Can not convert type '%s' to 'string'.", GetType(value)))

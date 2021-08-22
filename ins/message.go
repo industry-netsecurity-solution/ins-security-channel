@@ -69,6 +69,8 @@ var BB_UWB_LOCATION = []byte{0x00, 0x08}
 // 블랙박스 충돌 이벤트
 var BB_EVENT_COLLISION = []byte{0x00, 0x09}
 
+var CONTROL_COMMAND = []byte{0x01, 0x01}
+
 // 제조현장
 var GW_CENTER_STATUS_FACTORY = []byte{0x00, 0x81}
 var GW_RELAY_STATUS_FACTORY = []byte{0x00, 0x82}
