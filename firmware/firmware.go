@@ -304,14 +304,20 @@ func DownloadFirmware(Conf ins.FirmwareConfigurations, firmwareConfig *bytes.Buf
 
 	if err := os.Rename(tempfirmname, newpath); err != nil {
 		_ = os.Remove(tempfirmname)
+		logger.Println("Remove:", tempfirmname)
+
 		_ = os.Remove(tempconfname)
+		logger.Println("Remove:", tempconfname)
 		return err;
 	}
 	logger.Println("Firmmware file downlaod:", newpath)
 
 	if err := os.Rename(tempconfname, Conf.ConfigFilepath); err != nil {
 		_ = os.Remove(newpath)
+		logger.Println("Remove:", newpath)
+
 		_ = os.Remove(tempconfname)
+		logger.Println("Remove:", tempconfname)
 		return err;
 	}
 	logger.Println("Firmmware config downlaod:", Conf.ConfigFilepath)
