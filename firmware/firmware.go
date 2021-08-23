@@ -9,6 +9,7 @@ import (
 	"github.com/go-resty/resty/v2"
 	"github.com/google/uuid"
 	"github.com/industry-netsecurity-solution/ins-security-channel/ins"
+	"github.com/industry-netsecurity-solution/ins-security-channel/logger"
 	"io/ioutil"
 	"mime"
 	"net/http"
@@ -199,6 +200,8 @@ func CheckUpdate(Conf ins.FirmwareConfigurations) (*bytes.Buffer, error) {
 			return err
 		}
 
+		logger.Println("Received firmware configuration:", string(contents))
+
 		return nil
 	}); e != nil {
 		return nil, e
@@ -261,6 +264,7 @@ func DownloadFirmware(Conf ins.FirmwareConfigurations, firmwareConfig *bytes.Buf
 		headers := resp.Header()
 		disposition := headers.Get("Content-Disposition")
 		mediatype , params , err = mime.ParseMediaType(disposition)
+
 		return nil
 	}); e != nil {
 		return e
@@ -303,12 +307,14 @@ func DownloadFirmware(Conf ins.FirmwareConfigurations, firmwareConfig *bytes.Buf
 		_ = os.Remove(tempconfname)
 		return err;
 	}
+	logger.Println("Firmmware file downlaod:", newpath)
 
 	if err := os.Rename(tempconfname, Conf.ConfigFilepath); err != nil {
 		_ = os.Remove(newpath)
 		_ = os.Remove(tempconfname)
 		return err;
 	}
+	logger.Println("Firmmware config downlaod:", Conf.ConfigFilepath)
 
 	return nil
 }
@@ -329,6 +335,7 @@ func UpdateFirmware(Conf ins.FirmwareConfigurations) error {
 			return nil
 		}
 
+		logger.Println("Try download:", string(firmwareConfig.Bytes()))
 		err = DownloadFirmware(Conf, firmwareConfig)
 	}
 	return err
