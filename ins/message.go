@@ -42,6 +42,8 @@ var GW_TYPE_BLACKBOX_FACTORY byte = 0x04
 
 // 위험구역 집중 GW
 var GW_TYPE_CENTER_DANGERZONE byte = 0x11
+// 위험구혁 스마트 GW
+var GW_TYPE_SMART_DANGERZONE byte = 0x13
 // 위험구혁 블랙박스
 var GW_TYPE_BLACKBOX_DANGERZONE byte = 0x14
 
