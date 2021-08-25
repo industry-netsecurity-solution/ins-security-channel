@@ -2,8 +2,6 @@ package firmware
 
 import (
 	"bytes"
-	"crypto/tls"
-	"encoding/base64"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -11,6 +9,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/industry-netsecurity-solution/ins-security-channel/ins"
 	"github.com/industry-netsecurity-solution/ins-security-channel/logger"
+	"github.com/industry-netsecurity-solution/ins-security-channel/request"
 	"io/ioutil"
 	"mime"
 	"net/http"
@@ -63,119 +62,6 @@ type FIrmware struct {
 	hash              string   `json:"hash,omitempty"`
 }
 
-type RequestParam struct {
-	method    string
-	querypath string
-	headers   map[string]string
-	data      interface{}
-	filename  string
-}
-
-func NewRequestParam() *RequestParam {
-	param := new(RequestParam)
-	param.method = http.MethodPost
-	param.headers = make(map[string]string)
-	param.data = nil
-
-	return param
-}
-
-func (v *RequestParam) SetMethod(method string) {
-	v.method = method
-}
-
-func (v *RequestParam) SetQuerypath(querypath string) {
-	v.querypath = querypath
-}
-
-func (v *RequestParam) SetHeader(key, value string) {
-	v.headers[key] = value
-}
-
-func (v *RequestParam) SetData(data interface{}) {
-	v.data = data
-}
-
-func (v *RequestParam) SetFilename(filename string) {
-	v.filename = filename
-}
-
-type HttpRequest struct {
-	ins.HttpConfigurations
-}
-
-func (v HttpRequest) DoRequest(param *RequestParam, handler func(resp *resty.Response) error) (int, error) {
-	if 0 < len(v.Authorization) {
-		encoded := base64.StdEncoding.EncodeToString([]byte(v.Authorization))
-		param.headers["Authorization"] = fmt.Sprintf("Bearer %s", encoded)
-	}
-
-	u, err := v.Url(param.querypath)
-	if err != nil {
-		return -1, err
-	}
-	httpurl := u.String()
-
-	client := resty.New()
-	if strings.EqualFold(u.Scheme, "https") {
-		tr := &http.Transport{
-			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
-		}
-		client.SetTransport(tr)
-	}
-	client.SetCloseConnection(true)
-
-	req := client.R().
-		SetHeaders(param.headers).
-		SetBody(param.data)
-	if 0 < len(param.filename) {
-		req.SetOutput(param.filename)
-	}
-	var resp *resty.Response
-
-	if param.method == http.MethodGet {
-		if resp, err = req.Get(httpurl); err != nil {
-			return -1, err
-		}
-	} else if param.method == http.MethodPost {
-		if resp, err = req.Post(httpurl); err != nil {
-			return -1, err
-		}
-	} else if param.method == http.MethodPut {
-		if resp, err = req.Put(httpurl); err != nil {
-			return -1, err
-		}
-	} else if param.method == http.MethodDelete {
-		if resp, err = req.Delete(httpurl); err != nil {
-			return -1, err
-		}
-	} else if param.method == http.MethodHead {
-		if resp, err = req.Head(httpurl); err != nil {
-			return -1, err
-		}
-	} else if param.method == http.MethodOptions {
-		if resp, err = req.Options(httpurl); err != nil {
-			return -1, err
-		}
-	} else if param.method == http.MethodPatch {
-		if resp, err = req.Patch(httpurl); err != nil {
-			return -1, err
-		}
-	} else {
-		return -1, errors.New(http.ErrNotSupported.Error())
-	}
-	defer resp.RawBody().Close()
-	status := resp.StatusCode()
-
-	if handler != nil {
-		if err := handler(resp); err != nil {
-			return status, err
-		}
-	}
-
-	return status, nil
-}
-
 func CheckUpdate(Conf ins.FirmwareConfigurations) (*bytes.Buffer, error) {
 
 	// 기존의 Config file을 로딩한다.
@@ -187,7 +73,7 @@ func CheckUpdate(Conf ins.FirmwareConfigurations) (*bytes.Buffer, error) {
 	}
 
 	// 기존의 Config file로 firmware 업데이트가 있는지 검사한다.
-	checkParam := NewRequestParam()
+	checkParam := request.NewRequestParam()
 	checkParam.SetQuerypath("firmware/check")
 	//checkParam.querypath = "code/json/sample1.json"
 	checkParam.SetHeader("Content-Type", "application/json")
@@ -195,8 +81,8 @@ func CheckUpdate(Conf ins.FirmwareConfigurations) (*bytes.Buffer, error) {
 	checkParam.SetData(buf.Bytes())
 
 	results := new(ins.SMap)
-	request := HttpRequest{Conf.Http}
-	if _, e := request.DoRequest(checkParam, func(resp *resty.Response) error {
+	httpRequest := request.HttpRequest{Conf.Http}
+	if _, e := httpRequest.DoRequest(checkParam, func(resp *resty.Response) error {
 		status := resp.StatusCode()
 		if status != 200 && status != 201 && status != 202 && status != 205 {
 			return errors.New(fmt.Sprintf("%d %s - %s", status, http.StatusText(status), resp.Request.URL))
@@ -257,7 +143,7 @@ func DownloadFirmware(Conf ins.FirmwareConfigurations, firmwareConfig *bytes.Buf
 	uuidfirmware := uuid.New()
 	tempfirmname := fmt.Sprintf("%s/%s", Conf.DownlaodFilepath, uuidfirmware.String())
 
-	firmwareParam := NewRequestParam()
+	firmwareParam := request.NewRequestParam()
 	firmwareParam.SetQuerypath("firmware/download")
 	//firmwareParam.querypath: "code/json/sample2.json",
 	firmwareParam.SetHeader("Content-Type", "application/json")
@@ -267,8 +153,8 @@ func DownloadFirmware(Conf ins.FirmwareConfigurations, firmwareConfig *bytes.Buf
 
 	var mediatype string
 	var params map[string]string
-	request := HttpRequest{Conf.Http}
-	if _, e := request.DoRequest(firmwareParam, func(resp *resty.Response) error {
+	httpRequest := request.HttpRequest{Conf.Http}
+	if _, e := httpRequest.DoRequest(firmwareParam, func(resp *resty.Response) error {
 		headers := resp.Header()
 		disposition := headers.Get("Content-Disposition")
 		mediatype , params , err = mime.ParseMediaType(disposition)
