@@ -52,6 +52,12 @@ var GW_TYPE_PORTABLE_CONSTRUCTION byte = 0x21
 // 건설현장 중계
 var GW_TYPE_RELAY_CONSTRUCTION byte = 0x22
 
+// 지능형 플랫폼 릴레이
+var GW_TYPE_RELAY_PLATFORM byte = 0x31
+
+// 지능형 플랫폼 서버
+var GW_TYPE_SERVER_PLATFORM byte = 0x32
+
 // 중첩 메시지
 var BB_WRAPPED = []byte{0xF0, 0x00}
 
@@ -72,6 +78,7 @@ var BB_UWB_LOCATION = []byte{0x00, 0x08}
 var BB_EVENT_COLLISION = []byte{0x00, 0x09}
 
 var CONTROL_COMMAND = []byte{0x01, 0x01}
+var CONTROL_DIAG = []byte{0x01, 0x02}
 
 // 제조현장
 var GW_CENTER_STATUS_FACTORY = []byte{0x00, 0x81}

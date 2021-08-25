@@ -14,6 +14,7 @@ type GatewayConfigurations struct {
 	Model               string
 	Manufacture         string
 	Serial              string
+	Type                string
 }
 
 type MQTTConfigurations struct {

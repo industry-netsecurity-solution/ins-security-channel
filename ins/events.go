@@ -83,34 +83,6 @@ func ReportEvent(url string, log EventLog) error {
 	}
 
 	return errors.New(fmt.Sprintf("%d %s - %s", statusCode, http.StatusText(statusCode), url))
-
-
-/*
-	//data, _e := json.Marshal(log)
-	data, _e := log.EventLog()
-	if _e != nil {
-		return _e
-	}
-
-
-	logger.Println(string(data))
-
-	// HTTP를 통한 데이터 전송
-	client := resty.New()
-	client.SetCloseConnection(true)
-	resp, err := client.R().
-		SetHeader("Content-Type", "application/json").
-		SetBody(data).
-		Post(url)
-	if err != nil {
-		logger.Println(err)
-		return err
-	}
-
-	logger.Println(resp)
-
-	return nil
-*/
 }
 
 func ReportLog(url string, sourceId string, evtGwType string, evtType string, status string, message string, content string) error {

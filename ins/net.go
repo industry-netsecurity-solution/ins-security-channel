@@ -10,6 +10,9 @@ import (
 	"github.com/go-resty/resty/v2"
 	"io"
 	"net"
+	"net/http"
+	"net/url"
+	"strings"
 	"time"
 )
 
@@ -465,8 +468,16 @@ func SendMessage(data []byte, conn net.Conn) (int, error) {
 }
 
 // HTTP를 통한 데이터 전송
-func HttpPost(url string, headers map[string]string, data []byte, handler func(*resty.Response)) (int, error) {
+func HttpPost(rawurl string, headers map[string]string, data []byte, handler func(*resty.Response)) (int, error) {
 	client := resty.New()
+	if u, err := url.Parse(rawurl); err == nil {
+		if strings.EqualFold(u.Scheme, "https") {
+			tr := &http.Transport{
+				TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+			}
+			client.SetTransport(tr)
+		}
+	}
 	client.SetCloseConnection(true)
 
 	if _, ok := headers["Content-Type"]; ok == false {
@@ -476,7 +487,7 @@ func HttpPost(url string, headers map[string]string, data []byte, handler func(*
 	resp, err := client.R().
 		SetHeaders(headers).
 		SetBody(data).
-		Post(url)
+		Post(rawurl)
 	if err != nil {
 		return 0, err
 	}

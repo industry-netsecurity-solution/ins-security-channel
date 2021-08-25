@@ -2,6 +2,7 @@ package firmware
 
 import (
 	"bytes"
+	"crypto/tls"
 	"encoding/base64"
 	"encoding/json"
 	"errors"
@@ -14,6 +15,7 @@ import (
 	"mime"
 	"net/http"
 	"os"
+	"path"
 	"strings"
 )
 
@@ -115,6 +117,12 @@ func (v HttpRequest) DoRequest(param *RequestParam, handler func(resp *resty.Res
 	httpurl := u.String()
 
 	client := resty.New()
+	if strings.EqualFold(u.Scheme, "https") {
+		tr := &http.Transport{
+			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+		}
+		client.SetTransport(tr)
+	}
 	client.SetCloseConnection(true)
 
 	req := client.R().
@@ -288,7 +296,7 @@ func DownloadFirmware(Conf ins.FirmwareConfigurations, firmwareConfig *bytes.Buf
 	}
 
 	uuidconfig := uuid.New()
-	tempconfname := uuidconfig.String()
+	tempconfname := fmt.Sprintf("%s/%s", path.Dir(Conf.ConfigFilepath), uuidconfig.String())
 
 	if err = ioutil.WriteFile(tempconfname, firmwareConfig.Bytes(), 0644); err != nil {
 		_ = os.Remove(tempfirmname)
@@ -302,7 +310,8 @@ func DownloadFirmware(Conf ins.FirmwareConfigurations, firmwareConfig *bytes.Buf
 		newpath = fmt.Sprintf("%s/firmware.bin", Conf.DownlaodFilepath)
 	}
 
-	if err := os.Rename(tempfirmname, newpath); err != nil {
+
+	if _, err := ins.Copy(tempfirmname, newpath); err != nil {
 		_ = os.Remove(tempfirmname)
 		logger.Println("Remove:", tempfirmname)
 
@@ -310,9 +319,10 @@ func DownloadFirmware(Conf ins.FirmwareConfigurations, firmwareConfig *bytes.Buf
 		logger.Println("Remove:", tempconfname)
 		return err;
 	}
+	_ = os.Remove(tempfirmname)
 	logger.Println("Firmmware file downlaod:", newpath)
 
-	if err := os.Rename(tempconfname, Conf.ConfigFilepath); err != nil {
+	if _, err := ins.Copy(tempconfname, Conf.ConfigFilepath); err != nil {
 		_ = os.Remove(newpath)
 		logger.Println("Remove:", newpath)
 
@@ -320,6 +330,7 @@ func DownloadFirmware(Conf ins.FirmwareConfigurations, firmwareConfig *bytes.Buf
 		logger.Println("Remove:", tempconfname)
 		return err;
 	}
+	_ = os.Remove(tempconfname)
 	logger.Println("Firmmware config downlaod:", Conf.ConfigFilepath)
 
 	return nil
