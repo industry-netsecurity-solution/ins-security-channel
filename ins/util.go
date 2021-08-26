@@ -153,3 +153,24 @@ func ListToStringArray(src *list.List) []string {
 	return results
 }
 
+func ListToSlice(src *list.List) []interface{} {
+	results := make([]interface{}, src.Len())
+
+	var i int = 0
+	for e := src.Front(); e != nil; e = e.Next() {
+		results[i] = e.Value
+		i++
+	}
+
+	return results
+}
+
+func SliceToList(src []interface{}) *list.List {
+	results := list.New()
+	for _, e := range src  {
+		results.PushBack(e)
+	}
+
+	return results
+}
+
