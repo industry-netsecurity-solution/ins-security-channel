@@ -174,3 +174,19 @@ func SliceToList(src []interface{}) *list.List {
 	return results
 }
 
+func AppendSliceToList(dst *list.List, src []interface{}) *list.List {
+	for _, e := range src  {
+		dst.PushBack(e)
+	}
+
+	return dst
+}
+
+func AppendToList(dst *list.List, src...interface{}) *list.List {
+	for _, e := range src  {
+		dst.PushBack(e)
+	}
+
+	return dst
+}
+
