@@ -7,11 +7,87 @@ import (
 	"strconv"
 )
 
+type SPair struct {
+	Key string
+	Value interface{}
+}
+
 type SMap map[string]interface{}
 
 func NewSMap() SMap {
 	d := make(SMap)
 	return d
+}
+
+func (m SMap) RemoveAll() {
+	for k := range m {
+		delete(m, k)
+	}
+}
+
+func (m SMap) Remove(key string) (interface{}, bool) {
+
+	var value interface{} = nil
+	var ok bool
+	if value, ok = m[key]; ok {
+		delete(m, key)
+	}
+
+	return value, ok
+}
+
+func (m SMap) Len() int {
+	return len(m)
+}
+
+func (m SMap) Range(cb func(key interface{}, value interface{}) bool ) {
+	for k, v := range m {
+		if cb(k, v) == false {
+			return;
+		}
+	}
+}
+
+func ( d SMap ) SetPair(pair...SPair) {
+	for _, p := range pair {
+		d[p.Key] = p.Value
+	}
+}
+
+func (m SMap) ToArray() []SPair {
+	size := len(m)
+	result := make([]SPair, size)
+
+	i := 0
+	for k, v := range m {
+		result[i] = SPair{k, v}
+	}
+
+	return result
+}
+
+func (m SMap) GetKeys() []string {
+	size := len(m)
+	result := make([]string, size)
+
+	i := 0
+	for k, _ := range m {
+		result[i] = k
+	}
+
+	return result
+}
+
+func (m SMap) GetValues() []interface{} {
+	size := len(m)
+	result := make([]interface{}, size)
+
+	i := 0
+	for _, v := range m {
+		result[i] = v
+	}
+
+	return result
 }
 
 func ( d SMap ) Set(key string, value interface{}) {

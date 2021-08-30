@@ -7,11 +7,87 @@ import (
 	"strconv"
 )
 
+type Pair struct {
+	Key interface{}
+	Value interface{}
+}
+
 type Map map[interface{}]interface{}
 
-func NewMap() Map {
-	d := make(Map)
+func NewMap() *Map {
+	d := new(Map)
 	return d
+}
+
+func (m Map) RemoveAll() {
+	for k := range m {
+		delete(m, k)
+	}
+}
+
+func (m Map) Remove(key interface{}) (interface{}, bool) {
+
+	var value interface{} = nil
+	var ok bool
+	if value, ok = m[key]; ok {
+		delete(m, key)
+	}
+
+	return value, ok
+}
+
+func (m Map) Len() int {
+	return len(m)
+}
+
+func (m Map) Range(cb func(key interface{}, value interface{}) bool ) {
+	for k, v := range m {
+		if cb(k, v) == false {
+			return;
+		}
+	}
+}
+
+func ( d Map ) SetPair(pair...Pair) {
+	for _, p := range pair {
+		d[p.Key] = p.Value
+	}
+}
+
+func (m Map) ToArray() []Pair {
+	size := len(m)
+	result := make([]Pair, size)
+
+	i := 0
+	for k, v := range m {
+		result[i] = Pair{k, v}
+	}
+
+	return result
+}
+
+func (m Map) GetKeys() []interface{} {
+	size := len(m)
+	result := make([]interface{}, size)
+
+	i := 0
+	for k, _ := range m {
+		result[i] = k
+	}
+
+	return result
+}
+
+func (m Map) GetValues() []interface{} {
+	size := len(m)
+	result := make([]interface{}, size)
+
+	i := 0
+	for _, v := range m {
+		result[i] = v
+	}
+
+	return result
 }
 
 func ( d Map ) Set(key interface{}, value interface{}) {
