@@ -61,6 +61,39 @@ var GW_TYPE_RELAY_PLATFORM byte = 0x31
 // 지능형 플랫폼 서버
 var GW_TYPE_SERVER_PLATFORM byte = 0x32
 
+
+// 제조현장 집중 GW
+var GW_NAME_CENTER_FACTORY string = "제조현장 집중게이트웨이"
+// 제조현장 중계 GW
+var GW_NAME_RELAY_FACTORY string = "제조현장 중계게이트웨이"
+// 제조현장 스마트 GW
+var GW_NAME_SMART_FACTORY string = "제조현장 스마트게이트웨이"
+// 제조현장 블랙박스
+var GW_NAME_BLACKBOX_FACTORY string = "제조현장 블랙박스"
+
+// 보안 IoT 시스템 API 서버
+var GW_NAME_API_SERVER string = "보안 IoT 시스템"
+
+// 위험구역 집중 GW
+var GW_NAME_CENTER_DANGERZONE string = "위험구역 집중게이트웨이"
+// 위험구혁 스마트 GW
+var GW_NAME_SMART_DANGERZONE string = "위험구역 스마트게이트웨이"
+// 위험구혁 블랙박스
+var GW_NAME_BLACKBOX_DANGERZONE string = "위험구역 블랙박스"
+
+// 건설현장 이동
+var GW_NAME_PORTABLE_CONSTRUCTION string = "건설현장 이동형게이트웨이"
+// 건설현장 중계
+var GW_NAME_RELAY_CONSTRUCTION string = "건설현장 중계게이트웨이"
+
+// 지능형 플랫폼 릴레이
+var GW_NAME_RELAY_PLATFORM string = "지능플랫폼 데이터릴레이"
+
+// 지능형 플랫폼 서버
+var GW_NAME_SERVER_PLATFORM string = "지능형프르랫폼 서버"
+
+
+//================================================================
 // 중첩 메시지
 var BB_WRAPPED = []byte{0xF0, 0x00}
 
@@ -227,6 +260,55 @@ const METHOD_ERROR int = -1
 const METHOD_UNKNOWN int = 0
 const METHOD_SOCKET int = 1
 const METHOD_MQTT int = 2
+
+
+/**
+ * 장비 코드값에 해당하는 장비 이름
+ */
+func GetEquipmentName(code byte) string {
+
+	switch (code) {
+	case GW_TYPE_CENTER_FACTORY: // byte = 0x01
+		// 제조현장 집중 GW
+		return GW_NAME_CENTER_FACTORY
+	case GW_TYPE_RELAY_FACTORY: // byte = 0x02
+		// 제조현장 중계 GW
+		return GW_NAME_RELAY_FACTORY
+	case GW_TYPE_SMART_FACTORY: // byte = 0x03
+		// 제조현장 스마트 GW
+		return GW_NAME_SMART_FACTORY
+	case GW_TYPE_BLACKBOX_FACTORY: // byte = 0x04
+		// 제조현장 블랙박스
+		return GW_NAME_BLACKBOX_FACTORY
+	case GW_TYPE_API_SERVER: // byte = 0x05
+		// 보안 IoT 시스템 API 서버
+		return GW_NAME_API_SERVER
+	case GW_TYPE_CENTER_DANGERZONE: // byte = 0x11
+		// 위험구역 집중 GW
+		return GW_NAME_CENTER_DANGERZONE
+	case GW_TYPE_SMART_DANGERZONE: // byte = 0x13
+		// 위험구혁 스마트 GW
+		return GW_NAME_SMART_DANGERZONE
+	case GW_TYPE_BLACKBOX_DANGERZONE: // byte = 0x14
+		// 위험구혁 블랙박스
+		return GW_NAME_BLACKBOX_DANGERZONE
+	case GW_TYPE_PORTABLE_CONSTRUCTION: // byte = 0x21
+		// 건설현장 이동
+		return GW_NAME_PORTABLE_CONSTRUCTION
+	case GW_TYPE_RELAY_CONSTRUCTION: // byte = 0x22
+		// 건설현장 중계
+		return GW_NAME_RELAY_CONSTRUCTION
+	case GW_TYPE_RELAY_PLATFORM: // byte = 0x31
+		// 지능형 플랫폼 릴레이
+		return GW_NAME_RELAY_PLATFORM
+	case GW_TYPE_SERVER_PLATFORM: // byte = 0x32
+		// 지능형 플랫폼 서버
+		return GW_NAME_SERVER_PLATFORM
+	}
+
+	return NAME_UNKNOWN
+}
+
 
 /**
  * 0xEF, 0xFE
