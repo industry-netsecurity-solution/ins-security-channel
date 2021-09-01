@@ -40,7 +40,7 @@ func (v *RequestParam) SetHeader(key, value string) {
 	v.headers[key] = value
 }
 
-func (v *RequestParam) SetData(data interface{}) {
+func (v *RequestParam) SetData(data []byte) {
 	v.data = data
 }
 
