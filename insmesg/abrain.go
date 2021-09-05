@@ -10,7 +10,7 @@ import (
 /**
  * 에이브레인 메시지 전달하기
  */
-func MakeWrappedPacketFor0xABAB(data []byte, addtion ins.Map) *bytes.Buffer {
+func MakeWrappedPacketFor0xABAB(data []byte, additional ins.Map) *bytes.Buffer {
 
 	// level 3 payload
 	l3payload := bytes.Buffer{}
@@ -19,14 +19,14 @@ func MakeWrappedPacketFor0xABAB(data []byte, addtion ins.Map) *bytes.Buffer {
 	l3payload.Write(data)
 
 	// GW 식별
-	gwid := addtion.Get(ins.MapKey([]byte {0x80, 0x01}))
+	gwid := additional.Get(ins.MapKey([]byte {0x80, 0x01}))
 	if gwid == nil {
 		l3payload.Write(ins.EncTagLnV(binary.LittleEndian, []byte{0x80, 0x01}, 32, []byte{}))
 	} else {
 		l3payload.Write(ins.EncTagLnV(binary.LittleEndian, []byte{0x80, 0x01}, 32, gwid.([]byte)))
 	}
 	// 시간 추가
-	unix32 := addtion.Get(ins.MapKey([]byte {0x80, 0x02}))
+	unix32 := additional.Get(ins.MapKey([]byte {0x80, 0x02}))
 	if unix32 == nil {
 		unix32 = uint32(time.Now().Unix())
 	}

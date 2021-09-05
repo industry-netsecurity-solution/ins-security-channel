@@ -80,6 +80,34 @@ func DecTL64V(order binary.ByteOrder, data []byte) (*TL64V, error) {
 	return &tlv, nil
 }
 
+func TraceTLVMessage(order binary.ByteOrder, data []byte, handler func(tl32v *TL32V) int) (int, error) {
+	offset := 0
+	for offset < len(data) {
+		tl32v, err := DecTL32V(order, data[offset:])
+		if err != nil {
+			return 0, err
+		}
+		offset += tl32v.Size()
+
+		result := handler(tl32v)
+		if result < 0 {
+			return result, nil
+		} else if result == 0 {
+			continue
+		} else {
+			r, e := TraceTLVMessage(order, tl32v.Value, handler)
+			if e != nil {
+				return r, e
+			}
+			if r < 0 {
+				return r, nil
+			}
+		}
+	}
+
+	return 0, nil
+}
+
 func EncodeMap(order binary.ByteOrder, params map[int][]byte) []byte {
 	buf2 := make([]byte, 2)
 	buf4 := make([]byte, 4)

@@ -3,6 +3,7 @@ package ins
 import (
 	"bytes"
 	"encoding/binary"
+	"github.com/industry-netsecurity-solution/ins-security-channel/shared"
 )
 
 
@@ -871,4 +872,16 @@ func GetSubID(order binary.ByteOrder, data []byte) []byte {
 	}
 
 	return nil
+}
+
+func IsAllowMessage(order binary.ByteOrder, whiteGateway, whiteDevice *shared.ConcurrentMap, tl32v *TL32V) bool {
+
+	if bytes.HasPrefix(tl32v.Type, CODE_WRAPPED) {
+	} else if bytes.HasPrefix(tl32v.Type, CODE_YMTECH) {
+	} else if bytes.HasPrefix(tl32v.Type, CODE_ELSSEN) {
+	} else if bytes.HasPrefix(tl32v.Type, CODE_ABRAIN) {
+	} else if bytes.HasPrefix(tl32v.Type, CODE_TELEFIELD) {
+	}
+
+	return true
 }
