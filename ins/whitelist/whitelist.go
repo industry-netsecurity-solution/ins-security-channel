@@ -9,12 +9,23 @@ import (
 	"github.com/industry-netsecurity-solution/ins-security-channel/shared"
 )
 
+type MessageDescription struct {
+	IsAllow         bool
+	Source        []interface{}
+	MesgType        int
+	MesgId          interface{}
+}
+
 /*
  * 제조현장 스마트 게이트웨이 파일 전송을 확인한다.
  */
 func IsAllowYM0x0001TO0006(order binary.ByteOrder, whiteGateway, whiteDevice *shared.ConcurrentMap, tl32v *ins.TL32V) (bool, error) {
-	offset := uint32(0)
 
+	if whiteGateway == nil {
+		return true, nil
+	}
+
+	offset := uint32(0)
 	for offset < tl32v.Length {
 		data, err := ins.DecTL32V(binary.LittleEndian, tl32v.Value[offset:])
 		if err != nil {
@@ -36,8 +47,12 @@ func IsAllowYM0x0001TO0006(order binary.ByteOrder, whiteGateway, whiteDevice *sh
 }
 
 func IsAllowUWBLocation(order binary.ByteOrder, whiteGateway, whiteDevice *shared.ConcurrentMap, tl32v *ins.TL32V) (bool, error) {
-	offset := uint32(0)
 
+	if whiteGateway == nil {
+		return true, nil
+	}
+
+	offset := uint32(0)
 	for offset < tl32v.Length {
 		data, err := ins.DecTL32V(binary.LittleEndian, tl32v.Value[offset:])
 		if err != nil {
@@ -59,8 +74,12 @@ func IsAllowUWBLocation(order binary.ByteOrder, whiteGateway, whiteDevice *share
 }
 
 func IsAllowEventCollision(order binary.ByteOrder, whiteGateway, whiteDevice *shared.ConcurrentMap, tl32v *ins.TL32V) (bool, error) {
-	offset := uint32(0)
 
+	if whiteGateway == nil {
+		return true, nil
+	}
+
+	offset := uint32(0)
 	for offset < tl32v.Length {
 		data, err := ins.DecTL32V(binary.LittleEndian, tl32v.Value[offset:])
 		if err != nil {
@@ -82,8 +101,12 @@ func IsAllowEventCollision(order binary.ByteOrder, whiteGateway, whiteDevice *sh
 }
 
 func IsAllowCenterStatusInFactory(order binary.ByteOrder, whiteGateway, whiteDevice *shared.ConcurrentMap, tl32v *ins.TL32V) (bool, error) {
-	offset := uint32(0)
 
+	if whiteGateway == nil {
+		return true, nil
+	}
+
+	offset := uint32(0)
 	for offset < tl32v.Length {
 		data, err := ins.DecTL32V(binary.LittleEndian, tl32v.Value[offset:])
 		if err != nil {
@@ -105,8 +128,12 @@ func IsAllowCenterStatusInFactory(order binary.ByteOrder, whiteGateway, whiteDev
 }
 
 func IsAllowRelayStatusInFactory(order binary.ByteOrder, whiteGateway, whiteDevice *shared.ConcurrentMap, tl32v *ins.TL32V) (bool, error) {
-	offset := uint32(0)
 
+	if whiteGateway == nil {
+		return true, nil
+	}
+
+	offset := uint32(0)
 	for offset < tl32v.Length {
 		data, err := ins.DecTL32V(binary.LittleEndian, tl32v.Value[offset:])
 		if err != nil {
@@ -131,8 +158,12 @@ func IsAllowRelayStatusInFactory(order binary.ByteOrder, whiteGateway, whiteDevi
  * 제조현장 스마트 게이트웨이 상태 정보를 확인한다.
  */
 func IsAllowSmartStatusInFactory(order binary.ByteOrder, whiteGateway, whiteDevice *shared.ConcurrentMap, tl32v *ins.TL32V) (bool, error) {
-	offset := uint32(0)
 
+	if whiteGateway == nil {
+		return true, nil
+	}
+
+	offset := uint32(0)
 	for offset < tl32v.Length {
 		data, err := ins.DecTL32V(binary.LittleEndian, tl32v.Value[offset:])
 		if err != nil {
@@ -154,8 +185,12 @@ func IsAllowSmartStatusInFactory(order binary.ByteOrder, whiteGateway, whiteDevi
 }
 
 func IsAllowCenterStatusInDangerzone(order binary.ByteOrder, whiteGateway, whiteDevice *shared.ConcurrentMap, tl32v *ins.TL32V) (bool, error) {
-	offset := uint32(0)
 
+	if whiteGateway == nil {
+		return true, nil
+	}
+
+	offset := uint32(0)
 	for offset < tl32v.Length {
 		data, err := ins.DecTL32V(binary.LittleEndian, tl32v.Value[offset:])
 		if err != nil {
@@ -177,8 +212,12 @@ func IsAllowCenterStatusInDangerzone(order binary.ByteOrder, whiteGateway, white
 }
 
 func IsAllowSmartStatusInDangerzone(order binary.ByteOrder, whiteGateway, whiteDevice *shared.ConcurrentMap, tl32v *ins.TL32V) (bool, error) {
-	offset := uint32(0)
 
+	if whiteGateway == nil {
+		return true, nil
+	}
+
+	offset := uint32(0)
 	for offset < tl32v.Length {
 		data, err := ins.DecTL32V(binary.LittleEndian, tl32v.Value[offset:])
 		if err != nil {
@@ -200,8 +239,12 @@ func IsAllowSmartStatusInDangerzone(order binary.ByteOrder, whiteGateway, whiteD
 }
 
 func IsAllowPortableStatusInConstruction(order binary.ByteOrder, whiteGateway, whiteDevice *shared.ConcurrentMap, tl32v *ins.TL32V) (bool, error) {
-	offset := uint32(0)
 
+	if whiteGateway == nil {
+		return true, nil
+	}
+
+	offset := uint32(0)
 	for offset < tl32v.Length {
 		data, err := ins.DecTL32V(binary.LittleEndian, tl32v.Value[offset:])
 		if err != nil {
@@ -223,8 +266,12 @@ func IsAllowPortableStatusInConstruction(order binary.ByteOrder, whiteGateway, w
 }
 
 func IsAllowRelayStatusInConstruction(order binary.ByteOrder, whiteGateway, whiteDevice *shared.ConcurrentMap, tl32v *ins.TL32V) (bool, error) {
-	offset := uint32(0)
 
+	if whiteGateway == nil {
+		return true, nil
+	}
+
+	offset := uint32(0)
 	for offset < tl32v.Length {
 		data, err := ins.DecTL32V(binary.LittleEndian, tl32v.Value[offset:])
 		if err != nil {
@@ -310,7 +357,6 @@ func IsAllowELSSEN(order binary.ByteOrder, whiteGateway, whiteDevice *shared.Con
 }
 
 func IsAllowTELEFIELD(order binary.ByteOrder, whiteGateway, whiteDevice *shared.ConcurrentMap, tl32v *ins.TL32V) (bool, error) {
-
 	buf := bytes.NewBuffer(tl32v.Value)
 	deviceId := make([]byte, 2)
 	buf.Read(deviceId)
@@ -362,8 +408,10 @@ func IsAllowWRAPPED(order binary.ByteOrder, whiteGateway, whiteDevice *shared.Co
 		if bytes.HasPrefix(data.Type, []byte{0x80, 0x01}) {
 			//gwidTlv = data
 			sourceId := string(data.Value)
-			if whiteGateway.Has(sourceId) == false {
-				return false, nil
+			if whiteGateway != nil {
+				if whiteGateway.Has(sourceId) == false {
+					return false, nil
+				}
 			}
 		} else if bytes.HasPrefix(data.Type, []byte{0x80, 0x02}) {
 			// DO Nothing
