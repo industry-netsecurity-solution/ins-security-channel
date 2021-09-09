@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"encoding/binary"
 	"encoding/hex"
-	"fmt"
 	"github.com/industry-netsecurity-solution/ins-security-channel/fmterrors"
 	"github.com/industry-netsecurity-solution/ins-security-channel/ins"
 	"github.com/industry-netsecurity-solution/ins-security-channel/shared"
