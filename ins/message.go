@@ -465,7 +465,7 @@ func GetMessageType4ELSSEN(order binary.ByteOrder, data []byte) string {
 		return TYPE_UNKNOWN
 	}
 
-	info := data[7]
+	info := data[6]
 	subid := info >> 4 & 0x0F
 
 	switch subid {
@@ -700,7 +700,7 @@ func GetMessageName4ELSSEN(order binary.ByteOrder, data []byte) string {
 		return NAME_UNKNOWN
 	}
 
-	info := data[7]
+	info := data[6]
 	subid := info >> 4 & 0x0F
 
 	switch subid {
@@ -825,7 +825,7 @@ func GetSubID4ELSSEN(order binary.ByteOrder, data []byte) int {
 		return -1
 	}
 
-	info := data[7]
+	info := data[6]
 	subid := info >> 4 & 0x0F
 
 	return int(subid)
