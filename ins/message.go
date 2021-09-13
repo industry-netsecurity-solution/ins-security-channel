@@ -229,17 +229,17 @@ var TYPE_BB_UWB_LOCATION = "UWB 위치/속도"
 var TYPE_BB_EVENT_COLLISION = "가속도 충돌 이벤트"
 
 // 제조현장
-var TYPE_GW_CENTER_STATUS_FACTORY = "집중 게이트웨이"
-var TYPE_GW_RELAY_STATUS_FACTORY = "중계 게이트웨이"
-var TYPE_GW_SMART_STATUS_FACTORY = "스마트 게이트웨이"
+var TYPE_GW_CENTER_STATUS_FACTORY = "제조현장 집중게이트웨이 상태보고"
+var TYPE_GW_RELAY_STATUS_FACTORY = "제조현장 중계게이트웨이 상태보고"
+var TYPE_GW_SMART_STATUS_FACTORY = "제조현장 스마트게이트웨이 상태보고"
 
 // 위험구역
-var TYPE_GW_CENTER_STATUS_DANGERZONE = "집중 게이트웨이"
-var TYPE_GW_SMART_STATUS_DANGERZONE = "스마트 게이트웨이"
+var TYPE_GW_CENTER_STATUS_DANGERZONE = "위험구역 집중게이트웨이 상태보고"
+var TYPE_GW_SMART_STATUS_DANGERZONE = "위험구역 스마트게이트웨이 상태보고"
 
 // 건설현장
-var TYPE_GW_PORTABLE_STATUS_CONSTRUCTION = "이동형 게이트웨이"
-var TYPE_GW_RELAY_STATUS_CONSTRUCTION = "중계 게이트웨이"
+var TYPE_GW_PORTABLE_STATUS_CONSTRUCTION = "건설현장 이동형게이트웨이 상태보고"
+var TYPE_GW_RELAY_STATUS_CONSTRUCTION = "건설현장 중계게이트웨이 상태보고"
 
 // 텔레필드 레이다(RADAR)
 var TYPE_BB_RADAR_APPROACH = "접근 감지 레이다"
