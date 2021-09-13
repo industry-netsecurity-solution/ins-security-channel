@@ -247,9 +247,9 @@ var TYPE_BB_RADAR_APPROACH = "접근 감지 레이다"
 var TYPE_BB_WORKER_IDENTITY = "작업자 식별"
 
 // 건설 현장 생체
-var TYPE_GW_ELSSEN_WEARABLE_DEVICE = "안전고리"
+var TYPE_GW_ELSSEN_WEARABLE_DEVICE = "생체정보"
 // 건설 현장 안전고리
-var TYPE_GW_ELSSEN_SAFETY_HOOK = "생체정보"
+var TYPE_GW_ELSSEN_SAFETY_HOOK = "안전고리"
 // 건설 현장 유해가스
 var TYPE_GW_ELSSEN_TOXIC_GAS = "유해가스"
 
