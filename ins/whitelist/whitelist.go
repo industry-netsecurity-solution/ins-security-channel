@@ -352,6 +352,16 @@ func IsAllowYMTECH(order binary.ByteOrder, whiteGateway, whiteDevice *shared.Con
 }
 
 func IsAllowELSSEN(order binary.ByteOrder, whiteGateway, whiteDevice *shared.ConcurrentMap, tl32v *ins.TL32V) (bool, error) {
+	buf := bytes.NewBuffer(tl32v.Value)
+	_, _ = buf.ReadByte()
+	deviceId := make([]byte, 6)
+	buf.Read(deviceId)
+
+	if whiteDevice != nil {
+		if whiteDevice.Has(hex.EncodeToString(deviceId)) == false {
+			return false, nil
+		}
+	}
 
 	return true, nil
 }
