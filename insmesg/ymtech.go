@@ -29,6 +29,14 @@ func MakeWrappedPacketFor0xEFFE(data []byte, additional ins.Map) *bytes.Buffer {
 	}
 	l3payload.Write(ins.EncTagLnUInt32(binary.LittleEndian, []byte{0x80, 0x02}, 32, unix32.(uint32)))
 
+	// Remote IP
+	remoteIp := additional.Get(ins.MapKey([]byte {0x80, 0x03}))
+	if remoteIp == nil {
+		l3payload.Write(ins.EncTagLnV(binary.LittleEndian, []byte{0x80, 0x03}, 32, []byte{}))
+	} else {
+		l3payload.Write(ins.EncTagLnV(binary.LittleEndian, []byte{0x80, 0x03}, 32, remoteIp.([]byte)))
+	}
+
 	// level 2 payload
 	l2payload := bytes.Buffer{}
 

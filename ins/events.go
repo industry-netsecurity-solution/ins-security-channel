@@ -18,35 +18,7 @@ type EventLog struct {
 	Content     string `json:"content"`
 }
 
-func (v *EventLog) SetEventGatewayType(gatewayType string) {
-	v.GatewayType = gatewayType
-}
-
-func (v *EventLog) SetEventType(eventType string) {
-	v.EventType = eventType
-}
-
-func (v *EventLog) SetEventGatewayId(gatewayId string) {
-	v.GatewayId = gatewayId
-}
-
-func (v *EventLog) SetEventTime(eventTime string) {
-	v.EventTime = eventTime
-}
-
-func (v *EventLog) SetEventStatus(status string) {
-	v.Status = status
-}
-
-func (v *EventLog) SetEventMessage(message string) {
-	v.Message = message
-}
-
-func (v *EventLog) SetEventContent(content string) {
-	v.Content = content
-}
-
-func (v *EventLog) EventLog() ([]byte, error) {
+func (v *EventLog) EncodeLog() ([]byte, error) {
 	data, _e := json.Marshal(v)
 	if _e != nil {
 		return nil, _e
@@ -58,7 +30,7 @@ func (v *EventLog) EventLog() ([]byte, error) {
 func ReportEvent(url string, log EventLog) error {
 
 	//data, _e := json.Marshal(log)
-	data, _e := log.EventLog()
+	data, _e := log.EncodeLog()
 	if _e != nil {
 		return _e
 	}

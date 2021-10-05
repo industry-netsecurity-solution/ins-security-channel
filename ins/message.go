@@ -180,7 +180,7 @@ var NAME_BB_EVENT_COLLISION = "event.collision"
 // 제조현장
 var NAME_GW_CENTER_STATUS_FACTORY = "center.gw.status"
 var NAME_GW_RELAY_STATUS_FACTORY = "relay.gw.status"
-var NAME_GW_SMART_STATUS_FACTORY = "스마트 게이트웨이"
+var NAME_GW_SMART_STATUS_FACTORY = "smart.gw.status"
 
 // 위험구역
 var NAME_GW_CENTER_STATUS_DANGERZONE = "center.gw.status"

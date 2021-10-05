@@ -8,6 +8,7 @@ import (
 	"github.com/go-resty/resty/v2"
 	"github.com/industry-netsecurity-solution/ins-security-channel/ins"
 	"net/http"
+	"net/url"
 	"strings"
 )
 
@@ -48,6 +49,76 @@ func (v *RequestParam) SetFilename(filename string) {
 	v.filename = filename
 }
 
+type RequestURL struct {
+	url.URL
+}
+
+
+func (v *RequestURL) DoRequest(param *RequestParam, handler func(resp *resty.Response) error) (int, error) {
+
+	httpurl := (*v).String()
+
+	client := resty.New()
+	if strings.EqualFold((*v).Scheme, "https") {
+		tr := &http.Transport{
+			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+		}
+		client.SetTransport(tr)
+	}
+	client.SetCloseConnection(true)
+
+	req := client.R().
+		SetHeaders(param.headers).
+		SetBody(param.data)
+	if 0 < len(param.filename) {
+		req.SetOutput(param.filename)
+	}
+	var resp *resty.Response
+	var err error
+
+	if param.method == http.MethodGet {
+		if resp, err = req.Get(httpurl); err != nil {
+			return -1, err
+		}
+	} else if param.method == http.MethodPost {
+		if resp, err = req.Post(httpurl); err != nil {
+			return -1, err
+		}
+	} else if param.method == http.MethodPut {
+		if resp, err = req.Put(httpurl); err != nil {
+			return -1, err
+		}
+	} else if param.method == http.MethodDelete {
+		if resp, err = req.Delete(httpurl); err != nil {
+			return -1, err
+		}
+	} else if param.method == http.MethodHead {
+		if resp, err = req.Head(httpurl); err != nil {
+			return -1, err
+		}
+	} else if param.method == http.MethodOptions {
+		if resp, err = req.Options(httpurl); err != nil {
+			return -1, err
+		}
+	} else if param.method == http.MethodPatch {
+		if resp, err = req.Patch(httpurl); err != nil {
+			return -1, err
+		}
+	} else {
+		return -1, errors.New(http.ErrNotSupported.Error())
+	}
+	defer resp.RawBody().Close()
+	status := resp.StatusCode()
+
+	if handler != nil {
+		if err := handler(resp); err != nil {
+			return status, err
+		}
+	}
+
+	return status, nil
+}
+
 type HttpRequest struct {
 	ins.HttpConfigurations
 }
@@ -62,7 +133,35 @@ func (v HttpRequest) DoRequest(param *RequestParam, handler func(resp *resty.Res
 	if err != nil {
 		return -1, err
 	}
-	httpurl := u.String()
+
+	r := &RequestURL {
+		*u,
+	}
+
+	return r.DoRequest(param, handler)
+}
+
+/*
+
+func (v HttpRequest) DoRequest(param *RequestParam, handler func(resp *resty.Response) error) (int, error) {
+	if 0 < len(v.Authorization) {
+		encoded := base64.StdEncoding.EncodeToString([]byte(v.Authorization))
+		param.headers["Authorization"] = fmt.Sprintf("Bearer %s", encoded)
+	}
+
+	u, err := v.Url(param.querypath)
+	if err != nil {
+		return -1, err
+	}
+
+	r := &RequestURL {
+		*u,
+	}
+
+	return r.DoRequest(param, handler)
+
+
+		httpurl := r.String()
 
 	client := resty.New()
 	if strings.EqualFold(u.Scheme, "https") {
@@ -123,4 +222,4 @@ func (v HttpRequest) DoRequest(param *RequestParam, handler func(resp *resty.Res
 
 	return status, nil
 }
-
+ */
