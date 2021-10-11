@@ -3,7 +3,6 @@ package filesystem
 import (
 	"fmt"
 	"io"
-	"log"
 	"os"
 	"path/filepath"
 	"strings"
@@ -37,9 +36,7 @@ func statTimes(name string) (atime, mtime, ctime time.Time, err error) {
    GoLang: os.Rename() give error "invalid cross-device link" for Docker container with Volumes.
    MoveFile(source, destination) will work moving file between folders
 */
-
 func CopyFile(sourcePath, destPath string, overwrite bool) (bool, error) {
-
 	_, err := os.Stat(destPath)
 	if overwrite == false && err == nil {
 		return false, err
@@ -47,24 +44,27 @@ func CopyFile(sourcePath, destPath string, overwrite bool) (bool, error) {
 
 	inputFile, err := os.OpenFile(sourcePath, os.O_RDWR,0644)
 	if err != nil {
-		return false, fmt.Errorf("Couldn't open source file: %s", err)
+		return false, fmt.Errorf("couldn't open source file: %s", err)
 	}
+	defer inputFile.Close()
+
 	outputFile, err := os.Create(destPath)
 	if err != nil {
-		inputFile.Close()
-		return false, fmt.Errorf("Couldn't open dest file: %s", err)
-	}
-	defer outputFile.Close()
-	_, err = io.Copy(outputFile, inputFile)
-
-	err = outputFile.Sync()
-	if err != nil {
-		return false, fmt.Errorf("Sync to output file failed: %s", err)
+		return false, fmt.Errorf("couldn't open dest file: %s", err)
 	}
 
-	inputFile.Close()
-	if err != nil {
-		return false, fmt.Errorf("Writing to output file failed: %s", err)
+	if _, err = io.Copy(outputFile, inputFile); err != nil {
+		outputFile.Close()
+		return false, err
+	}
+
+	if err = outputFile.Sync(); err != nil {
+		outputFile.Close()
+		return false, fmt.Errorf("sync to output file failed: %s", err)
+	}
+
+	if err = outputFile.Close(); err != nil {
+		return false, fmt.Errorf("writing to output file failed: %s", err)
 	}
 
 	atime, mtime, _, err := statTimes(sourcePath)
@@ -72,15 +72,12 @@ func CopyFile(sourcePath, destPath string, overwrite bool) (bool, error) {
 		return true, err
 	}
 
-	_, err = os.Stat(destPath)
-	if err != nil {
+	if _, err = os.Stat(destPath); err != nil {
 		fmt.Println(err)
 		return true, err
 	}
 
-	err = os.Chtimes(destPath, atime, mtime)
-	if err != nil {
-		fmt.Println(err)
+	if err = os.Chtimes(destPath, atime, mtime); err != nil {
 		return true, err
 	}
 
@@ -91,11 +88,10 @@ func CopyFile(sourcePath, destPath string, overwrite bool) (bool, error) {
    GoLang: os.Rename() give error "invalid cross-device link" for Docker container with Volumes.
    MoveFile(source, destination) will work moving file between folders
 */
-
 func MoveFile(sourcePath, destPath string, overwrite bool) (bool, error ){
 	isCopy, err := CopyFile(sourcePath, destPath, overwrite)
 	if err != nil {
-		return isCopy, fmt.Errorf("Couldn't move file: %s", err)
+		return isCopy, fmt.Errorf("couldn't move file: %s", err)
 	}
 
 	if isCopy == false {
@@ -105,7 +101,7 @@ func MoveFile(sourcePath, destPath string, overwrite bool) (bool, error ){
 	// The copy was successful, so now delete the original file
 	err = os.Remove(sourcePath)
 	if err != nil {
-		return isCopy, fmt.Errorf("Failed removing source file: %s", err)
+		return isCopy, fmt.Errorf("failed removing source file: %s", err)
 	}
 
 	return isCopy, nil
@@ -131,7 +127,6 @@ func CheckFLockedPID(filepath string) error {
 				return nil
 			}
 		}
-		log.Fatalln(err)
 		return err
 	}
 
@@ -143,8 +138,7 @@ func CheckFLockedPID(filepath string) error {
 	//	return err
 	//}
 	if err != nil {
-		log.Printf("Unable to lock %v: %v", pidFile, err)
-		return err
+		return fmt.Errorf("Unable to lock %v: %v", pidFile.Name(), err)
 	}
 
 	return nil
@@ -156,14 +150,12 @@ func CheckFLockedPID(filepath string) error {
 func MakeFLockedPID(filepath string) (*os.File, error) {
 	pidFile, err := os.OpenFile(filepath, os.O_WRONLY|syscall.O_TRUNC|syscall.O_CREAT,0644)
 	if err != nil {
-		log.Fatalln(err)
 		return nil, err
 	}
 
 	err = syscall.Flock(int(pidFile.Fd()), syscall.LOCK_EX)
 	if err != nil {
-		log.Printf("Unable to lock %v: %v", pidFile, err)
-		return nil, err
+		return nil, fmt.Errorf("Unable to lock %v: %v", pidFile.Name(), err)
 	}
 
 	pidFile.Truncate(0)

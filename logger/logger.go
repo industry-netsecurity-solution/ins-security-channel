@@ -7,31 +7,52 @@ import (
 	"os"
 )
 
+const (
+	LogNone  = 0
+	LogDefault = 1
+	LogDebug = 1 << 1
+	LogInfo  = 1 << 2
+	LogWarn  = 1 << 3
+	LogError = 1 << 4
+	LogFatal = 1 << 5
+	LogPanic = 1 << 6
+)
+
 type LogWriter interface {
-	Error(args ... interface{})
-	Errorf(format string, args ... interface{})
-	Errorln(args ... interface{})
-	Warning(args ... interface{})
-	Warningf(format string, args ... interface{})
-	Warningln(args ... interface{})
-	Debug(args ... interface{})
-	Debugf(format string, args ... interface{})
-	Debugln(args ... interface{})
-	Info(args ... interface{})
-	Infof(format string, args ... interface{})
-	Infoln(args ... interface{})
-	Print(args ... interface{})
-	Printf(format string, args ... interface{})
-	Println(args ... interface{})
+	Panic(args ...interface{})
+	Panicf(format string, args ...interface{})
+	Panicln(args ...interface{})
+	Fatal(args ...interface{})
+	Fatalf(format string, args ...interface{})
+	Fatalln(args ...interface{})
+	Error(args ...interface{})
+	Errorf(format string, args ...interface{})
+	Errorln(args ...interface{})
+	Warning(args ...interface{})
+	Warningf(format string, args ...interface{})
+	Warningln(args ...interface{})
+	Debug(args ...interface{})
+	Debugf(format string, args ...interface{})
+	Debugln(args ...interface{})
+	Info(args ...interface{})
+	Infof(format string, args ...interface{})
+	Infoln(args ...interface{})
+	Print(args ...interface{})
+	Printf(format string, args ...interface{})
+	Println(args ...interface{})
 }
 
 type Logger struct {
+	PANIC *log.Logger
+	FATAL *log.Logger
 	ERROR *log.Logger
-	WARN *log.Logger
+	WARN  *log.Logger
 	DEBUG *log.Logger
-	INFO *log.Logger
-	NONE *log.Logger
+	INFO  *log.Logger
+	DEFAULT  *log.Logger
 }
+
+var logLevel int = LogDefault  | LogInfo  | LogWarn | LogError | LogFatal | LogPanic
 
 func New(out io.Writer, flag int) *Logger {
 
@@ -39,14 +60,47 @@ func New(out io.Writer, flag int) *Logger {
 		out = os.Stdout
 	}
 
-	l := new (Logger)
+	l := new(Logger)
+	l.PANIC = log.New(out, "[PANIC] ", flag)
+	l.FATAL = log.New(out, "[FATAL] ", flag)
 	l.ERROR = log.New(out, "[ERROR] ", flag)
 	l.WARN = log.New(out, "[WARN]  ", flag)
 	l.DEBUG = log.New(out, "[DEBUG] ", flag)
 	l.INFO = log.New(out, "[INFO] ", flag)
-	l.NONE = log.New(out, "", flag)
+	l.DEFAULT = log.New(out, "", flag)
 
 	return l
+}
+
+func SetLogLevel(loglevel int) {
+	logLevel = loglevel | LogFatal | LogPanic
+}
+
+func SetLogLevels(nornal, info, warn, err, fatal, panic bool) {
+	logLevel = 0
+	if nornal {
+		logLevel |= LogDefault
+	}
+
+	if info {
+		logLevel |= LogInfo
+	}
+
+	if warn {
+		logLevel |= LogWarn
+	}
+
+	if err {
+		logLevel |= LogError
+	}
+
+	if fatal {
+		logLevel |= LogFatal
+	}
+
+	if panic {
+		logLevel |= LogPanic
+	}
 }
 
 func (v Logger) Writer() LogWriter {
@@ -54,144 +108,244 @@ func (v Logger) Writer() LogWriter {
 }
 
 func (v Logger) SetOutput(w io.Writer) {
+	v.PANIC.SetOutput(w)
+	v.FATAL.SetOutput(w)
 	v.ERROR.SetOutput(w)
 	v.WARN.SetOutput(w)
 	v.DEBUG.SetOutput(w)
 	v.INFO.SetOutput(w)
-	v.NONE.SetOutput(w)
+	v.DEFAULT.SetOutput(w)
 }
-
+/*
 // Fatalln is equivalent to l.Println() followed by a call to os.Exit(1).
 func (v Logger) Fatal(args ...interface{}) {
-	v.NONE.Fatal(args...)
+	if LogLevel&LogFatal != LogFatal {
+		return
+	}
+	v.FATAL.Fatal(args...)
 }
 
 // Fatalf is equivalent to l.Printf() followed by a call to os.Exit(1).
 func (v Logger) Fatalf(format string, args ...interface{}) {
-	v.NONE.Fatalf(format, args...)
+	if LogLevel&LogFatal != LogFatal {
+		return
+	}
+	v.FATAL.Fatalf(format, args...)
 }
 
 // Fatalln is equivalent to l.Println() followed by a call to os.Exit(1).
 func (v Logger) Fatalln(args ...interface{}) {
-	v.NONE.Fatalln(args...)
+	if LogLevel&LogFatal != LogFatal {
+		return
+	}
+	v.FATAL.Fatalln(args...)
 }
 
 // Panic is equivalent to l.Print() followed by a call to panic().
 func (v Logger) Panic(args ...interface{}) {
-	v.NONE.Panic(args...)
+	if LogLevel&LogPanic != LogPanic {
+		return
+	}
+	v.PANIC.Panic(args...)
 }
 
 // Panicf is equivalent to l.Printf() followed by a call to panic().
 func (v Logger) Panicf(format string, args ...interface{}) {
-	v.NONE.Panicf(format, args...)
+	if LogLevel&LogPanic != LogPanic {
+		return
+	}
+	v.PANIC.Panicf(format, args...)
 }
 
 // Panicln is equivalent to l.Println() followed by a call to panic().
 func (v Logger) Panicln(args ...interface{}) {
-	v.NONE.Panicln(args...)
+	if LogLevel&LogPanic != LogPanic {
+		return
+	}
+	v.PANIC.Panicln(args...)
 }
+*/
 
 // Flags returns the output flags for the logger.
 // The flag bits are Ldate, Ltime, and so on.
 func (v Logger) Flags() int {
-	return v.NONE.Flags()
+	if logLevel&LogDefault != LogDefault {
+		return 0
+	}
+	return v.DEFAULT.Flags()
 }
 
 // SetFlags sets the output flags for the logger.
 // The flag bits are Ldate, Ltime, and so on.
 func (v Logger) SetFlags(flag int) {
+	v.PANIC.SetFlags(flag)
+	v.FATAL.SetFlags(flag)
 	v.ERROR.SetFlags(flag)
 	v.WARN.SetFlags(flag)
 	v.DEBUG.SetFlags(flag)
 	v.INFO.SetFlags(flag)
-	v.NONE.SetFlags(flag)
+	v.DEFAULT.SetFlags(flag)
 }
 
-func (v Logger) Error(args ... interface{}) {
-	v.ERROR.Output(2, fmt.Sprint(args...))
+func (v Logger) Panic(args ...interface{}) {
+	s := fmt.Sprint(args...)
+	v.PanicOutput(3, s)
 }
 
-func (v Logger) Errorf(format string, args ... interface{}) {
-	v.ERROR.Output(2, fmt.Sprintf(format, args...))
+func (v Logger) Panicf(format string, args ...interface{}) {
+	s := fmt.Sprintf(format, args...)
+	v.PanicOutput(3, s)
 }
 
-func (v Logger) Errorln(args ... interface{}) {
-	v.ERROR.Output(2, fmt.Sprintln(args...))
+func (v Logger) Panicln(args ...interface{}) {
+	s := fmt.Sprintln(args...)
+	v.PanicOutput(3, s)
+}
+
+func (v Logger) PanicOutput(calldepth int, s string) {
+	if logLevel&LogPanic != LogPanic {
+		return
+	}
+	v.PANIC.Output(calldepth, s)
+	panic(s)
+}
+
+func (v Logger) Fatal(args ...interface{}) {
+	s := fmt.Sprint(args...)
+	v.FatalOutput(3, s)
+}
+
+func (v Logger) Fatalf(format string, args ...interface{}) {
+	s := fmt.Sprintf(format, args...)
+	v.FatalOutput(3, s)
+}
+
+func (v Logger) Fatalln(args ...interface{}) {
+	s := fmt.Sprintln(args...)
+	v.FatalOutput(3, s)
+}
+
+func (v Logger) FatalOutput(calldepth int, s string) {
+	if logLevel&LogFatal != LogFatal {
+		return
+	}
+	v.FATAL.Output(calldepth, s)
+	os.Exit(1)
+}
+
+func (v Logger) Error(args ...interface{}) {
+	s := fmt.Sprint(args...)
+	v.ErrorOutput(3, s)
+}
+
+func (v Logger) Errorf(format string, args ...interface{}) {
+	s := fmt.Sprintf(format, args...)
+	v.ErrorOutput(3, s)
+}
+
+func (v Logger) Errorln(args ...interface{}) {
+	s := fmt.Sprintln(args...)
+	v.ErrorOutput(3, s)
 }
 
 func (v Logger) ErrorOutput(calldepth int, s string) {
+	if logLevel&LogError != LogError {
+		return
+	}
 	v.ERROR.Output(calldepth, s)
 }
 
-func (v Logger) Warning(args ... interface{}) {
-	v.WARN.Output(2, fmt.Sprint(args...))
+func (v Logger) Warning(args ...interface{}) {
+	s := fmt.Sprint(args...)
+	v.WarningOutput(3, s)
 }
 
-func (v Logger) Warningf(format string, args ... interface{}) {
-	v.WARN.Output(2, fmt.Sprintf(format, args...))
+func (v Logger) Warningf(format string, args ...interface{}) {
+	s := fmt.Sprintf(format, args...)
+	v.WarningOutput(3, s)
 }
 
-func (v Logger) Warningln(args ... interface{}) {
-	v.WARN.Output(2, fmt.Sprintln(args...))
+func (v Logger) Warningln(args ...interface{}) {
+	s := fmt.Sprintln(args...)
+	v.WarningOutput(3, s)
 }
 
 func (v Logger) WarningOutput(calldepth int, s string) {
+	if logLevel&LogWarn != LogWarn {
+		return
+	}
 	v.WARN.Output(calldepth, s)
 }
 
-func (v Logger) Debug(args ... interface{}) {
-	v.DEBUG.Output(2, fmt.Sprint(args...))
+func (v Logger) Debug(args ...interface{}) {
+	s := fmt.Sprint(args...)
+	v.DebugOutput(3, s)
 }
 
-func (v Logger) Debugf(format string, args ... interface{}) {
-	v.DEBUG.Output(2, fmt.Sprintf(format, args...))
+func (v Logger) Debugf(format string, args ...interface{}) {
+	s := fmt.Sprintf(format, args...)
+	v.DebugOutput(3, s)
 }
 
-func (v Logger) Debugln(args ... interface{}) {
-	v.DEBUG.Output(2, fmt.Sprintln(args...))
+func (v Logger) Debugln(args ...interface{}) {
+	s := fmt.Sprintln(args...)
+	v.DebugOutput(3, s)
 }
 
 func (v Logger) DebugOutput(calldepth int, s string) {
+	if logLevel&LogDebug != LogDebug {
+		return
+	}
 	v.DEBUG.Output(calldepth, s)
 }
 
-func (v Logger) Info(args ... interface{}) {
-	v.INFO.Output(2, fmt.Sprint(args...))
+func (v Logger) Info(args ...interface{}) {
+	s := fmt.Sprint(args...)
+	v.InfoOutput(3, s)
 }
 
-func (v Logger) Infof(format string, args ... interface{}) {
-	v.INFO.Output(2, fmt.Sprintf(format, args...))
+func (v Logger) Infof(format string, args ...interface{}) {
+	s := fmt.Sprintf(format, args...)
+	v.InfoOutput(3, s)
 }
 
-func (v Logger) Infoln(args ... interface{}) {
-	v.INFO.Output(2, fmt.Sprintln(args...))
+func (v Logger) Infoln(args ...interface{}) {
+	s := fmt.Sprintln(args...)
+	v.InfoOutput(3, s)
 }
 
 func (v Logger) InfoOutput(calldepth int, s string) {
+	if logLevel&LogInfo != LogInfo {
+		return
+	}
 	v.INFO.Output(calldepth, s)
 }
 
-func (v Logger) Print(args ... interface{}) {
-	v.NONE.Output(2, fmt.Sprint(args...))
+func (v Logger) Print(args ...interface{}) {
+	s := fmt.Sprint(args...)
+	v.DefaultOutput(3, s)
 }
 
-func (v Logger) Printf(format string, args ... interface{}) {
-	v.NONE.Output(2, fmt.Sprintf(format, args...))
+func (v Logger) Printf(format string, args ...interface{}) {
+	s := fmt.Sprintf(format, args...)
+	v.DefaultOutput(3, s)
 }
 
-func (v Logger) Println(args ... interface{}) {
-	v.NONE.Output(2, fmt.Sprintln(args...))
+func (v Logger) Println(args ...interface{}) {
+	s := fmt.Sprintln(args...)
+	v.DefaultOutput(3, s)
 }
 
 func (v Logger) DefaultOutput(calldepth int, s string) {
-	v.NONE.Output(calldepth, s)
+	if logLevel&LogDefault != LogDefault {
+		return
+	}
+	v.DEFAULT.Output(calldepth, s)
 }
-
 
 //-----------------------------------------------------
 
 var std = New(os.Stderr, log.LstdFlags|log.Lshortfile)
-
 
 func Writer() LogWriter {
 	return std.Writer()
@@ -199,36 +353,6 @@ func Writer() LogWriter {
 
 func SetOutput(w io.Writer) {
 	std.SetOutput(w)
-}
-
-// Fatalln is equivalent to l.Println() followed by a call to os.Exit(1).
-func Fatal(args ...interface{}) {
-	std.Fatal(args...)
-}
-
-// Fatalf is equivalent to l.Printf() followed by a call to os.Exit(1).
-func Fatalf(format string, args ...interface{}) {
-	std.Fatalf(format, args...)
-}
-
-// Fatalln is equivalent to l.Println() followed by a call to os.Exit(1).
-func Fatalln(args ...interface{}) {
-	std.Fatalln(args...)
-}
-
-// Panic is equivalent to l.Print() followed by a call to panic().
-func Panic(args ...interface{}) {
-	std.Panic(args...)
-}
-
-// Panicf is equivalent to l.Printf() followed by a call to panic().
-func Panicf(format string, args ...interface{}) {
-	std.Panicf(format, args...)
-}
-
-// Panicln is equivalent to l.Println() followed by a call to panic().
-func Panicln(args ...interface{}) {
-	std.Panicln(args...)
 }
 
 // Flags returns the output flags for the logger.
@@ -243,72 +367,109 @@ func SetFlags(flag int) {
 	std.SetFlags(flag)
 }
 
-func Error(args ... interface{}) {
+// Panic is equivalent to l.Print() followed by a call to panic().
+func Panic(args ...interface{}) {
+	std.PanicOutput(3, fmt.Sprint(args...))
+}
+
+// Panicf is equivalent to l.Printf() followed by a call to panic().
+func Panicf(format string, args ...interface{}) {
+	std.PanicOutput(3, fmt.Sprintf(format, args...))
+}
+
+// Panicln is equivalent to l.Println() followed by a call to panic().
+func Panicln(args ...interface{}) {
+	std.PanicOutput(3, fmt.Sprintln(args...))
+}
+
+// Fatalln is equivalent to l.Println() followed by a call to os.Exit(1).
+func Fatal(args ...interface{}) {
+	std.FatalOutput(3, fmt.Sprint(args...))
+}
+
+// Fatalf is equivalent to l.Printf() followed by a call to os.Exit(1).
+func Fatalf(format string, args ...interface{}) {
+	std.FatalOutput(3, fmt.Sprintf(format, args...))
+}
+
+// Fatalln is equivalent to l.Println() followed by a call to os.Exit(1).
+func Fatalln(args ...interface{}) {
+	std.FatalOutput(3, fmt.Sprintln(args...))
+}
+
+func Error(args ...interface{}) {
 	std.ErrorOutput(3, fmt.Sprint(args...))
 
 }
 
-func Errorf(format string, args ... interface{}) {
+func Errorf(format string, args ...interface{}) {
 	std.ErrorOutput(3, fmt.Sprintf(format, args...))
 
 }
 
-func Errorln(args ... interface{}) {
-	std.ErrorOutput(3, fmt.Sprint(args...))
+func Errorln(args ...interface{}) {
+	std.ErrorOutput(3, fmt.Sprintln(args...))
 
 }
 
-func Warning(args ... interface{}) {
+func Warning(args ...interface{}) {
 	std.WarningOutput(3, fmt.Sprint(args...))
 }
 
-func Warningf(format string, args ... interface{}) {
+func Warningf(format string, args ...interface{}) {
 	std.WarningOutput(3, fmt.Sprintf(format, args...))
 
 }
 
-func Warningln(args ... interface{}) {
+func Warningln(args ...interface{}) {
 	std.WarningOutput(3, fmt.Sprintln(args...))
 
 }
 
-func Debug(args ... interface{}) {
+func Debug(args ...interface{}) {
 	std.DebugOutput(3, fmt.Sprint(args...))
 }
 
-func Debugf(format string, args ... interface{}) {
+func Debugf(format string, args ...interface{}) {
 	std.DebugOutput(3, fmt.Sprintf(format, args...))
 
 }
 
-func Debugln(args ... interface{}) {
+func Debugln(args ...interface{}) {
 	std.DebugOutput(3, fmt.Sprintln(args...))
 }
 
-func Info(args ... interface{}) {
+func Info(args ...interface{}) {
 	std.InfoOutput(3, fmt.Sprint(args...))
 }
 
-func Infof(format string, args ... interface{}) {
+func Infof(format string, args ...interface{}) {
 	std.InfoOutput(3, fmt.Sprintf(format, args...))
 }
 
-func Infoln(args ... interface{}) {
+func Infoln(args ...interface{}) {
 	std.InfoOutput(3, fmt.Sprintln(args...))
 }
 
-func Print(args ... interface{}) {
+func Print(args ...interface{}) {
 	std.DefaultOutput(3, fmt.Sprint(args...))
 }
 
-func Printf(format string, args ... interface{}) {
+func Printf(format string, args ...interface{}) {
 	std.DefaultOutput(3, fmt.Sprintf(format, args...))
 }
 
-func Println(args ... interface{}) {
+func Println(args ...interface{}) {
 	std.DefaultOutput(3, fmt.Sprintln(args...))
 }
 
+func GetPanic() *log.Logger {
+	return std.PANIC
+}
+
+func GetFatal() *log.Logger {
+	return std.FATAL
+}
 
 func GetError() *log.Logger {
 	return std.ERROR
@@ -327,5 +488,5 @@ func GetInfo() *log.Logger {
 }
 
 func GetDefault() *log.Logger {
-	return std.NONE
+	return std.DEFAULT
 }
