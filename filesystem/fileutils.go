@@ -20,7 +20,7 @@ func SplitFileName(file string) (string, string) {
 	return   name[0:index], name[index+1:]
 }
 
-func statTimes(name string) (atime, mtime, ctime time.Time, err error) {
+func statTimes(name string) (atime, mtime, ctime time.Time, mod uint32, err error) {
 	fi, err := os.Stat(name)
 	if err != nil {
 		return
@@ -29,7 +29,7 @@ func statTimes(name string) (atime, mtime, ctime time.Time, err error) {
 	stat := fi.Sys().(*syscall.Stat_t)
 	atime = time.Unix(int64(stat.Atim.Sec), int64(stat.Atim.Nsec))
 	ctime = time.Unix(int64(stat.Ctim.Sec), int64(stat.Ctim.Nsec))
-	return atime, mtime, ctime, nil
+	return atime, mtime, ctime, uint32(fi.Mode()), nil
 }
 
 /*
@@ -67,7 +67,7 @@ func CopyFile(sourcePath, destPath string, overwrite bool) (bool, error) {
 		return false, fmt.Errorf("writing to output file failed: %s", err)
 	}
 
-	atime, mtime, _, err := statTimes(sourcePath)
+	atime, mtime, _, mod, err := statTimes(sourcePath)
 	if err != nil {
 		return true, err
 	}
@@ -78,6 +78,10 @@ func CopyFile(sourcePath, destPath string, overwrite bool) (bool, error) {
 	}
 
 	if err = os.Chtimes(destPath, atime, mtime); err != nil {
+		return true, err
+	}
+
+	if err = os.Chmod(destPath, os.FileMode(mod)); err != nil {
 		return true, err
 	}
 

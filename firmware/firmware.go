@@ -176,6 +176,7 @@ func DownloadFirmware(Conf ins.FirmwareConfigurations, firmwareConfig *bytes.Buf
 			return err
 		} else {
 			if strings.EqualFold(v.(string), hash) == false {
+				_ = os.Remove(tempfirmname)
 				return errors.New(fmt.Sprintf("mismatch hash: %s", hash))
 			}
 		}
