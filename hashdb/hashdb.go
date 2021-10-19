@@ -25,7 +25,10 @@ func ConnectDB(datasource string) (db *HashDB, err error) {
 	db = new(HashDB)
 	db.conn = conn
 
-	db.InitDB()
+	if err = db.InitDB(); err != nil {
+		db.Close()
+		return nil, err
+	}
 
 	return db, err
 }
