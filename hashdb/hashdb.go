@@ -25,6 +25,16 @@ func ConnectDB(datasource string) (db *HashDB, err error) {
 	db = new(HashDB)
 	db.conn = conn
 
+	if err = db.AutoVacuum(); err != nil {
+		db.Close()
+		return nil, err
+	}
+
+	if err = db.Reduce(); err != nil {
+		db.Close()
+		return nil, err
+	}
+
 	if err = db.InitDB(); err != nil {
 		db.Close()
 		return nil, err
@@ -45,6 +55,28 @@ func (v *HashDB) InitDB() error {
 	query += "`data` BLOB, "
 	query += "PRIMARY KEY(`hosttype`, `path`)"
 	query += ")"
+	_, err := v.conn.Exec(query)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (v *HashDB) AutoVacuum() error {
+
+	query := "PRAGMA auto_vacuum=1"
+	_, err := v.conn.Exec(query)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (v *HashDB) Reduce() error {
+
+	query := "VACUUM"
 	_, err := v.conn.Exec(query)
 	if err != nil {
 		return err

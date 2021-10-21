@@ -36,6 +36,16 @@ func ConnectDB(datasource string) (db *FirewallDB, err error) {
 	db.conn = conn
 	db.locker = &sync.Mutex{}
 
+	if err = db.AutoVacuum(); err != nil {
+		db.Close()
+		return nil, err
+	}
+
+	if err = db.Reduce(); err != nil {
+		db.Close()
+		return nil, err
+	}
+
 	if err = db.InitDB(); err != nil {
 		db.Close()
 		return nil, err
@@ -68,6 +78,28 @@ func (v *FirewallDB) InitDB() error {
 	}
 
 	if _, err := v.createUniqueIndex(); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (v *FirewallDB) AutoVacuum() error {
+
+	query := "PRAGMA auto_vacuum=1"
+	_, err := v.conn.Exec(query)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (v *FirewallDB) Reduce() error {
+
+	query := "VACUUM"
+	_, err := v.conn.Exec(query)
+	if err != nil {
 		return err
 	}
 

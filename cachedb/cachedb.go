@@ -27,6 +27,16 @@ func ConnectDB(datasource string) (*CacheDB, error) {
 	db := new(CacheDB)
 	db.conn = conn
 
+	if err = db.AutoVacuum(); err != nil {
+		db.Close()
+		return nil, err
+	}
+
+	if err = db.Reduce(); err != nil {
+		db.Close()
+		return nil, err
+	}
+
 	return db, err
 }
 
@@ -45,6 +55,28 @@ func (v *CacheDB) InitDB(num int) error {
 		}
 
 		v.tables = i+1
+	}
+
+	return nil
+}
+
+func (v *CacheDB) AutoVacuum() error {
+
+	query := "PRAGMA auto_vacuum=1"
+	_, err := v.conn.Exec(query)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (v *CacheDB) Reduce() error {
+
+	query := "VACUUM"
+	_, err := v.conn.Exec(query)
+	if err != nil {
+		return err
 	}
 
 	return nil
