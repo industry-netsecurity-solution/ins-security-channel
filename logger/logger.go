@@ -10,12 +10,13 @@ import (
 const (
 	LogNone  = 0
 	LogDefault = 1
-	LogDebug = 1 << 1
-	LogInfo  = 1 << 2
-	LogWarn  = 1 << 3
-	LogError = 1 << 4
-	LogFatal = 1 << 5
-	LogPanic = 1 << 6
+	LogTrace  = 1 << 1
+	LogDebug = 1 << 2
+	LogInfo  = 1 << 3
+	LogWarn  = 1 << 4
+	LogError = 1 << 5
+	LogFatal = 1 << 6
+	LogPanic = 1 << 7
 )
 
 type LogWriter interface {
@@ -37,46 +38,57 @@ type LogWriter interface {
 	Info(args ...interface{})
 	Infof(format string, args ...interface{})
 	Infoln(args ...interface{})
+	Trace(args ...interface{})
+	Tracef(format string, args ...interface{})
+	Traceln(args ...interface{})
 	Print(args ...interface{})
 	Printf(format string, args ...interface{})
 	Println(args ...interface{})
 }
 
 type Logger struct {
+	logLevel   int
 	PANIC *log.Logger
 	FATAL *log.Logger
 	ERROR *log.Logger
 	WARN  *log.Logger
 	DEBUG *log.Logger
+	TRACE  *log.Logger
 	INFO  *log.Logger
 	DEFAULT  *log.Logger
 }
 
 var logLevel int = LogDefault  | LogInfo  | LogWarn | LogError | LogFatal | LogPanic
 
-func New(out io.Writer, flag int) *Logger {
+func New(out io.Writer, logLevel, flag int) *Logger {
 
 	if out == nil {
 		out = os.Stdout
 	}
 
 	l := new(Logger)
+	l.logLevel = logLevel
 	l.PANIC = log.New(out, "[PANIC] ", flag)
 	l.FATAL = log.New(out, "[FATAL] ", flag)
 	l.ERROR = log.New(out, "[ERROR] ", flag)
 	l.WARN = log.New(out, "[WARN]  ", flag)
 	l.DEBUG = log.New(out, "[DEBUG] ", flag)
+	l.TRACE = log.New(out, "[TRACE] ", flag)
 	l.INFO = log.New(out, "[INFO] ", flag)
 	l.DEFAULT = log.New(out, "", flag)
 
 	return l
 }
 
-func SetLogLevel(loglevel int) {
+func GetDefaultLogLevel() int {
+	return logLevel
+}
+
+func SetDefaultLogLevel(loglevel int) {
 	logLevel = loglevel | LogFatal | LogPanic
 }
 
-func SetLogLevels(nornal, info, warn, err, fatal, panic bool) {
+func SetDefaultLogLevels(nornal, info, trace, warn, err, fatal, panic bool) {
 	logLevel = 0
 	if nornal {
 		logLevel |= LogDefault
@@ -84,6 +96,10 @@ func SetLogLevels(nornal, info, warn, err, fatal, panic bool) {
 
 	if info {
 		logLevel |= LogInfo
+	}
+
+	if trace {
+		logLevel |= LogTrace
 	}
 
 	if warn {
@@ -103,11 +119,11 @@ func SetLogLevels(nornal, info, warn, err, fatal, panic bool) {
 	}
 }
 
-func (v Logger) Writer() LogWriter {
+func (v *Logger) Writer() LogWriter {
 	return LogWriter(v)
 }
 
-func (v Logger) SetOutput(w io.Writer) {
+func (v *Logger) SetOutput(w io.Writer) {
 	v.PANIC.SetOutput(w)
 	v.FATAL.SetOutput(w)
 	v.ERROR.SetOutput(w)
@@ -166,10 +182,49 @@ func (v Logger) Panicln(args ...interface{}) {
 }
 */
 
+func (v *Logger) GetLogLevel() int {
+	return v.logLevel
+}
+
+func (v *Logger) SetLogLevel(loglevel int) {
+	v.logLevel = loglevel | LogFatal | LogPanic
+}
+
+func (v *Logger) SetLogLevels(nornal, info, trace, warn, err, fatal, panic bool) {
+	v.logLevel = 0
+	if nornal {
+		v.logLevel |= LogDefault
+	}
+
+	if info {
+		v.logLevel |= LogInfo
+	}
+
+	if trace {
+		v.logLevel |= LogTrace
+	}
+
+	if warn {
+		v.logLevel |= LogWarn
+	}
+
+	if err {
+		v.logLevel |= LogError
+	}
+
+	if fatal {
+		v.logLevel |= LogFatal
+	}
+
+	if panic {
+		v.logLevel |= LogPanic
+	}
+}
+
 // Flags returns the output flags for the logger.
 // The flag bits are Ldate, Ltime, and so on.
-func (v Logger) Flags() int {
-	if logLevel&LogDefault != LogDefault {
+func (v *Logger) Flags() int {
+	if v.logLevel&LogDefault != LogDefault {
 		return 0
 	}
 	return v.DEFAULT.Flags()
@@ -177,129 +232,152 @@ func (v Logger) Flags() int {
 
 // SetFlags sets the output flags for the logger.
 // The flag bits are Ldate, Ltime, and so on.
-func (v Logger) SetFlags(flag int) {
+func (v *Logger) SetFlags(flag int) {
 	v.PANIC.SetFlags(flag)
 	v.FATAL.SetFlags(flag)
 	v.ERROR.SetFlags(flag)
 	v.WARN.SetFlags(flag)
 	v.DEBUG.SetFlags(flag)
+	v.TRACE.SetFlags(flag)
 	v.INFO.SetFlags(flag)
 	v.DEFAULT.SetFlags(flag)
 }
 
-func (v Logger) Panic(args ...interface{}) {
+func (v *Logger) Panic(args ...interface{}) {
 	s := fmt.Sprint(args...)
 	v.PanicOutput(3, s)
 }
 
-func (v Logger) Panicf(format string, args ...interface{}) {
+func (v *Logger) Panicf(format string, args ...interface{}) {
 	s := fmt.Sprintf(format, args...)
 	v.PanicOutput(3, s)
 }
 
-func (v Logger) Panicln(args ...interface{}) {
+func (v *Logger) Panicln(args ...interface{}) {
 	s := fmt.Sprintln(args...)
 	v.PanicOutput(3, s)
 }
 
-func (v Logger) PanicOutput(calldepth int, s string) {
-	if logLevel&LogPanic != LogPanic {
+func (v *Logger) PanicOutput(calldepth int, s string) {
+	if v.logLevel&LogPanic != LogPanic {
 		return
 	}
 	v.PANIC.Output(calldepth, s)
 	panic(s)
 }
 
-func (v Logger) Fatal(args ...interface{}) {
+func (v *Logger) Fatal(args ...interface{}) {
 	s := fmt.Sprint(args...)
 	v.FatalOutput(3, s)
 }
 
-func (v Logger) Fatalf(format string, args ...interface{}) {
+func (v *Logger) Fatalf(format string, args ...interface{}) {
 	s := fmt.Sprintf(format, args...)
 	v.FatalOutput(3, s)
 }
 
-func (v Logger) Fatalln(args ...interface{}) {
+func (v *Logger) Fatalln(args ...interface{}) {
 	s := fmt.Sprintln(args...)
 	v.FatalOutput(3, s)
 }
 
-func (v Logger) FatalOutput(calldepth int, s string) {
-	if logLevel&LogFatal != LogFatal {
+func (v *Logger) FatalOutput(calldepth int, s string) {
+	if v.logLevel&LogFatal != LogFatal {
 		return
 	}
 	v.FATAL.Output(calldepth, s)
 	os.Exit(1)
 }
 
-func (v Logger) Error(args ...interface{}) {
+func (v *Logger) Error(args ...interface{}) {
 	s := fmt.Sprint(args...)
 	v.ErrorOutput(3, s)
 }
 
-func (v Logger) Errorf(format string, args ...interface{}) {
+func (v *Logger) Errorf(format string, args ...interface{}) {
 	s := fmt.Sprintf(format, args...)
 	v.ErrorOutput(3, s)
 }
 
-func (v Logger) Errorln(args ...interface{}) {
+func (v *Logger) Errorln(args ...interface{}) {
 	s := fmt.Sprintln(args...)
 	v.ErrorOutput(3, s)
 }
 
-func (v Logger) ErrorOutput(calldepth int, s string) {
-	if logLevel&LogError != LogError {
+func (v *Logger) ErrorOutput(calldepth int, s string) {
+	if v.logLevel&LogError != LogError {
 		return
 	}
 	v.ERROR.Output(calldepth, s)
 }
 
-func (v Logger) Warning(args ...interface{}) {
+func (v *Logger) Warning(args ...interface{}) {
 	s := fmt.Sprint(args...)
 	v.WarningOutput(3, s)
 }
 
-func (v Logger) Warningf(format string, args ...interface{}) {
+func (v *Logger) Warningf(format string, args ...interface{}) {
 	s := fmt.Sprintf(format, args...)
 	v.WarningOutput(3, s)
 }
 
-func (v Logger) Warningln(args ...interface{}) {
+func (v *Logger) Warningln(args ...interface{}) {
 	s := fmt.Sprintln(args...)
 	v.WarningOutput(3, s)
 }
 
-func (v Logger) WarningOutput(calldepth int, s string) {
-	if logLevel&LogWarn != LogWarn {
+func (v *Logger) WarningOutput(calldepth int, s string) {
+	if v.logLevel&LogWarn != LogWarn {
 		return
 	}
 	v.WARN.Output(calldepth, s)
 }
 
-func (v Logger) Debug(args ...interface{}) {
+func (v *Logger) Debug(args ...interface{}) {
 	s := fmt.Sprint(args...)
 	v.DebugOutput(3, s)
 }
 
-func (v Logger) Debugf(format string, args ...interface{}) {
+func (v *Logger) Debugf(format string, args ...interface{}) {
 	s := fmt.Sprintf(format, args...)
 	v.DebugOutput(3, s)
 }
 
-func (v Logger) Debugln(args ...interface{}) {
+func (v *Logger) Debugln(args ...interface{}) {
 	s := fmt.Sprintln(args...)
 	v.DebugOutput(3, s)
 }
 
-func (v Logger) DebugOutput(calldepth int, s string) {
-	if logLevel&LogDebug != LogDebug {
+func (v *Logger) DebugOutput(calldepth int, s string) {
+	if v.logLevel&LogDebug != LogDebug {
 		return
 	}
 	v.DEBUG.Output(calldepth, s)
 }
 
-func (v Logger) Info(args ...interface{}) {
+func (v *Logger) Trace(args ...interface{}) {
+	s := fmt.Sprint(args...)
+	v.TraceOutput(3, s)
+}
+
+func (v *Logger) Tracef(format string, args ...interface{}) {
+	s := fmt.Sprintf(format, args...)
+	v.TraceOutput(3, s)
+}
+
+func (v *Logger) Traceln(args ...interface{}) {
+	s := fmt.Sprintln(args...)
+	v.TraceOutput(3, s)
+}
+
+func (v *Logger) TraceOutput(calldepth int, s string) {
+	if v.logLevel&LogTrace != LogTrace {
+		return
+	}
+	v.TRACE.Output(calldepth, s)
+}
+
+func (v *Logger) Info(args ...interface{}) {
 	s := fmt.Sprint(args...)
 	v.InfoOutput(3, s)
 }
@@ -309,19 +387,19 @@ func (v Logger) Infof(format string, args ...interface{}) {
 	v.InfoOutput(3, s)
 }
 
-func (v Logger) Infoln(args ...interface{}) {
+func (v *Logger) Infoln(args ...interface{}) {
 	s := fmt.Sprintln(args...)
 	v.InfoOutput(3, s)
 }
 
-func (v Logger) InfoOutput(calldepth int, s string) {
-	if logLevel&LogInfo != LogInfo {
+func (v *Logger) InfoOutput(calldepth int, s string) {
+	if v.logLevel&LogInfo != LogInfo {
 		return
 	}
 	v.INFO.Output(calldepth, s)
 }
 
-func (v Logger) Print(args ...interface{}) {
+func (v *Logger) Print(args ...interface{}) {
 	s := fmt.Sprint(args...)
 	v.DefaultOutput(3, s)
 }
@@ -337,7 +415,7 @@ func (v Logger) Println(args ...interface{}) {
 }
 
 func (v Logger) DefaultOutput(calldepth int, s string) {
-	if logLevel&LogDefault != LogDefault {
+	if v.logLevel&LogDefault != LogDefault {
 		return
 	}
 	v.DEFAULT.Output(calldepth, s)
@@ -345,7 +423,7 @@ func (v Logger) DefaultOutput(calldepth int, s string) {
 
 //-----------------------------------------------------
 
-var std = New(os.Stderr, log.LstdFlags|log.Lshortfile)
+var std = New(os.Stderr, logLevel, log.LstdFlags|log.Lshortfile)
 
 func Writer() LogWriter {
 	return std.Writer()
@@ -353,6 +431,18 @@ func Writer() LogWriter {
 
 func SetOutput(w io.Writer) {
 	std.SetOutput(w)
+}
+
+func GetLogLevel() int {
+	return std.GetLogLevel()
+}
+
+func SetLogLevel(loglevel int) {
+	std.SetLogLevel(loglevel | LogFatal | LogPanic)
+}
+
+func SetLogLevels(nornal, info, trace, warn, err, fatal, panic bool) {
+	std.SetLogLevels(nornal, info, trace, warn, err, fatal, panic)
 }
 
 // Flags returns the output flags for the logger.
@@ -439,6 +529,19 @@ func Debugln(args ...interface{}) {
 	std.DebugOutput(3, fmt.Sprintln(args...))
 }
 
+func Trace(args ...interface{}) {
+	std.TraceOutput(3, fmt.Sprint(args...))
+}
+
+func Tracef(format string, args ...interface{}) {
+	std.TraceOutput(3, fmt.Sprintf(format, args...))
+
+}
+
+func Traceln(args ...interface{}) {
+	std.TraceOutput(3, fmt.Sprintln(args...))
+}
+
 func Info(args ...interface{}) {
 	std.InfoOutput(3, fmt.Sprint(args...))
 }
@@ -481,6 +584,10 @@ func GetWarn() *log.Logger {
 
 func GetDebug() *log.Logger {
 	return std.DEBUG
+}
+
+func GetTrace() *log.Logger {
+	return std.TRACE
 }
 
 func GetInfo() *log.Logger {

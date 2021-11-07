@@ -81,6 +81,13 @@ type CWarning struct {
 	FrameIndex int32
 }
 
+type CAccelerometerThreshold struct {
+	Total int32
+	X int32
+	Y int32
+	Z int32
+}
+
 type CAccelerometer struct {
 	Tv CTimeval
 	X int16
@@ -135,6 +142,21 @@ func GetWarningApproach(value *CWarning, camera int32) int32 {
 	value.Camera = int32(warning.camera)
 	value.Event = int32(warning.event)
 	value.FrameIndex = int32(warning.frameIndex)
+
+	return 0
+}
+
+func GetAccelerometerThreshold(value *CAccelerometerThreshold) int32 {
+
+	threshold := C.AccelerometerThreshold{}
+	if C.getAccelerometerThreshold(&threshold) != 0 {
+		return -1
+	}
+
+	value.Total = int32(threshold.total)
+	value.X = int32(threshold.x)
+	value.Y = int32(threshold.y)
+	value.Z = int32(threshold.z)
 
 	return 0
 }
