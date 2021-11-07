@@ -171,7 +171,7 @@ var NAME_BB_REAR_COLLISION = "rear.collision"
 var NAME_BB_FRONT_APPROACH = "front.approach"
 var NAME_BB_REAR_APPROACH = "rear.approach"
 // RAW 가속도 데이터 파일
-var NAME_BB_RAW_ACCELEROMETER = "RAW 6축 가속도 파일"
+var NAME_BB_RAW_ACCELEROMETER = "accelerometer.raw"
 
 var NAME_BB_UWB_LOCATION = "event.location"
 // 블랙박스 충돌 이벤트
