@@ -184,55 +184,6 @@ func (v *Logger) SetOutput(w io.Writer) {
 	v.INFO.SetOutput(w)
 	v.MESSAGE.SetOutput(w)
 }
-/*
-// Fatalln is equivalent to l.Println() followed by a call to os.Exit(1).
-func (v Logger) Fatal(args ...interface{}) {
-	if LogLevel&LogFatal != LogFatal {
-		return
-	}
-	v.FATAL.Fatal(args...)
-}
-
-// Fatalf is equivalent to l.Printf() followed by a call to os.Exit(1).
-func (v Logger) Fatalf(format string, args ...interface{}) {
-	if LogLevel&LogFatal != LogFatal {
-		return
-	}
-	v.FATAL.Fatalf(format, args...)
-}
-
-// Fatalln is equivalent to l.Println() followed by a call to os.Exit(1).
-func (v Logger) Fatalln(args ...interface{}) {
-	if LogLevel&LogFatal != LogFatal {
-		return
-	}
-	v.FATAL.Fatalln(args...)
-}
-
-// Panic is equivalent to l.Print() followed by a call to panic().
-func (v Logger) Panic(args ...interface{}) {
-	if LogLevel&LogPanic != LogPanic {
-		return
-	}
-	v.PANIC.Panic(args...)
-}
-
-// Panicf is equivalent to l.Printf() followed by a call to panic().
-func (v Logger) Panicf(format string, args ...interface{}) {LogWriter
-	if LogLevel&LogPanic != LogPanic {
-		return
-	}
-	v.PANIC.Panicf(format, args...)
-}
-
-// Panicln is equivalent to l.Println() followed by a call to panic().
-func (v Logger) Panicln(args ...interface{}) {
-	if LogLevel&LogPanic != LogPanic {
-		return
-	}
-	v.PANIC.Panicln(args...)
-}
-*/
 
 func (v *Logger) GetLogLevel() int {
 	return v.logLevel
