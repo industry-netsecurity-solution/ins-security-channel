@@ -119,7 +119,10 @@ func SetDefaultLogLevels(nornal, info, trace, warn, err, fatal, panic bool) {
 	}
 }
 
-func ParseLogLevel(l string) (level int, err error) {
+func ParseLogLevel(l string, defaultLevel int) (level int, err error) {
+
+	level = defaultLevel
+
 	for _, C := range l {
 		switch C {
 		case 'q':
@@ -222,6 +225,14 @@ func (v *Logger) SetLogLevels(mesg, info, trace, warn, err, fatal, panic bool) {
 	if panic {
 		v.logLevel |= LogPanic
 	}
+}
+
+func (v *Logger) SetLogLevelString(loglevel string ) (err error) {
+	var l int
+	if l, err = ParseLogLevel(loglevel, v.GetLogLevel()); err == nil {
+		v.SetLogLevel(l)
+	}
+	return
 }
 
 // Flags returns the output flags for the logger.
@@ -438,11 +449,7 @@ func SetLogLevels(nornal, info, trace, warn, err, fatal, panic bool) {
 }
 
 func SetLogLevelString(loglevel string ) (err error) {
-	var l int
-	if l, err = ParseLogLevel(loglevel); err == nil {
-		std.SetLogLevel(l)
-	}
-	return
+	return std.SetLogLevelString(loglevel)
 }
 
 // Flags returns the output flags for the logger.
