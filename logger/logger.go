@@ -8,15 +8,15 @@ import (
 )
 
 const (
-	LogNone  = 0
-	LogDefault = 1
-	LogTrace  = 1 << 1
-	LogDebug = 1 << 2
-	LogInfo  = 1 << 3
-	LogWarn  = 1 << 4
-	LogError = 1 << 5
-	LogFatal = 1 << 6
-	LogPanic = 1 << 7
+	LogNone    = 0
+	LogMessage = 1
+	LogTrace   = 1 << 1
+	LogDebug   = 1 << 2
+	LogInfo    = 1 << 3
+	LogWarn    = 1 << 4
+	LogError   = 1 << 5
+	LogFatal   = 1 << 6
+	LogPanic   = 1 << 7
 )
 
 type LogWriter interface {
@@ -47,18 +47,18 @@ type LogWriter interface {
 }
 
 type Logger struct {
-	logLevel   int
-	PANIC *log.Logger
-	FATAL *log.Logger
-	ERROR *log.Logger
-	WARN  *log.Logger
-	DEBUG *log.Logger
-	TRACE  *log.Logger
-	INFO  *log.Logger
-	DEFAULT  *log.Logger
+	logLevel int
+	PANIC    *log.Logger
+	FATAL    *log.Logger
+	ERROR    *log.Logger
+	WARN     *log.Logger
+	DEBUG    *log.Logger
+	TRACE    *log.Logger
+	INFO     *log.Logger
+	MESSAGE  *log.Logger
 }
 
-var logLevel int = LogDefault  | LogInfo  | LogWarn | LogError | LogFatal | LogPanic
+var logLevel int = LogMessage | LogInfo  | LogWarn | LogError | LogFatal | LogPanic
 
 func New(out io.Writer, logLevel, flag int) *Logger {
 
@@ -75,7 +75,7 @@ func New(out io.Writer, logLevel, flag int) *Logger {
 	l.DEBUG = log.New(out, "[DEBUG] ", flag)
 	l.TRACE = log.New(out, "[TRACE] ", flag)
 	l.INFO = log.New(out, "[INFO] ", flag)
-	l.DEFAULT = log.New(out, "", flag)
+	l.MESSAGE = log.New(out, "", flag)
 
 	return l
 }
@@ -91,7 +91,7 @@ func SetDefaultLogLevel(loglevel int) {
 func SetDefaultLogLevels(nornal, info, trace, warn, err, fatal, panic bool) {
 	logLevel = 0
 	if nornal {
-		logLevel |= LogDefault
+		logLevel |= LogMessage
 	}
 
 	if info {
@@ -119,6 +119,58 @@ func SetDefaultLogLevels(nornal, info, trace, warn, err, fatal, panic bool) {
 	}
 }
 
+func ParseLogLevel(l string) (level int, err error) {
+	for _, C := range l {
+		switch C {
+		case 'q':
+			fallthrough
+		case 'Q':
+			level = 0
+		case 'a':
+			fallthrough
+		case 'A':
+			level = 0xFF
+		case 'M':
+			level |= LogMessage
+		case 'I':
+			level |= LogInfo
+		case 'T':
+			level |= LogTrace
+		case 'D':
+			level |= LogDebug
+		case 'W':
+			level |= LogWarn
+		case 'E':
+			level |= LogError
+		case 'F':
+			level |= LogFatal
+		case 'P':
+			level |= LogPanic
+		case 'm':
+			level &= (0xFF^ LogMessage)
+		case 'i':
+			level &= (0xFF^LogInfo)
+		case 't':
+			level &= (0xFF^LogTrace)
+		case 'd':
+			level &= (0xFF^LogDebug)
+		case 'w':
+			level &= (0xFF^LogWarn)
+		case 'e':
+			level &= (0xFF^LogError)
+		case 'f':
+			level &= (0xFF^LogFatal)
+		case 'p':
+			level &= (0xFF^LogPanic)
+		default:
+			return -1, fmt.Errorf("'%s' is not supported.", C)
+		}
+	}
+
+	return
+}
+
+
 func (v *Logger) Writer() LogWriter {
 	return LogWriter(v)
 }
@@ -130,7 +182,7 @@ func (v *Logger) SetOutput(w io.Writer) {
 	v.WARN.SetOutput(w)
 	v.DEBUG.SetOutput(w)
 	v.INFO.SetOutput(w)
-	v.DEFAULT.SetOutput(w)
+	v.MESSAGE.SetOutput(w)
 }
 /*
 // Fatalln is equivalent to l.Println() followed by a call to os.Exit(1).
@@ -166,7 +218,7 @@ func (v Logger) Panic(args ...interface{}) {
 }
 
 // Panicf is equivalent to l.Printf() followed by a call to panic().
-func (v Logger) Panicf(format string, args ...interface{}) {
+func (v Logger) Panicf(format string, args ...interface{}) {LogWriter
 	if LogLevel&LogPanic != LogPanic {
 		return
 	}
@@ -190,10 +242,10 @@ func (v *Logger) SetLogLevel(loglevel int) {
 	v.logLevel = loglevel | LogFatal | LogPanic
 }
 
-func (v *Logger) SetLogLevels(nornal, info, trace, warn, err, fatal, panic bool) {
+func (v *Logger) SetLogLevels(mesg, info, trace, warn, err, fatal, panic bool) {
 	v.logLevel = 0
-	if nornal {
-		v.logLevel |= LogDefault
+	if mesg {
+		v.logLevel |= LogMessage
 	}
 
 	if info {
@@ -224,10 +276,7 @@ func (v *Logger) SetLogLevels(nornal, info, trace, warn, err, fatal, panic bool)
 // Flags returns the output flags for the logger.
 // The flag bits are Ldate, Ltime, and so on.
 func (v *Logger) Flags() int {
-	if v.logLevel&LogDefault != LogDefault {
-		return 0
-	}
-	return v.DEFAULT.Flags()
+	return v.MESSAGE.Flags()
 }
 
 // SetFlags sets the output flags for the logger.
@@ -240,7 +289,7 @@ func (v *Logger) SetFlags(flag int) {
 	v.DEBUG.SetFlags(flag)
 	v.TRACE.SetFlags(flag)
 	v.INFO.SetFlags(flag)
-	v.DEFAULT.SetFlags(flag)
+	v.MESSAGE.SetFlags(flag)
 }
 
 func (v *Logger) Panic(args ...interface{}) {
@@ -259,10 +308,9 @@ func (v *Logger) Panicln(args ...interface{}) {
 }
 
 func (v *Logger) PanicOutput(calldepth int, s string) {
-	if v.logLevel&LogPanic != LogPanic {
-		return
+	if v.logLevel&LogPanic == LogPanic {
+		v.PANIC.Output(calldepth, s)
 	}
-	v.PANIC.Output(calldepth, s)
 	panic(s)
 }
 
@@ -282,10 +330,9 @@ func (v *Logger) Fatalln(args ...interface{}) {
 }
 
 func (v *Logger) FatalOutput(calldepth int, s string) {
-	if v.logLevel&LogFatal != LogFatal {
-		return
+	if v.logLevel&LogFatal == LogFatal {
+		v.FATAL.Output(calldepth, s)
 	}
-	v.FATAL.Output(calldepth, s)
 	os.Exit(1)
 }
 
@@ -305,10 +352,9 @@ func (v *Logger) Errorln(args ...interface{}) {
 }
 
 func (v *Logger) ErrorOutput(calldepth int, s string) {
-	if v.logLevel&LogError != LogError {
-		return
+	if v.logLevel&LogError == LogError {
+		v.ERROR.Output(calldepth, s)
 	}
-	v.ERROR.Output(calldepth, s)
 }
 
 func (v *Logger) Warning(args ...interface{}) {
@@ -327,10 +373,9 @@ func (v *Logger) Warningln(args ...interface{}) {
 }
 
 func (v *Logger) WarningOutput(calldepth int, s string) {
-	if v.logLevel&LogWarn != LogWarn {
-		return
+	if v.logLevel&LogWarn == LogWarn {
+		v.WARN.Output(calldepth, s)
 	}
-	v.WARN.Output(calldepth, s)
 }
 
 func (v *Logger) Debug(args ...interface{}) {
@@ -349,10 +394,9 @@ func (v *Logger) Debugln(args ...interface{}) {
 }
 
 func (v *Logger) DebugOutput(calldepth int, s string) {
-	if v.logLevel&LogDebug != LogDebug {
-		return
+	if v.logLevel&LogDebug == LogDebug {
+		v.DEBUG.Output(calldepth, s)
 	}
-	v.DEBUG.Output(calldepth, s)
 }
 
 func (v *Logger) Trace(args ...interface{}) {
@@ -371,10 +415,9 @@ func (v *Logger) Traceln(args ...interface{}) {
 }
 
 func (v *Logger) TraceOutput(calldepth int, s string) {
-	if v.logLevel&LogTrace != LogTrace {
-		return
+	if v.logLevel&LogTrace == LogTrace {
+		v.TRACE.Output(calldepth, s)
 	}
-	v.TRACE.Output(calldepth, s)
 }
 
 func (v *Logger) Info(args ...interface{}) {
@@ -393,10 +436,9 @@ func (v *Logger) Infoln(args ...interface{}) {
 }
 
 func (v *Logger) InfoOutput(calldepth int, s string) {
-	if v.logLevel&LogInfo != LogInfo {
-		return
+	if v.logLevel&LogInfo == LogInfo {
+		v.INFO.Output(calldepth, s)
 	}
-	v.INFO.Output(calldepth, s)
 }
 
 func (v *Logger) Print(args ...interface{}) {
@@ -415,10 +457,9 @@ func (v Logger) Println(args ...interface{}) {
 }
 
 func (v Logger) DefaultOutput(calldepth int, s string) {
-	if v.logLevel&LogDefault != LogDefault {
-		return
+	if v.logLevel&LogMessage == LogMessage {
+		v.MESSAGE.Output(calldepth, s)
 	}
-	v.DEFAULT.Output(calldepth, s)
 }
 
 //-----------------------------------------------------
@@ -443,6 +484,14 @@ func SetLogLevel(loglevel int) {
 
 func SetLogLevels(nornal, info, trace, warn, err, fatal, panic bool) {
 	std.SetLogLevels(nornal, info, trace, warn, err, fatal, panic)
+}
+
+func SetLogLevelString(loglevel string ) (err error) {
+	var l int
+	if l, err = ParseLogLevel(loglevel); err == nil {
+		std.SetLogLevel(l)
+	}
+	return
 }
 
 // Flags returns the output flags for the logger.
@@ -595,5 +644,5 @@ func GetInfo() *log.Logger {
 }
 
 func GetDefault() *log.Logger {
-	return std.DEFAULT
+	return std.MESSAGE
 }
