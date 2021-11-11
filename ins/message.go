@@ -113,6 +113,9 @@ var BB_UWB_LOCATION = []byte{0x00, 0x08}
 // 블랙박스 충돌 이벤트
 var BB_EVENT_COLLISION = []byte{0x00, 0x09}
 
+// RTLS 서버 & 충돌 예측 서버
+var CGW_COLLISION_RISK = []byte{0x00, 0x10}
+
 var CONTROL_COMMAND = []byte{0x01, 0x01}
 var CONTROL_DIAG = []byte{0x01, 0x02}
 
@@ -177,6 +180,8 @@ var NAME_BB_UWB_LOCATION = "event.location"
 // 블랙박스 충돌 이벤트
 var NAME_BB_EVENT_COLLISION = "event.collision"
 
+var NAME_CGW_COLLISION_RISK = "event.collision.list"
+
 // 제조현장
 var NAME_GW_CENTER_STATUS_FACTORY = "center.gw.status"
 var NAME_GW_RELAY_STATUS_FACTORY = "relay.gw.status"
@@ -227,6 +232,9 @@ var TYPE_BB_RAW_ACCELEROMETER = "RAW 6축 가속도 파일"
 var TYPE_BB_UWB_LOCATION = "UWB 위치/속도"
 // 블랙박스 충돌 이벤트
 var TYPE_BB_EVENT_COLLISION = "가속도 충돌 이벤트"
+
+// 집중게이트웨이: 충돌 위험
+var TYPE_CGW_COLLISION_RISK = "충돌 위험"
 
 // 제조현장
 var TYPE_GW_CENTER_STATUS_FACTORY = "제조현장 집중게이트웨이 상태보고"
@@ -338,6 +346,9 @@ func GetTransmissionMethod4YMTECH(order binary.ByteOrder, data []byte) int {
 	} else if bytes.HasPrefix(data, BB_EVENT_COLLISION) {
 		// 제조현장 지게차 충돌 이벤트
 		return METHOD_MQTT
+	//} else if bytes.HasPrefix(data, CGW_COLLISION_RISK) {
+	//	// 제조현장 지게차 충돌 위험
+	//	return METHOD_MQTT
 	} else if bytes.HasPrefix(data, GW_CENTER_STATUS_FACTORY) {
 		// 제조현장 지게차 집중 GW
 		return METHOD_MQTT
@@ -392,6 +403,9 @@ func GetTransmissionMethod4Wrap(order binary.ByteOrder, data []byte) int {
 	} else if bytes.HasPrefix(data, BB_EVENT_COLLISION) {
 		// 제조현장 지게차 충돌 이벤트
 		return METHOD_SOCKET
+	//} else if bytes.HasPrefix(data, CGW_COLLISION_RISK) {
+	//	// 제조현장 지게차 충돌 이벤트
+	//	return METHOD_SOCKET
 	} else if bytes.HasPrefix(data, GW_CENTER_STATUS_FACTORY) {
 		// 제조현장 지게차 집중 GW
 		return METHOD_SOCKET
@@ -508,6 +522,9 @@ func GetMessageType4YMTECH(order binary.ByteOrder, data []byte) string {
 	} else if bytes.HasPrefix(data, BB_EVENT_COLLISION) {
 		// 제조현장 지게차 충돌 이벤트
 		return TYPE_BB_EVENT_COLLISION
+	} else if bytes.HasPrefix(data, CGW_COLLISION_RISK) {
+		// 제조현장 지게차 충돌 알림
+		return TYPE_CGW_COLLISION_RISK
 	} else if bytes.HasPrefix(data, GW_CENTER_STATUS_FACTORY) {
 		// 제조현장 지게차 집중 GW
 		return TYPE_GW_CENTER_STATUS_FACTORY
@@ -572,6 +589,9 @@ func GetMessageType4Wrap(order binary.ByteOrder, data []byte) string {
 	} else if bytes.HasPrefix(data, BB_EVENT_COLLISION) {
 		// 제조현장 지게차 충돌 이벤트
 		return TYPE_BB_EVENT_COLLISION
+	} else if bytes.HasPrefix(data, CGW_COLLISION_RISK) {
+		// 제조현장 지게차 충돌 알림
+		return TYPE_CGW_COLLISION_RISK
 	} else if bytes.HasPrefix(data, GW_CENTER_STATUS_FACTORY) {
 		// 제조현장 지게차 집중 GW
 		return TYPE_GW_CENTER_STATUS_FACTORY
@@ -662,6 +682,9 @@ func GetMessageName4YMTECH(order binary.ByteOrder, data []byte) string {
 	} else if bytes.HasPrefix(data, BB_EVENT_COLLISION) {
 		// 제조현장 지게차 충돌 이벤트
 		return NAME_BB_EVENT_COLLISION
+	} else if bytes.HasPrefix(data, CGW_COLLISION_RISK) {
+		// 제조현장 지게차 충돌 알림
+		return NAME_CGW_COLLISION_RISK
 	} else if bytes.HasPrefix(data, GW_CENTER_STATUS_FACTORY) {
 		// 제조현장 지게차 집중 GW
 		return NAME_GW_CENTER_STATUS_FACTORY
@@ -752,6 +775,9 @@ func GetMessageName4Wrap(order binary.ByteOrder, data []byte) string {
 	} else if bytes.HasPrefix(data, BB_EVENT_COLLISION) {
 		// 제조현장 지게차 충돌 이벤트
 		return NAME_BB_EVENT_COLLISION
+	} else if bytes.HasPrefix(data, CGW_COLLISION_RISK) {
+		// 제조현장 지게차 충돌 알림
+		return NAME_CGW_COLLISION_RISK
 	} else if bytes.HasPrefix(data, GW_CENTER_STATUS_FACTORY) {
 		// 제조현장 지게차 집중 GW
 		return NAME_GW_CENTER_STATUS_FACTORY

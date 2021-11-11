@@ -100,6 +100,33 @@ func IsAllowEventCollision(order binary.ByteOrder, whiteGateway, whiteDevice *sh
 	return true, nil
 }
 
+func IsAllowEventCollisionRisk(order binary.ByteOrder, whiteGateway, whiteDevice *shared.ConcurrentMap, tl32v *ins.TL32V) (bool, error) {
+
+	if whiteGateway == nil {
+		return true, nil
+	}
+
+	offset := uint32(0)
+	for offset < tl32v.Length {
+		data, err := ins.DecTL32V(binary.LittleEndian, tl32v.Value[offset:])
+		if err != nil {
+			return false, nil
+		}
+		offset += uint32(data.Size())
+
+		if bytes.HasPrefix(data.Type, ins.BBx0000) {
+			sourceId := string(data.Value)
+			if whiteGateway.Has(sourceId) == false {
+				return false, nil
+			} else {
+				return true, nil
+			}
+		}
+	}
+
+	return true, nil
+}
+
 func IsAllowCenterStatusInFactory(order binary.ByteOrder, whiteGateway, whiteDevice *shared.ConcurrentMap, tl32v *ins.TL32V) (bool, error) {
 
 	if whiteGateway == nil {
@@ -328,6 +355,8 @@ func IsAllowYMTECH(order binary.ByteOrder, whiteGateway, whiteDevice *shared.Con
 		return IsAllowUWBLocation(order, whiteGateway, whiteDevice, data)
 	} else if bytes.HasPrefix(data.Type, ins.BB_EVENT_COLLISION) {
 		return IsAllowEventCollision(order, whiteGateway, whiteDevice, data)
+	} else if bytes.HasPrefix(data.Type, ins.CGW_COLLISION_RISK) {
+		return IsAllowEventCollisionRisk(order, whiteGateway, whiteDevice, data)
 	} else if bytes.HasPrefix(data.Type, ins.GW_CENTER_STATUS_FACTORY) {
 		return IsAllowCenterStatusInFactory(order, whiteGateway, whiteDevice, data)
 	} else if bytes.HasPrefix(data.Type, ins.GW_RELAY_STATUS_FACTORY) {
