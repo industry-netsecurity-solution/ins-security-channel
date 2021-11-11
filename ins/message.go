@@ -116,6 +116,9 @@ var BB_EVENT_COLLISION = []byte{0x00, 0x09}
 // RTLS 서버 & 충돌 예측 서버
 var CGW_COLLISION_RISK = []byte{0x00, 0x10}
 
+// 접근 감지
+var BB_APPROACH_OBJECT = []byte{0x00, 0x11}
+
 var CONTROL_COMMAND = []byte{0x01, 0x01}
 var CONTROL_DIAG = []byte{0x01, 0x02}
 
@@ -345,7 +348,7 @@ func GetTransmissionMethod4YMTECH(order binary.ByteOrder, data []byte) int {
 		return METHOD_MQTT
 	} else if bytes.HasPrefix(data, BB_EVENT_COLLISION) {
 		// 제조현장 지게차 충돌 이벤트
-		return METHOD_MQTT
+		return METHOD_SOCKET
 	//} else if bytes.HasPrefix(data, CGW_COLLISION_RISK) {
 	//	// 제조현장 지게차 충돌 위험
 	//	return METHOD_MQTT

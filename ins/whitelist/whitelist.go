@@ -444,16 +444,24 @@ func IsAllowWRAPPED(order binary.ByteOrder, whiteGateway, whiteDevice *shared.Co
 		}
 		offset += data.Size()
 
-		if bytes.HasPrefix(data.Type, []byte{0x80, 0x01}) {
-			//gwidTlv = data
-			sourceId := string(data.Value)
-			if whiteGateway != nil {
-				if whiteGateway.Has(sourceId) == false {
-					return false, nil
+		if data.Type[0] == 0x80 {
+			if bytes.HasPrefix(data.Type, []byte{0x80, 0x01}) {
+				//gwidTlv = data
+				sourceId := string(data.Value)
+				if whiteGateway != nil {
+					if whiteGateway.Has(sourceId) == false {
+						return false, nil
+					}
 				}
+			} else if bytes.HasPrefix(data.Type, []byte{0x80, 0x02}) {
+				// Time
+				// DO Nothing
+			} else if bytes.HasPrefix(data.Type, []byte{0x80, 0x03}) {
+				// Remote IP
+				// DO Nothing
+			} else {
+
 			}
-		} else if bytes.HasPrefix(data.Type, []byte{0x80, 0x02}) {
-			// DO Nothing
 		} else {
 			dataTlv = data
 		}
