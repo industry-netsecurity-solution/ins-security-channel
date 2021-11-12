@@ -121,3 +121,14 @@ func (v *ConcurrentList) PushFrontList(other *list.List) {
 
 	v.list.PushBackList(other)
 }
+
+func (v *ConcurrentList) Iterate(cb func(element *list.Element) bool) {
+	//v.Lock()
+	//defer v.Unlock()
+
+	for e := v.list.Front(); e != nil; e = e.Next() {
+		if cb(e) == false {
+			break
+		}
+	}
+}
