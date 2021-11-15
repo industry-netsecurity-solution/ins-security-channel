@@ -584,6 +584,52 @@ func AsByte(value interface{}) (byte, error) {
 	return value.(byte), nil
 }
 
+func AsBool(value interface{}) (bool, error) {
+	if value == nil {
+		return false, errors.New("Can not convert type 'nil' to 'bool'.")
+	}
+
+	switch value.(type) {
+	case bool:
+		return value.(bool), nil
+	case int:
+		return value.(int) != 0, nil
+	case int8:
+		return value.(int8) != 0, nil
+	case int16:
+		return value.(int16) != 0, nil
+	case int32:
+		return value.(int32) != 0, nil
+	case int64:
+		return value.(int64) != 0, nil
+	case uint:
+		return value.(uint) != 0, nil
+	case uint8:
+		return value.(uint8) != 0, nil
+	case uint16:
+		return value.(uint16) != 0, nil
+	case uint32:
+		return value.(uint32) != 0, nil
+	case uint64:
+		return value.(uint64) != 0, nil
+	case float32:
+		return value.(float32) != 0.0, nil
+	case float64:
+		return value.(float64) != 0.0, nil
+	case string:
+		b, err := strconv.ParseBool(value.(string))
+		if err != nil {
+			return false, err
+		}
+		return b, nil
+	//... etc
+	default:
+		return false, errors.New(fmt.Sprintf("Can not convert type '%s' to 'bool'.", GetType(value)))
+	}
+
+	return value.(bool), nil
+}
+
 func AsFloat32(value interface{}) (float32, error) {
 	if value == nil {
 		return float32(0), errors.New("Can not convert type 'nil' to 'float32'.")
