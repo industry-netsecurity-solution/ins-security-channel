@@ -48,6 +48,7 @@ type LogWriter interface {
 
 type Logger struct {
 	logLevel int
+	defaultWriter io.Writer
 	PANIC    *log.Logger
 	FATAL    *log.Logger
 	ERROR    *log.Logger
@@ -67,6 +68,7 @@ func New(out io.Writer, logLevel, flag int) *Logger {
 	}
 
 	l := new(Logger)
+	l.defaultWriter = out
 	l.logLevel = logLevel
 	l.PANIC = log.New(out, "[PANIC] ", flag)
 	l.FATAL = log.New(out, "[FATAL] ", flag)
@@ -173,7 +175,6 @@ func ParseLogLevel(l string, defaultLevel int) (level int, err error) {
 	return
 }
 
-
 func (v *Logger) Writer() LogWriter {
 	return LogWriter(v)
 }
@@ -184,8 +185,71 @@ func (v *Logger) SetOutput(w io.Writer) {
 	v.ERROR.SetOutput(w)
 	v.WARN.SetOutput(w)
 	v.DEBUG.SetOutput(w)
+	v.TRACE.SetOutput(w)
 	v.INFO.SetOutput(w)
 	v.MESSAGE.SetOutput(w)
+}
+
+func (v *Logger) SetLevelOutput(l string, w io.Writer) {
+
+	for _, C := range l {
+		switch C {
+		case 'q':
+			fallthrough
+		case 'Q':
+			v.PANIC.SetOutput(v.defaultWriter)
+			v.FATAL.SetOutput(v.defaultWriter)
+			v.ERROR.SetOutput(v.defaultWriter)
+			v.WARN.SetOutput(v.defaultWriter)
+			v.DEBUG.SetOutput(v.defaultWriter)
+			v.TRACE.SetOutput(v.defaultWriter)
+			v.INFO.SetOutput(v.defaultWriter)
+			v.MESSAGE.SetOutput(v.defaultWriter)
+		case 'a':
+			fallthrough
+		case 'A':
+			v.PANIC.SetOutput(w)
+			v.FATAL.SetOutput(w)
+			v.ERROR.SetOutput(w)
+			v.WARN.SetOutput(w)
+			v.DEBUG.SetOutput(w)
+			v.TRACE.SetOutput(w)
+			v.INFO.SetOutput(w)
+			v.MESSAGE.SetOutput(w)
+		case 'M':
+			v.MESSAGE.SetOutput(w)
+		case 'I':
+			v.INFO.SetOutput(w)
+		case 'T':
+			v.TRACE.SetOutput(w)
+		case 'D':
+			v.DEBUG.SetOutput(w)
+		case 'W':
+			v.WARN.SetOutput(w)
+		case 'E':
+			v.ERROR.SetOutput(w)
+		case 'F':
+			v.FATAL.SetOutput(w)
+		case 'P':
+			v.PANIC.SetOutput(w)
+		case 'm':
+			v.MESSAGE.SetOutput(v.defaultWriter)
+		case 'i':
+			v.INFO.SetOutput(v.defaultWriter)
+		case 't':
+			v.TRACE.SetOutput(v.defaultWriter)
+		case 'd':
+			v.DEBUG.SetOutput(v.defaultWriter)
+		case 'w':
+			v.WARN.SetOutput(v.defaultWriter)
+		case 'e':
+			v.ERROR.SetOutput(v.defaultWriter)
+		case 'f':
+			v.FATAL.SetOutput(v.defaultWriter)
+		case 'p':
+			v.PANIC.SetOutput(v.defaultWriter)
+		}
+	}
 }
 
 func (v *Logger) GetLogLevel() int {
@@ -434,6 +498,10 @@ func Writer() LogWriter {
 
 func SetOutput(w io.Writer) {
 	std.SetOutput(w)
+}
+
+func SetLevelOutput(l string, w io.Writer) {
+	std.SetLevelOutput(l, w)
 }
 
 func GetLogLevel() int {
