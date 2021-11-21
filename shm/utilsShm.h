@@ -16,6 +16,7 @@
 #define SK_EVENT_APPROACH_FF       20200899 //
 #define SK_EVENT_CRASH_00          20200802 // 0x01343D62
 #define SK_EVENT_CRASH_01          20200803 // 0x01343D63
+#define SK_EVENT_CRASH_RISK        20211118 // 0x013465AE
 
 #pragma pack(push, 1)
 typedef struct warning_ {
@@ -51,6 +52,15 @@ typedef struct positionphase {
 	double p2;
 } PositionPhase;
 
+typedef struct crashrisk_ {
+	struct timeval alertTime;
+	struct timeval recvTime;
+	uint8_t  sendGwId[64];
+	uint32_t uwbTagId;
+	uint32_t speed;
+	uint32_t count;
+} CrashRisk;
+
 #pragma pack(pop)
 
 size_t getMaxAllocSize(key_t key);
@@ -66,6 +76,12 @@ int32_t getWarningApproach(Warning *value, int32_t camera);
  */
 int32_t setWarningCrash(Warning *value);
 int32_t getWarningCrash(Warning *value, int32_t camera);
+
+/**
+ * 충돌 위험 시점의 데이터를 공유메모리에 저장한다.
+ */
+int32_t setWarningCrashRisk(CrashRisk *value);
+int32_t getWarningCrashRisk(CrashRisk *value);
 
 /**
  * accelerometer의 threshold값을 공유메모리에 저장한다.

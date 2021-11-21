@@ -25,6 +25,8 @@ size_t getMaxAllocSize(key_t key) {
 		return 256;
 	} else if(key == (key_t) SK_EVENT_CRASH_01) {
 		return 256;
+	} else if(key == (key_t) SK_EVENT_CRASH_RISK) {
+		return 256;
 	}
 
 	return 0;
@@ -324,6 +326,79 @@ int32_t getWarningCrash(Warning *value, int32_t camera) {
 	return 0;
 }
 
+/**
+ * 충돌 위험 시점의 데이터를 공유메모리에 저장한다.
+ */
+int32_t setWarningCrashRisk(CrashRisk *value) {
+	int shmId;
+	int8_t *shmPtr;
+
+	size_t shm_size = sizeof(CrashRisk);
+	size_t size = 0;
+
+	if(value == NULL) {
+		return -1;
+	}
+
+	size = getMaxAllocSize((key_t)SK_EVENT_CRASH_RISK);
+
+	if(shm_size < size) {
+		shm_size = size;
+	}
+
+	if((shmId = shmget((key_t)SK_EVENT_CRASH_RISK, shm_size, IPC_CREAT|0666)) == -1) {
+		return -1;
+	}
+
+	if((shmPtr = (int8_t *)shmat(shmId, (const void *)NULL, 0)) == (void *)-1) {
+		return -1;
+	}
+
+	memcpy(shmPtr, value, sizeof(CrashRisk));
+
+	shmdt(shmPtr);
+/*
+	printf("====> CRASH: %ld.%ld %d, %d, %d\n", value->evtTime.tv_sec, value->evtTime.tv_usec,
+			value->camera, value->event, value->frameIndex);
+*/
+
+	return 0;
+}
+
+int32_t getWarningCrashRisk(CrashRisk *value) {
+	int shmId;
+	int8_t *shmPtr;
+
+	size_t shm_size = sizeof(CrashRisk);
+	size_t size = 0;
+
+	if(value == NULL) {
+		return -1;
+	}
+
+	size = getMaxAllocSize((key_t)SK_EVENT_CRASH_RISK);
+
+	if(shm_size < size) {
+		shm_size = size;
+	}
+
+	if((shmId = shmget((key_t)SK_EVENT_CRASH_RISK, shm_size, IPC_CREAT|0666)) == -1) {
+		return -1;
+	}
+
+	if((shmPtr = (int8_t *)shmat(shmId, (const void *)NULL, 0)) == (void *)-1) {
+		return -1;
+	}
+
+	memcpy(value, shmPtr, sizeof(CrashRisk));
+
+	shmdt(shmPtr);
+/*
+	printf("====< CRASH: %ld.%ld %d, %d, %d\n", value->evtTime.tv_sec, value->evtTime.tv_usec,
+			value->camera, value->event, value->frameIndex);
+*/
+	return 0;
+}
 
 /**
  * accelerometer의 threshold값을 공유메모리에 저장한다.
