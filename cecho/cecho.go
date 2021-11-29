@@ -1,9 +1,12 @@
 package cecho
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/industry-netsecurity-solution/ins-security-channel/ins"
 	"github.com/labstack/echo/v4"
+	"net/http"
+	"strings"
 )
 
 type (
@@ -39,4 +42,27 @@ func Start(config *ins.ServiceConfigurations, ud interface{}, callback func (*ec
 	} ()
 
 	return e
+}
+
+func Unmarshal(c echo.Context, v interface{}) (err error) {
+/*
+	err := c.Bind(v)
+	return err
+*/
+	req := c.Request()
+	ctype := req.Header.Get(echo.HeaderContentType)
+	if strings.HasPrefix(ctype, echo.MIMEApplicationJSON) == false {
+		return echo.ErrUnsupportedMediaType
+	}
+
+	if err = json.NewDecoder(req.Body).Decode(v); err != nil {
+		if ute, ok := err.(*json.UnmarshalTypeError); ok {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Unmarshal type error: expected=%v, got=%v, field=%v, offset=%v", ute.Type, ute.Value, ute.Field, ute.Offset)).SetInternal(err)
+		} else if se, ok := err.(*json.SyntaxError); ok {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Syntax error: offset=%v, error=%v", se.Offset, se.Error())).SetInternal(err)
+		}
+		return echo.NewHTTPError(http.StatusBadRequest, err.Error()).SetInternal(err)
+	}
+
+	return nil
 }
