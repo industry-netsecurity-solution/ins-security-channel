@@ -52,6 +52,12 @@ typedef struct crashrisk_ {
 	uint32_t count;
 } CrashRisk;
 
+typedef struct splittime_ {
+	struct timeval splitTime;
+	uint32_t fragment;
+	int32_t  camera;
+} SplitTime;
+
 typedef struct timeval Timeval;
 
 #pragma pack(pop)
@@ -67,16 +73,16 @@ int32_t getWarningCrash(Warning *value, int32_t camera);
 int32_t setWarningCrashRisk(CrashRisk *value);
 int32_t getWarningCrashRisk(CrashRisk *value);
 
-int32_t setAccelerometerThreshold(AccelerometerThreshold *value);
+int32_t setSplitTime(SplitTime *value);
+int32_t getSplitTime(SplitTime *value, int32_t camera);
 
+int32_t setAccelerometerThreshold(AccelerometerThreshold *value);
 int32_t getAccelerometerThreshold(AccelerometerThreshold *value);
 
 int32_t setAccelerometer(Accelerometer *value);
-
 int32_t getAccelerometer(Accelerometer *value);
 
 int32_t setPositionPhase(PositionPhase *value);
-
 int32_t getPositionPhase(PositionPhase *value, int32_t camera);
 */
 import "C"
@@ -122,6 +128,12 @@ type CCrashRisk struct {
 	Count         uint32
 }
 
+type CSplitTime struct {
+	SplitTime CTimeval
+	Fragment uint32
+	Camera int32
+}
+
 func getMaxAllocSize(key C.key_t) C.size_t {
 	return C.getMaxAllocSize(key)
 }
@@ -165,6 +177,40 @@ func GetWarningApproach(value *CWarning, camera int32) int32 {
 	value.Camera = int32(warning.camera)
 	value.Event = int32(warning.event)
 	value.FrameIndex = int32(warning.frameIndex)
+
+	return 0
+}
+
+/**
+ * 접근 감지 시점의 데이터를 공유메모리에 저장한다.
+ */
+func SetSplitTime(value *CSplitTime) C.int32_t {
+
+	splittime := C.SplitTime{}
+	splittime.splitTime = C.Timeval{ tv_sec: C.long(value.SplitTime.Sec),
+		tv_usec: C.long(value.SplitTime.Usec)}
+	splittime.fragment = C.uint32_t(value.Fragment)
+	splittime.camera = C.int(value.Camera)
+
+	return C.setSplitTime(&splittime)
+}
+
+/**
+ * 접근 감지 데이터를 공유메모리에서 읽는다.
+ */
+func GetSplitTime(value *CSplitTime, camera int32) int32 {
+
+	splittime := C.SplitTime{}
+
+	if C.getSplitTime(&splittime, C.int(camera)) != 0 {
+		return -1
+	}
+
+	value.SplitTime = CTimeval{
+		Sec: int64(splittime.splitTime.tv_sec),
+		Usec: int64(splittime.splitTime.tv_usec)}
+	value.Fragment = uint32(splittime.fragment)
+	value.Camera = int32(splittime.camera)
 
 	return 0
 }

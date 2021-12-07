@@ -17,6 +17,8 @@
 #define SK_EVENT_CRASH_00          20200802 // 0x01343D62
 #define SK_EVENT_CRASH_01          20200803 // 0x01343D63
 #define SK_EVENT_CRASH_RISK        20211118 // 0x013465AE
+#define SK_EVENT_SPLIT_TIME_00     20211200 // 0x01346600
+#define SK_EVENT_SPLIT_TIME_01     20211201 // 0x01346601
 
 #pragma pack(push, 1)
 typedef struct warning_ {
@@ -61,57 +63,56 @@ typedef struct crashrisk_ {
 	uint32_t count;
 } CrashRisk;
 
+typedef struct splittime_ {
+	struct timeval splitTime;
+	uint32_t fragment;
+	int32_t  camera;
+} SplitTime;
+
 #pragma pack(pop)
 
 size_t getMaxAllocSize(key_t key);
 
 /**
- * 접근 감지 시점의 데이터를 공유메모리에 저장한다.
+ * 접근 감지 시점의 데이터를 공유메모리에 읽고/쓴다.
  */
 int32_t setWarningApproach(Warning *value);
 int32_t getWarningApproach(Warning *value, int32_t camera);
 
 /**
- * 충돌 시점의 데이터를 공유메모리에 저장한다.
+ * 충돌 시점의 데이터를 공유메모리에 읽고/쓴다.
  */
 int32_t setWarningCrash(Warning *value);
 int32_t getWarningCrash(Warning *value, int32_t camera);
 
 /**
- * 충돌 위험 시점의 데이터를 공유메모리에 저장한다.
+ * 충돌 위험 시점의 데이터를 공유메모리에 읽고/쓴다.
  */
 int32_t setWarningCrashRisk(CrashRisk *value);
 int32_t getWarningCrashRisk(CrashRisk *value);
 
 /**
- * accelerometer의 threshold값을 공유메모리에 저장한다.
+ * 영상 파일 분리 시점의 시간과 fragment 를 공유메모리에 읽고/쓴다.
  */
-int32_t setAccelerometerThreshold(AccelerometerThreshold *value);
+int32_t setSplitTime(SplitTime *value);
+int32_t getSplitTime(SplitTime *value, int32_t camera);
 
 /**
- * 공유메모리에서 accelerometer의 값을 읽어온다.
+ * accelerometer의 threshold값을 공유메모리에 읽고/쓴다.
  */
+int32_t setAccelerometerThreshold(AccelerometerThreshold *value);
 int32_t getAccelerometerThreshold(AccelerometerThreshold *value);
 
 /**
- * 가속도 값을 공유메모리에 저장한다.
+ * 가속도 값을 공유메모리에 읽고/쓴다.
  */
 int32_t setAccelerometer(Accelerometer *value);
-
-/**
- * 공유메모리에서 가속도 값을 읽어온다.
- */
 int32_t getAccelerometer(Accelerometer *value);
 
 /**
- * 접근 감지 비율을 공유메모리에 저장한다.
+ * 접근 감지 비율을 공유메모리에 읽고/쓴다.
  */
 int32_t setPositionPhase(PositionPhase *value);
-
-/**
- * 공유메모리에 저장된 1,2 단계의 접근 감지 비율을 가져온다.
- * 접근 감지를 판단한다..
- */
 int32_t getPositionPhase(PositionPhase *value, int32_t camera);
 
 #endif
