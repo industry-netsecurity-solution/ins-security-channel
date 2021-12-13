@@ -155,7 +155,7 @@ func SetWarningApproach(value *CWarning) C.int32_t {
 	warning.camera = -1
 	warning.event = C.int(value.Event)
 	warning.frameIndex = C.int(value.FrameIndex)
-	warning.dataLen = C.uint8(value.DataLen)
+	warning.dataLen = C.uint8_t(value.DataLen)
 
 	//var bs []byte = make([]byte, len(value.Data))
 	//for i, v := range value.Data {
