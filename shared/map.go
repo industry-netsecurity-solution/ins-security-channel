@@ -43,16 +43,16 @@ func (m *ConcurrentMap) Remove(key interface{}) (interface{}, bool) {
 }
 
 func (m *ConcurrentMap) Has(key interface{}) bool {
-	m.Lock()
-	defer m.Unlock()
+	m.RLock()
+	defer m.RUnlock()
 
 	_, ok := m.dic[key]
 	return  ok
 }
 
 func (m *ConcurrentMap) Get(key interface{}) (interface{}, bool) {
-	m.Lock()
-	defer m.Unlock()
+	m.RLock()
+	defer m.RUnlock()
 
 	value, ok := m.dic[key]
 	return  value, ok
@@ -73,15 +73,15 @@ func (m *ConcurrentMap) Set(key interface{}, value interface{}) (interface{}, bo
 }
 
 func (m *ConcurrentMap) Len() int {
-	m.Lock()
-	defer m.Unlock()
+	m.RLock()
+	defer m.RUnlock()
 
 	return len(m.dic)
 }
 
 func (m *ConcurrentMap) Range(cb func(interface{}, interface{}) bool ) {
-	m.Lock()
-	defer m.Unlock()
+	m.RLock()
+	defer m.RUnlock()
 
 	for k, v := range m.dic {
 		if cb(k, v) == false {
@@ -91,8 +91,8 @@ func (m *ConcurrentMap) Range(cb func(interface{}, interface{}) bool ) {
 }
 
 func (m *ConcurrentMap) GetPair(key interface{}) (Pair, bool) {
-	m.Lock()
-	defer m.Unlock()
+	m.RLock()
+	defer m.RUnlock()
 
 	value, ok := m.dic[key]
 	return Pair{key, value}, ok
@@ -113,8 +113,8 @@ func (m *ConcurrentMap) SetPair(pair *Pair) (interface{}, bool) {
 }
 
 func (m *ConcurrentMap) ToArray() []Pair {
-	m.Lock()
-	defer m.Unlock()
+	m.RLock()
+	defer m.RUnlock()
 
 	size := len(m.dic)
 	result := make([]Pair, size)
