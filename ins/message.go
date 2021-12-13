@@ -183,6 +183,8 @@ var NAME_BB_UWB_LOCATION = "event.location"
 // 블랙박스 충돌 이벤트
 var NAME_BB_EVENT_COLLISION = "event.collision"
 
+var NAME_BB_APPROACH_OBJECT = "event.approach"
+
 var NAME_CGW_COLLISION_RISK = "event.collision.list"
 
 // 제조현장
@@ -235,6 +237,8 @@ var TYPE_BB_RAW_ACCELEROMETER = "RAW 6축 가속도 파일"
 var TYPE_BB_UWB_LOCATION = "UWB 위치/속도"
 // 블랙박스 충돌 이벤트
 var TYPE_BB_EVENT_COLLISION = "가속도 충돌 이벤트"
+
+var TYPE_BB_APPROACH_OBJECT = "접근 감지 영상"
 
 // 집중게이트웨이: 충돌 위험
 var TYPE_CGW_COLLISION_RISK = "충돌 위험"
@@ -349,6 +353,9 @@ func GetTransmissionMethod4YMTECH(order binary.ByteOrder, data []byte) int {
 	} else if bytes.HasPrefix(data, BB_EVENT_COLLISION) {
 		// 제조현장 지게차 충돌 이벤트
 		return METHOD_SOCKET
+	} else if bytes.HasPrefix(data, BB_APPROACH_OBJECT) {
+		// 블랙박스/CCTV 접근 감지 이벤트
+		return METHOD_SOCKET
 	//} else if bytes.HasPrefix(data, CGW_COLLISION_RISK) {
 	//	// 제조현장 지게차 충돌 위험
 	//	return METHOD_MQTT
@@ -405,6 +412,9 @@ func GetTransmissionMethod4Wrap(order binary.ByteOrder, data []byte) int {
 		return METHOD_SOCKET
 	} else if bytes.HasPrefix(data, BB_EVENT_COLLISION) {
 		// 제조현장 지게차 충돌 이벤트
+		return METHOD_SOCKET
+	} else if bytes.HasPrefix(data, BB_APPROACH_OBJECT) {
+		// 블랙박스/CCTV 접근 감지 이벤트
 		return METHOD_SOCKET
 	//} else if bytes.HasPrefix(data, CGW_COLLISION_RISK) {
 	//	// 제조현장 지게차 충돌 이벤트
@@ -525,6 +535,9 @@ func GetMessageType4YMTECH(order binary.ByteOrder, data []byte) string {
 	} else if bytes.HasPrefix(data, BB_EVENT_COLLISION) {
 		// 제조현장 지게차 충돌 이벤트
 		return TYPE_BB_EVENT_COLLISION
+	} else if bytes.HasPrefix(data, BB_APPROACH_OBJECT) {
+		// 블랙박스/CCTV 접근 감지 이벤트
+		return TYPE_BB_APPROACH_OBJECT
 	} else if bytes.HasPrefix(data, CGW_COLLISION_RISK) {
 		// 제조현장 지게차 충돌 알림
 		return TYPE_CGW_COLLISION_RISK
@@ -592,6 +605,9 @@ func GetMessageType4Wrap(order binary.ByteOrder, data []byte) string {
 	} else if bytes.HasPrefix(data, BB_EVENT_COLLISION) {
 		// 제조현장 지게차 충돌 이벤트
 		return TYPE_BB_EVENT_COLLISION
+	} else if bytes.HasPrefix(data, BB_APPROACH_OBJECT) {
+		// 블랙박스/CCTV 접근 감지 이벤트
+		return TYPE_BB_APPROACH_OBJECT
 	} else if bytes.HasPrefix(data, CGW_COLLISION_RISK) {
 		// 제조현장 지게차 충돌 알림
 		return TYPE_CGW_COLLISION_RISK
@@ -685,6 +701,9 @@ func GetMessageName4YMTECH(order binary.ByteOrder, data []byte) string {
 	} else if bytes.HasPrefix(data, BB_EVENT_COLLISION) {
 		// 제조현장 지게차 충돌 이벤트
 		return NAME_BB_EVENT_COLLISION
+	} else if bytes.HasPrefix(data, BB_APPROACH_OBJECT) {
+		// 블랙박스/CCTV 접근 감지 이벤트
+		return NAME_BB_APPROACH_OBJECT
 	} else if bytes.HasPrefix(data, CGW_COLLISION_RISK) {
 		// 제조현장 지게차 충돌 알림
 		return NAME_CGW_COLLISION_RISK
@@ -778,6 +797,9 @@ func GetMessageName4Wrap(order binary.ByteOrder, data []byte) string {
 	} else if bytes.HasPrefix(data, BB_EVENT_COLLISION) {
 		// 제조현장 지게차 충돌 이벤트
 		return NAME_BB_EVENT_COLLISION
+	} else if bytes.HasPrefix(data, BB_APPROACH_OBJECT) {
+		// 블랙박스/CCTV 접근 감지 이벤트
+		return NAME_BB_APPROACH_OBJECT
 	} else if bytes.HasPrefix(data, CGW_COLLISION_RISK) {
 		// 제조현장 지게차 충돌 알림
 		return NAME_CGW_COLLISION_RISK
