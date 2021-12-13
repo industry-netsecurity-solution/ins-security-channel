@@ -16,6 +16,8 @@ typedef struct warning_ {
 	int32_t camera;
 	int32_t event;
 	int32_t frameIndex;
+	uint8_t dataLen;
+	uint8_t data[128];
 } Warning;
 
 typedef struct accelerometerthreshold_ {
@@ -99,6 +101,8 @@ type CWarning struct {
 	Camera int32
 	Event int32
 	FrameIndex int32
+	DataLen uint8;
+	Data [128]uint8;
 }
 
 type CAccelerometerThreshold struct {
@@ -151,6 +155,23 @@ func SetWarningApproach(value *CWarning) C.int32_t {
 	warning.camera = -1
 	warning.event = C.int(value.Event)
 	warning.frameIndex = C.int(value.FrameIndex)
+	warning.dataLen = C.uint8(value.DataLen)
+
+	//var bs []byte = make([]byte, len(value.Data))
+	//for i, v := range value.Data {
+	//	bs[i] = v
+	//}
+	//
+	//dataPtr := unsafe.Pointer(&warning.data[0])
+	//cs := C.CString(string(bs))
+	//
+	//C.memcpy(dataPtr, unsafe.Pointer(cs), C.ulong(128))
+	//
+	//C.free(unsafe.Pointer(cs))
+
+	dataPtr := unsafe.Pointer(&warning.data[0])
+
+	C.memcpy(dataPtr, unsafe.Pointer(&value.Data[0]), C.ulong(128))
 
 	return C.setWarningApproach(&warning)
 }
@@ -177,6 +198,14 @@ func GetWarningApproach(value *CWarning, camera int32) int32 {
 	value.Camera = int32(warning.camera)
 	value.Event = int32(warning.event)
 	value.FrameIndex = int32(warning.frameIndex)
+
+	value.DataLen = uint8(warning.dataLen)
+
+	dataPtr := unsafe.Pointer(&warning.data[0])
+	bs := C.GoBytes(dataPtr, 128)
+	for i, v := range bs {
+		value.Data[i] = v
+	}
 
 	return 0
 }

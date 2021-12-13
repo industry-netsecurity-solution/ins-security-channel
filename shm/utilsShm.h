@@ -27,6 +27,8 @@ typedef struct warning_ {
 	int32_t camera;
 	int32_t event;
 	int32_t frameIndex;
+	uint8_t dataLen;
+	uint8_t data[128];
 } Warning;
 
 typedef struct accelerometerthreshold_ {
