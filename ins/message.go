@@ -117,7 +117,7 @@ var BB_EVENT_COLLISION = []byte{0x00, 0x09}
 var CGW_COLLISION_RISK = []byte{0x00, 0x10}
 
 // 접근 감지
-var BB_APPROACH_OBJECT = []byte{0x00, 0x11}
+var BB_APPROACH_OBJECT = []byte{0x00, 0x0A}
 
 var CONTROL_COMMAND = []byte{0x01, 0x01}
 var CONTROL_DIAG = []byte{0x01, 0x02}
