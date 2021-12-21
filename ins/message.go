@@ -185,7 +185,7 @@ var NAME_BB_EVENT_COLLISION = "event.collision"
 
 var NAME_BB_APPROACH_OBJECT = "event.approach"
 
-var NAME_CGW_COLLISION_RISK = "event.collision.list"
+var NAME_CGW_COLLISION_RISK = "event.collision.risk"
 
 // 제조현장
 var NAME_GW_CENTER_STATUS_FACTORY = "center.gw.status"
