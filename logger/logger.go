@@ -168,7 +168,7 @@ func ParseLogLevel(l string, defaultLevel int) (level int, err error) {
 		case 'p':
 			level &= (0xFF^LogPanic)
 		default:
-			return -1, fmt.Errorf("'%s' is not supported.", C)
+			return -1, fmt.Errorf("'%c' is not support.", C)
 		}
 	}
 
