@@ -6,7 +6,7 @@ import (
 	"os/exec"
 )
 
-func Command(command string, argslice []string, stdin func (io.WriteCloser), stdout, stderr func (io.Reader)) {
+func Execute(command string, argslice []string, stdin func (io.WriteCloser), stdout, stderr func (io.ReadCloser)) {
 	var err error
 	var procIn io.WriteCloser = nil
 	var procOut io.ReadCloser = nil
