@@ -190,3 +190,29 @@ func AppendToList(dst *list.List, src...interface{}) *list.List {
 	return dst
 }
 
+func StringJoin(elems []string, sep string, filter func(string) string) string {
+	switch len(elems) {
+	case 0:
+		return ""
+	case 1:
+		return elems[0]
+	}
+
+	var b bytes.Buffer
+
+	if filter == nil {
+		b.WriteString(elems[0])
+	} else {
+		b.WriteString(filter(elems[0]))
+	}
+
+	for _, s := range elems[1:] {
+		b.WriteString(sep)
+		if filter == nil {
+			b.WriteString(s)
+		} else {
+			b.WriteString(filter(s))
+		}
+	}
+	return b.String()
+}
