@@ -2,10 +2,9 @@ package ps
 
 import (
 	"bufio"
-	"bytes"
-	"fmt"
 	"github.com/industry-netsecurity-solution/ins-security-channel/logger"
 	"io"
+	"os"
 	"os/exec"
 )
 
@@ -71,13 +70,13 @@ func Execute(command string, argslice []string, wd *string, iofunc func (io.Writ
 
 	if iofunc != nil {
 		if procIn, err = proc.StdinPipe(); err != nil {
-			logger.Errorln(err)
+			return proc.ProcessState, err
 		}
 		if procOut, err = proc.StdoutPipe(); err != nil {
-			logger.Errorln(err)
+			return proc.ProcessState, err
 		}
 		if procErr, err = proc.StderrPipe(); err != nil {
-			logger.Errorln(err)
+			return proc.ProcessState, err
 		}
 
 		defer procIn.Close()
@@ -92,20 +91,13 @@ func Execute(command string, argslice []string, wd *string, iofunc func (io.Writ
 	}
 
 	if err = proc.Start(); err != nil {
-		logger.Errorln(err)
+		if done != nil {
+			<- done
+		}
+		return proc.ProcessState, err
 	}
 
 	if err = proc.Wait(); err != nil {
-		var buf bytes.Buffer
-		buf.WriteString(fmt.Sprintf("\"%s\"", command))
-
-		if argslice != nil {
-			for _, arg := range argslice {
-				buf.WriteString(fmt.Sprintf(" \"%s\"", arg))
-			}
-		}
-		logger.Errorln(string(buf.Bytes()), err)
-
 		return proc.ProcessState, err
 	}
 
