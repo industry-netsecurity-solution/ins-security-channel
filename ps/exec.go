@@ -56,7 +56,7 @@ func MakeReadByteArrayChannel(reader io.ReadCloser) chan []byte {
 	return channel
 }
 
-func Execute(command string, argslice []string, iofunc func (io.WriteCloser, io.ReadCloser, io.ReadCloser)) {
+func Execute(command string, argslice []string, wd string, iofunc func (io.WriteCloser, io.ReadCloser, io.ReadCloser)) {
 	var err error
 	var procIn io.WriteCloser = nil
 	var procOut io.ReadCloser = nil
@@ -78,6 +78,10 @@ func Execute(command string, argslice []string, iofunc func (io.WriteCloser, io.
 		defer procIn.Close()
 		defer procOut.Close()
 		defer procErr.Close()
+	}
+
+	if 0 < len(wd) {
+		proc.Dir = wd
 	}
 
 	if err = proc.Start(); err != nil {
