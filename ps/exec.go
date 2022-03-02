@@ -94,11 +94,7 @@ func Execute(command string, argslice []string, wd *string, iofunc func (io.Writ
 	if err = proc.Start(); err != nil {
 		logger.Errorln(err)
 	}
-/*
-	if iofunc != nil {
-		iofunc(procIn, procOut, procErr)
-	}
-*/
+
 	if err = proc.Wait(); err != nil {
 		var buf bytes.Buffer
 		buf.WriteString(fmt.Sprintf("\"%s\"", command))
