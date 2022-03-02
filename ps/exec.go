@@ -62,7 +62,13 @@ func Execute(command string, argslice []string, wd *string, iofunc func (io.Writ
 	var procOut io.ReadCloser = nil
 	var procErr io.ReadCloser = nil
 
+	var done chan bool = nil
+
 	proc := exec.Command(command, argslice...)
+	if wd != nil {
+		proc.Dir = *wd
+	}
+
 	if iofunc != nil {
 		if procIn, err = proc.StdinPipe(); err != nil {
 			logger.Errorln(err)
@@ -73,23 +79,26 @@ func Execute(command string, argslice []string, wd *string, iofunc func (io.Writ
 		if procErr, err = proc.StderrPipe(); err != nil {
 			logger.Errorln(err)
 		}
-		//go iofunc(done, procIn, procOut, procErr)
 
 		defer procIn.Close()
 		defer procOut.Close()
 		defer procErr.Close()
-	}
 
-	if wd != nil {
-		proc.Dir = *wd
+		go func () {
+			done = make(chan bool)
+			iofunc(procIn, procOut, procErr)
+			done <- true
+		} ()
 	}
 
 	if err = proc.Start(); err != nil {
 		logger.Errorln(err)
 	}
-
-	iofunc(procIn, procOut, procErr)
-
+/*
+	if iofunc != nil {
+		iofunc(procIn, procOut, procErr)
+	}
+*/
 	if err = proc.Wait(); err != nil {
 		var buf bytes.Buffer
 		buf.WriteString(fmt.Sprintf("\"%s\"", command))
@@ -100,5 +109,9 @@ func Execute(command string, argslice []string, wd *string, iofunc func (io.Writ
 			}
 		}
 		logger.Errorln(string(buf.Bytes()), err)
+	}
+
+	if done != nil {
+		<- done
 	}
 }
