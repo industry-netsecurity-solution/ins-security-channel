@@ -19,6 +19,7 @@
 #define SK_EVENT_CRASH_RISK        20211118 // 0x013465AE
 #define SK_EVENT_SPLIT_TIME_00     20211200 // 0x01346600
 #define SK_EVENT_SPLIT_TIME_01     20211201 // 0x01346601
+#define SK_TEGRASTATS              20220301 // 0x0134898D
 
 #pragma pack(push, 1)
 typedef struct warning_ {
@@ -71,6 +72,18 @@ typedef struct splittime_ {
 	int32_t  camera;
 } SplitTime;
 
+typedef struct segraStats_ {
+	struct timeval tv;
+	uint32_t ram;
+	uint32_t swap;
+	float    cpu;
+	float    iwlwifi;
+	float    pmic;
+	float    gpu;
+	float    ao;
+	float    thermal;
+} TegraStats;
+
 #pragma pack(pop)
 
 size_t getMaxAllocSize(key_t key);
@@ -116,5 +129,11 @@ int32_t getAccelerometer(Accelerometer *value);
  */
 int32_t setPositionPhase(PositionPhase *value);
 int32_t getPositionPhase(PositionPhase *value, int32_t camera);
+
+/**
+ * Jetson Nano 상태 정보를 공유메모리에 읽고/쓴다.
+ */
+int32_t setTegraStats(TegraStats *value);
+int32_t getTegraStats(TegraStats *value);
 
 #endif

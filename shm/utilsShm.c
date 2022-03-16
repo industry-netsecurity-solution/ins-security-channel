@@ -31,6 +31,8 @@ size_t getMaxAllocSize(key_t key) {
 		return 256;
 	} else if(key == (key_t) SK_EVENT_SPLIT_TIME_01) {
 		return 256;
+	} else if(key == (key_t) SK_TEGRASTATS) {
+		return 256;
 	}
 
 	return 0;
@@ -46,33 +48,9 @@ int32_t setWarningApproach(Warning *value) {
 	size_t shm_size = sizeof(Warning);
 	size_t size = 0;
 
-#ifdef PRINT_LOG
-    FILE *f = fopen("go.log", "a+");
-    if(f != NULL) {
-        fprintf(f, "%s:%d - %s ================\n", __FILE__, __LINE__, __func__);
-        fflush(f);
-    }
-#endif
-
-
 	if(value == NULL) {
-#ifdef PRINT_LOG
-        if(f != NULL) {
-            fprintf(f, "%s:%d - %s\n", __FILE__, __LINE__, __func__);
-            fflush(f);
-            fclose(f);
-        }
-#endif
-
 		return -1;
 	}
-
-#ifdef PRINT_LOG
-    if(f != NULL) {
-        fprintf(f, "%s:%d - %s camera = %d\n", __FILE__, __LINE__, __func__, value->camera);
-        fflush(f);
-    }
-#endif
 
 	if(value->camera == 0) {
 		size = getMaxAllocSize((key_t)SK_EVENT_APPROACH_00);
@@ -81,21 +59,8 @@ int32_t setWarningApproach(Warning *value) {
 	} else if(value->camera == -1) {
 		size = getMaxAllocSize((key_t)SK_EVENT_APPROACH_FF);
 	} else {
-#ifdef PRINT_LOG
-        if(f != NULL) {
-            fflush(f);
-            fclose(f);
-        }
-#endif
 		return -1;
 	}
-
-#ifdef PRINT_LOG
-    if(f != NULL) {
-        fprintf(f, "%s:%d - %s size = %ld\n", __FILE__, __LINE__, __func__, size);
-        fflush(f);
-    }
-#endif
 
 	if(shm_size < size) {
 		shm_size = size;
@@ -103,64 +68,23 @@ int32_t setWarningApproach(Warning *value) {
 
 	if(value->camera == 0) {
 		if((shmId = shmget((key_t)SK_EVENT_APPROACH_00, shm_size, IPC_CREAT|0666)) == -1) {
-#ifdef PRINT_LOG
-            if(f != NULL) {
-                fflush(f);
-                fclose(f);
-            }
-#endif
 			return -1;
 		}
 	} else if(value->camera == 1) {
 		if((shmId = shmget((key_t)SK_EVENT_APPROACH_01, shm_size, IPC_CREAT|0666)) == -1) {
-#ifdef PRINT_LOG
-            if(f != NULL) {
-                fflush(f);
-                fclose(f);
-            }
-#endif
 			return -1;
 		}
 	} else if(value->camera == -1) {
 		if((shmId = shmget((key_t)SK_EVENT_APPROACH_FF, shm_size, IPC_CREAT|0666)) == -1) {
-#ifdef PRINT_LOG
-            if(f != NULL) {
-                fflush(f);
-                fclose(f);
-            }
-#endif
 			return -1;
 		}
 	} else {
-#ifdef PRINT_LOG
-        if(f != NULL) {
-            fflush(f);
-            fclose(f);
-        }
-#endif
 		return -1;
 	}
 
 	if((shmPtr = (int8_t *)shmat(shmId, (const void *)NULL, 0)) == (void *)-1) {
-#ifdef PRINT_LOG
-            if(f != NULL) {
-                fflush(f);
-                fclose(f);
-            }
-#endif
 		return -1;
 	}
-
-#ifdef PRINT_LOG
-    if(f != NULL) {
-        fprintf(f, "%s:%d - %s startTime = %ld.%ld\n", __FILE__, __LINE__, __func__, value->startTime.tv_sec, value->startTime.tv_usec);
-        fprintf(f, "%s:%d - %s evtTime = %ld.%ld\n", __FILE__, __LINE__, __func__, value->evtTime.tv_sec, value->evtTime.tv_usec);
-        fprintf(f, "%s:%d - %s camera = %d\n", __FILE__, __LINE__, __func__, value->camera);
-        fprintf(f, "%s:%d - %s event = %d\n", __FILE__, __LINE__, __func__, value->event);
-        fprintf(f, "%s:%d - %s frameIndex = %d\n", __FILE__, __LINE__, __func__, value->frameIndex);
-        fflush(f);
-    }
-#endif
 
 	memcpy(shmPtr, value, sizeof(Warning));
 
@@ -169,12 +93,6 @@ int32_t setWarningApproach(Warning *value) {
 	printf("====> APPROACH: %ld.%ld %d, %d, %d\n", value->evtTime.tv_sec, value->evtTime.tv_usec,
 			value->camera, value->event, value->frameIndex);
 */
-#ifdef PRINT_LOG
-    if(f != NULL) {
-        fflush(f);
-        fclose(f);
-    }
-#endif
 
 	return 0;
 }
@@ -194,6 +112,8 @@ int32_t getWarningApproach(Warning *value, int32_t camera) {
 		size = getMaxAllocSize((key_t)SK_EVENT_APPROACH_00);
 	} else if(camera == 1) {
 		size = getMaxAllocSize((key_t)SK_EVENT_APPROACH_01);
+	} else if(camera == -1) {
+		size = getMaxAllocSize((key_t)SK_EVENT_APPROACH_FF);
 	} else {
 		return -1;
 	}
@@ -208,6 +128,10 @@ int32_t getWarningApproach(Warning *value, int32_t camera) {
 		}
 	} else if(camera == 1) {
 		if((shmId = shmget((key_t)SK_EVENT_APPROACH_01, shm_size, IPC_CREAT|0666)) == -1) {
+			return -1;
+		}
+	} else if(camera == -1) {
+		if((shmId = shmget((key_t)SK_EVENT_APPROACH_FF, shm_size, IPC_CREAT|0666)) == -1) {
 			return -1;
 		}
 	} else {
@@ -743,7 +667,7 @@ int32_t getPositionPhase(PositionPhase *value, int32_t camera) {
 	// 공유메모리 주소
 	pp = (PositionPhase *)shmPtr;
 	if(pp->update != 1) {
-		memcpy(value, pp, sizeof(Accelerometer));
+		memcpy(value, pp, sizeof(PositionPhase));
 
 		shmdt(shmPtr);
 		return 0;
@@ -787,3 +711,73 @@ int32_t getPositionPhase(PositionPhase *value, int32_t camera) {
 	return 1;
 }
 
+/**
+ * etson Nano 상태 정보를 공유메모리에 저장한다.
+ */
+int32_t setTegraStats(TegraStats *value) {
+	int shmId;
+	int8_t *shmPtr;
+	size_t shm_size = sizeof(TegraStats);
+	size_t size = 0;
+
+	if(value == NULL) {
+		return -1;
+	}
+
+	size = getMaxAllocSize((key_t)SK_TEGRASTATS);
+
+	if(shm_size < size) {
+		shm_size = size;
+	}
+
+    if((shmId = shmget((key_t)SK_TEGRASTATS, shm_size, IPC_CREAT|0666)) == -1) {
+        return -1;
+    }
+
+	if((shmPtr = (int8_t *)shmat(shmId, (const void *)NULL, 0)) == (void *)-1) {
+		return -1;
+	}
+
+	memcpy(shmPtr, value, sizeof(TegraStats));
+
+	shmdt(shmPtr);
+
+	return 0;
+}
+
+
+/**
+ * 공유메모리에 저장된 etson Nano 상태 정보를 가져온다.
+ */
+int32_t getTegraStats(TegraStats *value) {
+	int shmId;
+	int8_t *shmPtr;
+	TegraStats *pp;
+	size_t shm_size = sizeof(TegraStats);
+	size_t size = 0;
+
+	if(value == NULL) {
+		return -1;
+	}
+
+	size = getMaxAllocSize((key_t)SK_TEGRASTATS);
+
+	if(shm_size < size) {
+		shm_size = size;
+	}
+
+    if((shmId = shmget((key_t)SK_TEGRASTATS, shm_size, IPC_CREAT|0666)) == -1) {
+        return -1;
+    }
+
+	if((shmPtr = (int8_t *)shmat(shmId, (const void *)NULL, 0)) == (void *)-1) {
+		return -1;
+	}
+
+	// 공유메모리 주소
+	pp = (TegraStats *)shmPtr;
+	memcpy(value, pp, sizeof(TegraStats));
+
+    shmdt(shmPtr);
+    return 0;
+}

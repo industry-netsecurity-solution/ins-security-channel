@@ -60,6 +60,18 @@ typedef struct splittime_ {
 	int32_t  camera;
 } SplitTime;
 
+typedef struct segraStats_ {
+	struct timeval tv;
+	uint32_t ram;
+	uint32_t swap;
+	float    cpu;
+	float    iwlwifi;
+	float    pmic;
+	float    gpu;
+	float    ao;
+	float    thermal;
+} TegraStats;
+
 typedef struct timeval Timeval;
 
 #pragma pack(pop)
@@ -86,6 +98,9 @@ int32_t getAccelerometer(Accelerometer *value);
 
 int32_t setPositionPhase(PositionPhase *value);
 int32_t getPositionPhase(PositionPhase *value, int32_t camera);
+
+int32_t setTegraStats(TegraStats *value);
+int32_t getTegraStats(TegraStats *value);
 */
 import "C"
 import "unsafe"
@@ -136,6 +151,18 @@ type CSplitTime struct {
 	SplitTime CTimeval
 	Fragment uint32
 	Camera int32
+}
+
+type CTegraStats struct {
+	Tv      CTimeval
+	Ram     uint32
+	Swap    uint32
+	Cpu     float32
+	Iwlwifi float32
+	Pmic    float32
+	Gpu     float32
+	Ao      float32
+	Thermal float32
 }
 
 func getMaxAllocSize(key C.key_t) C.size_t {
@@ -337,6 +364,54 @@ func GetAccelerometer(value *CAccelerometer) int32 {
 	value.Vy = int16(accelerometer.vy)
 	value.Vz = int16(accelerometer.vz)
 	value.Vt = int16(accelerometer.vt)
+
+	return 0
+}
+
+
+/**
+ * Jetson Nano 상태 정보를 공유메모리에 저장한다.
+ */
+func SetTegraStats(value *CTegraStats) C.int32_t {
+
+	tegra := C.TegraStats{}
+	tegra.tv = C.Timeval{ tv_sec: C.long(value.Tv.Sec),
+		tv_usec: C.long(value.Tv.Usec)}
+	tegra.ram = C.uint32_t(value.Ram)
+	tegra.swap = C.uint32_t(value.Swap)
+	tegra.cpu = C.float(value.Cpu)
+	tegra.iwlwifi = C.float(value.Iwlwifi)
+	tegra.pmic = C.float(value.Pmic)
+	tegra.gpu = C.float(value.Gpu)
+	tegra.ao = C.float(value.Ao)
+	tegra.thermal = C.float(value.Thermal)
+
+	return C.setTegraStats(&tegra)
+}
+
+/**
+ * 접근 감지 데이터를 공유메모리에서 읽는다.
+ */
+func GetTegraStats(value *CTegraStats) int32 {
+
+	tegra := C.TegraStats{}
+
+	if C.getTegraStats(&tegra) != 0 {
+		return -1
+	}
+
+	value.Tv = CTimeval{
+		Sec: int64(tegra.tv.tv_sec),
+		Usec: int64(tegra.tv.tv_usec)}
+
+	value.Ram = uint32(tegra.ram)
+	value.Swap = uint32(tegra.swap)
+	value.Cpu = float32(tegra.cpu)
+	value.Iwlwifi = float32(tegra.iwlwifi)
+	value.Pmic = float32(tegra.pmic)
+	value.Gpu = float32(tegra.gpu)
+	value.Ao = float32(tegra.ao)
+	value.Thermal = float32(tegra.thermal)
 
 	return 0
 }
