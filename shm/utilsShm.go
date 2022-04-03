@@ -535,7 +535,7 @@ func SetDiagnosisBattery(value *CDiagnosisStats) int32 {
 		diag.TvBattery = CTimeval{
 			Sec: int64(value.TvBattery.Sec),
 			Usec: int64(value.TvBattery.Usec)}
-		diag.BatteryLevel = int32(diag.BatteryLevel)
+		diag.BatteryLevel = int32(value.BatteryLevel)
 
 		return int32(SetDiagnosisStats(&diag))
 	}
@@ -546,10 +546,10 @@ func SetDiagnosisBattery(value *CDiagnosisStats) int32 {
 func SetDiagnosisUsbStorage(value *CDiagnosisStats) int32 {
 	diag := CDiagnosisStats{}
 	if GetDiagnosisStats(&diag) == 0 {
-		value.TvUsbStorage = CTimeval{
-			Sec: int64(diag.TvUsbStorage.Sec),
-			Usec: int64(diag.TvUsbStorage.Usec)}
-		value.UsbStorage = int32(diag.UsbStorage)
+		diag.TvUsbStorage = CTimeval{
+			Sec: int64(value.TvUsbStorage.Sec),
+			Usec: int64(value.TvUsbStorage.Usec)}
+		diag.UsbStorage = int32(value.UsbStorage)
 
 		return int32(SetDiagnosisStats(&diag))
 	}
@@ -560,13 +560,13 @@ func SetDiagnosisUsbStorage(value *CDiagnosisStats) int32 {
 func SetDiagnosisCamera(value *CDiagnosisStats) int32 {
 	diag := CDiagnosisStats{}
 	if GetDiagnosisStats(&diag) == 0 {
-		value.TvCamera = CTimeval{
+		diag.TvCamera = CTimeval{
 			Sec: int64(value.TvCamera.Sec),
 			Usec: int64(value.TvCamera.Usec)}
-		value.Camera00 = int32(value.Camera00)
-		value.Camera01 = int32(value.Camera01)
-		value.Camera02 = int32(value.Camera02)
-		value.Camera03 = int32(value.Camera03)
+		diag.Camera00 = int32(value.Camera00)
+		diag.Camera01 = int32(value.Camera01)
+		diag.Camera02 = int32(value.Camera02)
+		diag.Camera03 = int32(value.Camera03)
 
 		return int32(SetDiagnosisStats(&diag))
 	}
@@ -577,10 +577,10 @@ func SetDiagnosisCamera(value *CDiagnosisStats) int32 {
 func SetDiagnosisAccelerometer(value *CDiagnosisStats) int32 {
 	diag := CDiagnosisStats{}
 	if GetDiagnosisStats(&diag) == 0 {
-		value.TvAccelerometer = CTimeval{
-			Sec: int64(diag.TvAccelerometer.Sec),
-			Usec: int64(diag.TvAccelerometer.Usec)}
-		value.Accelerometer = int32(diag.Accelerometer)
+		diag.TvAccelerometer = CTimeval{
+			Sec: int64(value.TvAccelerometer.Sec),
+			Usec: int64(value.TvAccelerometer.Usec)}
+		diag.Accelerometer = int32(value.Accelerometer)
 
 		return int32(SetDiagnosisStats(&diag))
 	}
@@ -591,10 +591,10 @@ func SetDiagnosisAccelerometer(value *CDiagnosisStats) int32 {
 func SetDiagnosisFan(value *CDiagnosisStats) int32 {
 	diag := CDiagnosisStats{}
 	if GetDiagnosisStats(&diag) == 0 {
-		value.TvFan = CTimeval{
-			Sec: int64(diag.TvFan.Sec),
-			Usec: int64(diag.TvFan.Usec)}
-		value.Fan = int32(diag.Fan)
+		diag.TvFan = CTimeval{
+			Sec: int64(value.TvFan.Sec),
+			Usec: int64(value.TvFan.Usec)}
+		diag.Fan = int32(value.Fan)
 
 		return int32(SetDiagnosisStats(&diag))
 	}
