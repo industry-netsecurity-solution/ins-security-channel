@@ -1,10 +1,7 @@
 
 #include <limits.h>
-#include <unistd.h>
-#include <stdio.h>
 #include <string.h>
 #include "utilsShm.h"
-
 
 size_t getMaxAllocSize(key_t key) {
 	if(key == (key_t)SK_ACCELEROMETER) {
@@ -32,6 +29,8 @@ size_t getMaxAllocSize(key_t key) {
 	} else if(key == (key_t) SK_EVENT_SPLIT_TIME_01) {
 		return 256;
 	} else if(key == (key_t) SK_TEGRASTATS) {
+		return 256;
+	} else if(key == (key_t) SK_DIAGNOSISSTATS) {
 		return 256;
 	}
 
@@ -780,4 +779,247 @@ int32_t getTegraStats(TegraStats *value) {
 
     shmdt(shmPtr);
     return 0;
+}
+
+/**
+ * 상태 정보를 공유메모리에 저장한다.
+ */
+int32_t setDiagnosisStats(DiagnosisStats *value) {
+	int shmId;
+	int8_t *shmPtr;
+	size_t shm_size = sizeof(DiagnosisStats);
+	size_t size = 0;
+
+	if(value == NULL) {
+		return -1;
+	}
+
+	size = getMaxAllocSize((key_t)SK_DIAGNOSISSTATS);
+
+	if(shm_size < size) {
+		shm_size = size;
+	}
+
+    if((shmId = shmget((key_t)SK_DIAGNOSISSTATS, shm_size, IPC_CREAT|0666)) == -1) {
+        return -1;
+    }
+
+	if((shmPtr = (int8_t *)shmat(shmId, (const void *)NULL, 0)) == (void *)-1) {
+		return -1;
+	}
+
+	memcpy(shmPtr, value, sizeof(DiagnosisStats));
+
+	shmdt(shmPtr);
+
+	return 0;
+}
+
+
+/**
+ * 공유메모리에 저장된 상태 정보를 가져온다.
+ */
+int32_t getDiagnosisStats(DiagnosisStats *value) {
+	int shmId;
+	int8_t *shmPtr;
+	DiagnosisStats *pp;
+	size_t shm_size = sizeof(DiagnosisStats);
+	size_t size = 0;
+
+	if(value == NULL) {
+		return -1;
+	}
+
+	size = getMaxAllocSize((key_t)SK_DIAGNOSISSTATS);
+
+	if(shm_size < size) {
+		shm_size = size;
+	}
+
+    if((shmId = shmget((key_t)SK_DIAGNOSISSTATS, shm_size, IPC_CREAT|0666)) == -1) {
+        return -1;
+    }
+
+	if((shmPtr = (int8_t *)shmat(shmId, (const void *)NULL, 0)) == (void *)-1) {
+		return -1;
+	}
+
+	// 공유메모리 주소
+	pp = (DiagnosisStats *)shmPtr;
+	memcpy(value, pp, sizeof(DiagnosisStats));
+
+    shmdt(shmPtr);
+    return 0;
+}
+
+int32_t setDiagnosisBattery(DiagnosisStats *value) {
+	int shmId;
+	int8_t *shmPtr;
+	size_t shm_size = sizeof(DiagnosisStats);
+	size_t size = 0;
+	DiagnosisStats *diag;
+
+	if(value == NULL) {
+		return -1;
+	}
+
+	size = getMaxAllocSize((key_t)SK_DIAGNOSISSTATS);
+
+	if(shm_size < size) {
+		shm_size = size;
+	}
+
+    if((shmId = shmget((key_t)SK_DIAGNOSISSTATS, shm_size, IPC_CREAT|0666)) == -1) {
+        return -1;
+    }
+
+	if((shmPtr = (int8_t *)shmat(shmId, (const void *)NULL, 0)) == (void *)-1) {
+		return -1;
+	}
+
+	diag = (DiagnosisStats *)shmPtr;
+	diag->tvBattery = value->tvBattery;
+	diag->batteryLevel = value->batteryLevel;
+
+	shmdt(shmPtr);
+
+	return 0;
+}
+int32_t setDiagnosisUsbStorage(DiagnosisStats *value) {
+	int shmId;
+	int8_t *shmPtr;
+	size_t shm_size = sizeof(DiagnosisStats);
+	size_t size = 0;
+	DiagnosisStats *diag;
+
+	if(value == NULL) {
+		return -1;
+	}
+
+	size = getMaxAllocSize((key_t)SK_DIAGNOSISSTATS);
+
+	if(shm_size < size) {
+		shm_size = size;
+	}
+
+    if((shmId = shmget((key_t)SK_DIAGNOSISSTATS, shm_size, IPC_CREAT|0666)) == -1) {
+        return -1;
+    }
+
+	if((shmPtr = (int8_t *)shmat(shmId, (const void *)NULL, 0)) == (void *)-1) {
+		return -1;
+	}
+
+	diag = (DiagnosisStats *)shmPtr;
+	diag->tvUsbStorage = value->tvUsbStorage;
+	diag->usbStorage = value->usbStorage;
+
+	shmdt(shmPtr);
+
+	return 0;
+}
+
+int32_t setDiagnosisCamera(DiagnosisStats *value) {
+	int shmId;
+	int8_t *shmPtr;
+	size_t shm_size = sizeof(DiagnosisStats);
+	size_t size = 0;
+	DiagnosisStats *diag;
+
+	if(value == NULL) {
+		return -1;
+	}
+
+	size = getMaxAllocSize((key_t)SK_DIAGNOSISSTATS);
+
+	if(shm_size < size) {
+		shm_size = size;
+	}
+
+    if((shmId = shmget((key_t)SK_DIAGNOSISSTATS, shm_size, IPC_CREAT|0666)) == -1) {
+        return -1;
+    }
+
+	if((shmPtr = (int8_t *)shmat(shmId, (const void *)NULL, 0)) == (void *)-1) {
+		return -1;
+	}
+
+	diag = (DiagnosisStats *)shmPtr;
+	diag->tvCamera = value->tvCamera;
+	diag->camera00 = value->camera00;
+	diag->camera01 = value->camera01;
+	diag->camera02 = value->camera02;
+	diag->camera03 = value->camera03;
+
+	shmdt(shmPtr);
+
+	return 0;
+}
+
+int32_t setDiagnosisAccelerometer(DiagnosisStats *value) {
+	int shmId;
+	int8_t *shmPtr;
+	size_t shm_size = sizeof(DiagnosisStats);
+	size_t size = 0;
+	DiagnosisStats *diag;
+
+	if(value == NULL) {
+		return -1;
+	}
+
+	size = getMaxAllocSize((key_t)SK_DIAGNOSISSTATS);
+
+	if(shm_size < size) {
+		shm_size = size;
+	}
+
+    if((shmId = shmget((key_t)SK_DIAGNOSISSTATS, shm_size, IPC_CREAT|0666)) == -1) {
+        return -1;
+    }
+
+	if((shmPtr = (int8_t *)shmat(shmId, (const void *)NULL, 0)) == (void *)-1) {
+		return -1;
+	}
+
+	diag = (DiagnosisStats *)shmPtr;
+	diag->tvAccelerometer = value->tvAccelerometer;
+	diag->accelerometer = value->accelerometer;
+
+	shmdt(shmPtr);
+
+	return 0;
+}
+
+int32_t setDiagnosisFan(DiagnosisStats *value) {
+	int shmId;
+	int8_t *shmPtr;
+	size_t shm_size = sizeof(DiagnosisStats);
+	size_t size = 0;
+	DiagnosisStats *diag;
+
+	if(value == NULL) {
+		return -1;
+	}
+
+	size = getMaxAllocSize((key_t)SK_DIAGNOSISSTATS);
+
+	if(shm_size < size) {
+		shm_size = size;
+	}
+
+    if((shmId = shmget((key_t)SK_DIAGNOSISSTATS, shm_size, IPC_CREAT|0666)) == -1) {
+        return -1;
+    }
+
+	if((shmPtr = (int8_t *)shmat(shmId, (const void *)NULL, 0)) == (void *)-1) {
+		return -1;
+	}
+
+	diag = (DiagnosisStats *)shmPtr;
+	diag->tvFan = value->tvFan;
+	diag->fan = value->fan;
+
+	shmdt(shmPtr);
+
+	return 0;
 }

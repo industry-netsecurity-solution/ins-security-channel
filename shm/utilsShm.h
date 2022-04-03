@@ -20,6 +20,7 @@
 #define SK_EVENT_SPLIT_TIME_00     20211200 // 0x01346600
 #define SK_EVENT_SPLIT_TIME_01     20211201 // 0x01346601
 #define SK_TEGRASTATS              20220301 // 0x0134898D
+#define SK_DIAGNOSISSTATS          20220330 // 0x013489AA
 
 #pragma pack(push, 1)
 typedef struct warning_ {
@@ -72,7 +73,7 @@ typedef struct splittime_ {
 	int32_t  camera;
 } SplitTime;
 
-typedef struct segraStats_ {
+typedef struct tegraStats_ {
 	struct timeval tv;
 	uint32_t ram;
 	uint32_t swap;
@@ -83,6 +84,22 @@ typedef struct segraStats_ {
 	float    ao;
 	float    thermal;
 } TegraStats;
+
+typedef struct diagnosisStats_ {
+	struct timeval tvBattery;
+	struct timeval tvUsbStorage;
+	struct timeval tvCamera;
+	struct timeval tvAccelerometer;
+	struct timeval tvFan;
+	int32_t batteryLevel;
+	int32_t usbStorage;
+	int32_t camera00;
+	int32_t camera01;
+	int32_t camera02;
+	int32_t camera03;
+	int32_t accelerometer;
+	int32_t fan;
+} DiagnosisStats;
 
 #pragma pack(pop)
 
@@ -135,5 +152,17 @@ int32_t getPositionPhase(PositionPhase *value, int32_t camera);
  */
 int32_t setTegraStats(TegraStats *value);
 int32_t getTegraStats(TegraStats *value);
+
+/**
+ * 상태 정보를 공유메모리에 읽고/쓴다.
+ */
+int32_t setDiagnosisStats(DiagnosisStats *value);
+int32_t getDiagnosisStats(DiagnosisStats *value);
+
+int32_t setDiagnosisBattery(DiagnosisStats *value);
+int32_t setDiagnosisUsbStorage(DiagnosisStats *value);
+int32_t setDiagnosisCamera(DiagnosisStats *value);
+int32_t setDiagnosisAccelerometer(DiagnosisStats *value);
+int32_t setDiagnosisFan(DiagnosisStats *value);
 
 #endif

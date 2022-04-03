@@ -72,6 +72,22 @@ typedef struct segraStats_ {
 	float    thermal;
 } TegraStats;
 
+typedef struct diagnosisStats_ {
+	struct timeval tvBattery;
+	struct timeval tvUsbStorage;
+	struct timeval tvCamera;
+	struct timeval tvAccelerometer;
+	struct timeval tvFan;
+	int32_t batteryLevel;
+	int32_t usbStorage;
+	int32_t camera00;
+	int32_t camera01;
+	int32_t camera02;
+	int32_t camera03;
+	int32_t accelerometer;
+	int32_t fan;
+} DiagnosisStats;
+
 typedef struct timeval Timeval;
 
 #pragma pack(pop)
@@ -101,6 +117,16 @@ int32_t getPositionPhase(PositionPhase *value, int32_t camera);
 
 int32_t setTegraStats(TegraStats *value);
 int32_t getTegraStats(TegraStats *value);
+
+int32_t setDiagnosisStats(DiagnosisStats *value);
+int32_t getDiagnosisStats(DiagnosisStats *value);
+
+int32_t setDiagnosisBattery(DiagnosisStats *value);
+int32_t setDiagnosisUsbStorage(DiagnosisStats *value);
+int32_t setDiagnosisCamera(DiagnosisStats *value);
+int32_t setDiagnosisAccelerometer(DiagnosisStats *value);
+int32_t setDiagnosisFan(DiagnosisStats *value);
+
 */
 import "C"
 import "unsafe"
@@ -163,6 +189,22 @@ type CTegraStats struct {
 	Gpu     float32
 	Ao      float32
 	Thermal float32
+}
+
+type CDiagnosisStats struct {
+	TvBattery       CTimeval
+	BatteryLevel    int32
+	TvUsbStorage    CTimeval
+	UsbStorage      int32
+	TvCamera        CTimeval
+	Camera00        int32
+	Camera01        int32
+	Camera02        int32
+	Camera03        int32
+	TvAccelerometer CTimeval
+	Accelerometer   int32
+	TvFan           CTimeval
+	Fan             int32
 }
 
 func getMaxAllocSize(key C.key_t) C.size_t {
@@ -412,6 +454,77 @@ func GetTegraStats(value *CTegraStats) int32 {
 	value.Gpu = float32(tegra.gpu)
 	value.Ao = float32(tegra.ao)
 	value.Thermal = float32(tegra.thermal)
+
+	return 0
+}
+
+/**
+ * Jetson Nano 상태 정보를 공유메모리에 저장한다.
+ */
+func SetDiagnosisStats(value *CDiagnosisStats) C.int32_t {
+
+	diag := C.DiagnosisStats{}
+	diag.tvBattery = C.Timeval{ tv_sec: C.long(value.TvBattery.Sec),
+		tv_usec: C.long(value.TvBattery.Usec)}
+	diag.batteryLevel = C.int32_t(value.BatteryLevel)
+	diag.tvUsbStorage = C.Timeval{ tv_sec: C.long(value.TvUsbStorage.Sec),
+		tv_usec: C.long(value.TvUsbStorage.Usec)}
+	diag.usbStorage = C.int32_t(value.UsbStorage)
+	diag.tvCamera = C.Timeval{ tv_sec: C.long(value.TvCamera.Sec),
+		tv_usec: C.long(value.TvCamera.Usec)}
+	diag.camera00 = C.int32_t(value.Camera00)
+	diag.camera01 = C.int32_t(value.Camera01)
+	diag.camera02 = C.int32_t(value.Camera02)
+	diag.camera03 = C.int32_t(value.Camera03)
+	diag.tvAccelerometer = C.Timeval{ tv_sec: C.long(value.TvAccelerometer.Sec),
+		tv_usec: C.long(value.TvAccelerometer.Usec)}
+	diag.accelerometer = C.int32_t(value.Accelerometer)
+
+	diag.tvFan = C.Timeval{ tv_sec: C.long(value.TvFan.Sec),
+		tv_usec: C.long(value.TvFan.Usec)}
+	diag.fan = C.int32_t(value.Fan)
+
+	return C.setDiagnosisStats(&diag)
+}
+
+/**
+ * 접근 감지 데이터를 공유메모리에서 읽는다.
+ */
+func GetDiagnosisStats(value *CDiagnosisStats) int32 {
+
+	diag := C.DiagnosisStats{}
+
+	if C.getDiagnosisStats(&diag) != 0 {
+		return -1
+	}
+
+	value.TvBattery = CTimeval{
+		Sec: int64(diag.tvBattery.tv_sec),
+		Usec: int64(diag.tvBattery.tv_usec)}
+	value.BatteryLevel = int32(diag.batteryLevel)
+
+	value.TvUsbStorage = CTimeval{
+		Sec: int64(diag.tvUsbStorage.tv_sec),
+		Usec: int64(diag.tvUsbStorage.tv_usec)}
+	value.UsbStorage = int32(diag.usbStorage)
+
+	value.TvCamera = CTimeval{
+		Sec: int64(diag.tvCamera.tv_sec),
+		Usec: int64(diag.tvCamera.tv_usec)}
+	value.Camera00 = int32(diag.camera00)
+	value.Camera01 = int32(diag.camera01)
+	value.Camera02 = int32(diag.camera02)
+	value.Camera03 = int32(diag.camera03)
+
+	value.TvAccelerometer = CTimeval{
+		Sec: int64(diag.tvAccelerometer.tv_sec),
+		Usec: int64(diag.tvAccelerometer.tv_usec)}
+	value.Accelerometer = int32(diag.accelerometer)
+
+	value.TvFan = CTimeval{
+		Sec: int64(diag.tvFan.tv_sec),
+		Usec: int64(diag.tvFan.tv_usec)}
+	value.Fan = int32(diag.fan)
 
 	return 0
 }
