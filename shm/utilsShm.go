@@ -528,3 +528,76 @@ func GetDiagnosisStats(value *CDiagnosisStats) int32 {
 
 	return 0
 }
+
+func SetDiagnosisBattery(value *CDiagnosisStats) int32 {
+	diag := CDiagnosisStats{}
+	if GetDiagnosisStats(&diag) == 0 {
+		diag.TvBattery = CTimeval{
+			Sec: int64(value.TvBattery.Sec),
+			Usec: int64(value.TvBattery.Usec)}
+		diag.BatteryLevel = int32(diag.BatteryLevel)
+
+		return int32(SetDiagnosisStats(&diag))
+	}
+
+	return -1;
+}
+
+func SetDiagnosisUsbStorage(value *CDiagnosisStats) int32 {
+	diag := CDiagnosisStats{}
+	if GetDiagnosisStats(&diag) == 0 {
+		value.TvUsbStorage = CTimeval{
+			Sec: int64(diag.TvUsbStorage.Sec),
+			Usec: int64(diag.TvUsbStorage.Usec)}
+		value.UsbStorage = int32(diag.UsbStorage)
+
+		return int32(SetDiagnosisStats(&diag))
+	}
+
+	return -1;
+}
+
+func SetDiagnosisCamera(value *CDiagnosisStats) int32 {
+	diag := CDiagnosisStats{}
+	if GetDiagnosisStats(&diag) == 0 {
+		value.TvCamera = CTimeval{
+			Sec: int64(value.TvCamera.Sec),
+			Usec: int64(value.TvCamera.Usec)}
+		value.Camera00 = int32(value.Camera00)
+		value.Camera01 = int32(value.Camera01)
+		value.Camera02 = int32(value.Camera02)
+		value.Camera03 = int32(value.Camera03)
+
+		return int32(SetDiagnosisStats(&diag))
+	}
+
+	return -1;
+}
+
+func SetDiagnosisAccelerometer(value *CDiagnosisStats) int32 {
+	diag := CDiagnosisStats{}
+	if GetDiagnosisStats(&diag) == 0 {
+		value.TvAccelerometer = CTimeval{
+			Sec: int64(diag.TvAccelerometer.Sec),
+			Usec: int64(diag.TvAccelerometer.Usec)}
+		value.Accelerometer = int32(diag.Accelerometer)
+
+		return int32(SetDiagnosisStats(&diag))
+	}
+
+	return -1;
+}
+
+func SetDiagnosisFan(value *CDiagnosisStats) int32 {
+	diag := CDiagnosisStats{}
+	if GetDiagnosisStats(&diag) == 0 {
+		value.TvFan = CTimeval{
+			Sec: int64(diag.TvFan.Sec),
+			Usec: int64(diag.TvFan.Usec)}
+		value.Fan = int32(diag.Fan)
+
+		return int32(SetDiagnosisStats(&diag))
+	}
+
+	return -1;
+}
