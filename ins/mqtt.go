@@ -19,7 +19,7 @@ func GetMQTTClient(config *MQTTConfigurations) (MQTT.Client, error) {
 		}
 	}
 
-	tlsconfig := NewTLSConfig()
+	tlsconfig := NewTLSConfig(&config.Cacertfile, &config.Certfile, &config.Keyfile)
 	opts.SetTLSConfig(tlsconfig)
 
 	opts.SetCleanSession(config.Cleansess)

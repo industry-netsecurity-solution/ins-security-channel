@@ -8,7 +8,9 @@ import (
 	"errors"
 	"fmt"
 	"github.com/go-resty/resty/v2"
+	"github.com/industry-netsecurity-solution/ins-security-channel/logger"
 	"io"
+	"io/ioutil"
 	"net"
 	"net/http"
 	"net/url"
@@ -16,27 +18,36 @@ import (
 	"time"
 )
 
-func NewTLSConfig() *tls.Config {
+func NewTLSConfig(cacertFile *string, certFile *string, keyFile *string) *tls.Config {
 	// Import trusted certificates from CAfile.pem.
 	// Alternatively, manually add CA certificates to
 	// default openssl CA bundle.
 	certpool := x509.NewCertPool()
-	//pemCerts, err := ioutil.ReadFile("mosquitto-ca.crt")
-	//if err == nil {
-	//	certpool.AppendCertsFromPEM(pemCerts)
-	//}
 
+	if (cacertFile != nil) && (0 < len(*cacertFile)) {
+		pemCerts, err := ioutil.ReadFile(*cacertFile)
+		if err == nil {
+			certpool.AppendCertsFromPEM(pemCerts)
+		}
+	}
+
+	var err error = nil
+	var cert tls.Certificate
 	// Import client certificate/key pair
-	//cert, err := net.LoadX509KeyPair("samplecerts/client-crt.pem", "samplecerts/client-key.pem")
-	//if err != nil {
-	//	panic(err)
-	//}
+	if (certFile != nil  && 0 < len(*certFile)) && (keyFile != nil && 0 < len(*keyFile)) {
+		cert, err = tls.LoadX509KeyPair(*certFile, *keyFile)
+		if err != nil {
+			logger.Error(err)
+			return nil
+		}
+	}
 
 	// Just to print out the client certificate..
-	//cert.Leaf, err = x509.ParseCertificate(cert.Certificate[0])
-	//if err != nil {
-	//	panic(err)
-	//}
+	cert.Leaf, err = x509.ParseCertificate(cert.Certificate[0])
+	if err != nil {
+		logger.Error(err)
+		return nil
+	}
 	//logger.Println(cert.Leaf)
 
 	// Create net.Config with desired net properties
@@ -53,7 +64,7 @@ func NewTLSConfig() *tls.Config {
 		// match server. IP matches what is in cert etc.
 		InsecureSkipVerify: true,
 		// Certificates = list of certs client sends to server.
-		//Certificates: []net.Certificate{cert},
+		Certificates: []tls.Certificate{cert},
 	}
 }
 

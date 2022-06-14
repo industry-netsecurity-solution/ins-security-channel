@@ -25,6 +25,9 @@ type MQTTConfigurations struct {
 	Qos                 int
 	User                string
 	Password            string
+	Cacertfile          string
+	Certfile            string
+	Keyfile             string
 }
 
 type ServiceConfigurations struct {

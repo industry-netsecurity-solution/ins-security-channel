@@ -151,13 +151,12 @@ func DownloadFirmware(Conf ins.FirmwareConfigurations, firmwareConfig *bytes.Buf
 	firmwareParam.SetData(firmwareConfig.Bytes())
 	firmwareParam.SetFilename(tempfirmname)
 
-	var mediatype string
 	var params map[string]string
 	httpRequest := request.HttpRequest{Conf.Http}
 	if _, e := httpRequest.DoRequest(firmwareParam, func(resp *resty.Response) error {
 		headers := resp.Header()
 		disposition := headers.Get("Content-Disposition")
-		mediatype , params , err = mime.ParseMediaType(disposition)
+		_ , params , err = mime.ParseMediaType(disposition)
 
 		return nil
 	}); e != nil {
