@@ -7,7 +7,7 @@ import (
 	"encoding/binary"
 	"errors"
 	"fmt"
-	"github.com/go-resty/resty/v2"
+	resty "github.com/go-resty/resty/v2"
 	"github.com/industry-netsecurity-solution/ins-security-channel/logger"
 	"io"
 	"io/ioutil"
@@ -31,24 +31,26 @@ func NewTLSConfig(cacertFile *string, certFile *string, keyFile *string) *tls.Co
 		}
 	}
 
-	var err error = nil
-	var cert tls.Certificate
+	var certificates []tls.Certificate = nil
 	// Import client certificate/key pair
-	if (certFile != nil  && 0 < len(*certFile)) && (keyFile != nil && 0 < len(*keyFile)) {
-		cert, err = tls.LoadX509KeyPair(*certFile, *keyFile)
+	if (certFile != nil && 0 < len(*certFile)) && (keyFile != nil && 0 < len(*keyFile)) {
+		cert, err := tls.LoadX509KeyPair(*certFile, *keyFile)
 		if err != nil {
 			logger.Error(err)
 			return nil
 		}
+		if len(cert.Certificate) == 0 {
+			return nil
+		}
+		// Just to print out the client certificate..
+		cert.Leaf, err = x509.ParseCertificate(cert.Certificate[0])
+		if err != nil {
+			logger.Error(err)
+			return nil
+		}
+		certificates = []tls.Certificate{cert}
+		//logger.Println(cert.Leaf)
 	}
-
-	// Just to print out the client certificate..
-	cert.Leaf, err = x509.ParseCertificate(cert.Certificate[0])
-	if err != nil {
-		logger.Error(err)
-		return nil
-	}
-	//logger.Println(cert.Leaf)
 
 	// Create net.Config with desired net properties
 	return &tls.Config{
@@ -64,7 +66,7 @@ func NewTLSConfig(cacertFile *string, certFile *string, keyFile *string) *tls.Co
 		// match server. IP matches what is in cert etc.
 		InsecureSkipVerify: true,
 		// Certificates = list of certs client sends to server.
-		Certificates: []tls.Certificate{cert},
+		Certificates: certificates,
 	}
 }
 
@@ -103,7 +105,7 @@ func RecvTL32V(conn net.Conn, order binary.ByteOrder) (*TL32V, error) {
 		if int(length) <= dataLength {
 			break
 		}
-		if int(length) - dataLength < len(dataArray) {
+		if int(length)-dataLength < len(dataArray) {
 			r := int(length) - dataLength
 			n, err = conn.Read(dataArray[:r])
 		} else {
@@ -169,7 +171,7 @@ func RecvTLV(conn net.Conn, order binary.ByteOrder) ([]byte, error) {
 		if int(length) <= dataLength {
 			break
 		}
-		if int(length) - dataLength < len(dataArray) {
+		if int(length)-dataLength < len(dataArray) {
 			r := int(length) - dataLength
 			n, err = conn.Read(dataArray[:r])
 		} else {
@@ -257,7 +259,6 @@ func ReadyServer(serviceConfig *ServiceConfigurations, ud interface{}, callback 
 	return 0
 }
 
-
 func StartServer(serviceConfig *ServiceConfigurations, ud interface{}, callback func(net.Conn, interface{}) error) net.Listener {
 
 	if serviceConfig == nil {
@@ -311,11 +312,10 @@ func StartServer(serviceConfig *ServiceConfigurations, ud interface{}, callback 
 
 			go callback(conn, ud)
 		}
-	} (listener)
+	}(listener)
 
 	return listener
 }
-
 
 /**
  * remote 서비스에 연결을 시도한다.
@@ -423,7 +423,7 @@ func Relay(conn1 net.Conn, ud1 interface{},
 
 	for {
 		select {
-		case b1 := <- chan1:
+		case b1 := <-chan1:
 			if b1 == nil {
 				return 0
 			} else {
@@ -434,7 +434,7 @@ func Relay(conn1 net.Conn, ud1 interface{},
 				}
 			}
 			break
-		case e1 := <- echan1:
+		case e1 := <-echan1:
 			if e1 == io.EOF {
 				return 0
 			}
@@ -450,7 +450,7 @@ func Relay(conn1 net.Conn, ud1 interface{},
 				}
 			}
 			break
-		case e2 := <- echan2:
+		case e2 := <-echan2:
 			if e2 == io.EOF {
 				return 0
 			}
@@ -527,7 +527,7 @@ func (v TcpRelay) DoSend(args ...interface{}) (interface{}, error) {
 	if err != nil {
 		return 0, err
 	}
-	defer  conn.Close()
+	defer conn.Close()
 
 	nwrite, err := SendMessage(args[0].([]byte), conn)
 	if err != nil {
