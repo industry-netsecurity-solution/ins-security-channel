@@ -10,90 +10,92 @@ import (
 )
 
 type GatewayConfigurations struct {
-	Date                string
-	Model               string
-	Manufacture         string
-	Serial              string
-	Type                string
+	Date        string
+	Model       string
+	Manufacture string
+	Serial      string
+	Type        string
 }
 
 type MQTTConfigurations struct {
-	Prefix              string
-	Broker              string
-	Cleansess           bool
-	ClientId            string
-	Qos                 int
-	User                string
-	Password            string
-	Cacertfile          string
-	Certfile            string
-	Keyfile             string
+	Prefix     string
+	Broker     string
+	Cleansess  bool
+	ClientId   string
+	Qos        int
+	User       string
+	Password   string
+	Cacertfile string
+	Certfile   string
+	Keyfile    string
 }
 
 type ServiceConfigurations struct {
-	EnableTls           bool
-	TlsCert             string
-	TlsKey              string
-	Address             string
-	Port                int64
-	Timeout             int64
+	EnableTls bool
+	CaCert    string
+	TlsCert   string
+	TlsKey    string
+	Address   string
+	Port      int64
+	Timeout   int64
 }
 
 type HttpConfigurations struct {
-	EnableTls           bool
-	Authorization       string
-	TlsCert             string
-	TlsKey              string
-	Address             string
-	Port                int64
-	Path                string
-	Timeout             int64
+	EnableTls     bool
+	Authorization string
+	CaCert        string
+	TlsCert       string
+	TlsKey        string
+	Address       string
+	Port          int64
+	Path          string
+	Timeout       int64
 }
 
 type PublishConfigurations struct {
-	Service             ServiceConfigurations
-	Remote              ServiceConfigurations
-	MQTT                MQTTConfigurations
-	SourceId            string
-	EventLogUrl         string
-	DiagInterval        int64
+	Service      ServiceConfigurations
+	Remote       ServiceConfigurations
+	MQTT         MQTTConfigurations
+	SourceId     string
+	EventLogUrl  string
+	DiagInterval int64
 }
 
 type SubscribeConfigurations struct {
-	Remote              ServiceConfigurations
-	MQTT                MQTTConfigurations
-	SourceId            string
-	EventLogUrl         string
-	DiagInterval        int64
+	Remote       ServiceConfigurations
+	MQTT         MQTTConfigurations
+	SourceId     string
+	EventLogUrl  string
+	DiagInterval int64
 }
 
 type RelayConfigurations struct {
-	Service             ServiceConfigurations
-	Remote              ServiceConfigurations
-	SourceId            string
-	EventLogUrl         string
-	DiagInterval        int64
+	Service      ServiceConfigurations
+	Remote       ServiceConfigurations
+	SourceId     string
+	EventLogUrl  string
+	DiagInterval int64
 }
 
 type ServerConfigurations struct {
-	Service             ServiceConfigurations
-	SourceId            string
-	EventLogUrl         string
-	DiagInterval        int64
+	Service      ServiceConfigurations
+	SourceId     string
+	EventLogUrl  string
+	DiagInterval int64
 }
 
 type ClientConfigurations struct {
-	Remote              ServiceConfigurations
-	SourceId            string
-	EventLogUrl         string
-	DiagInterval        int64
+	Remote       ServiceConfigurations
+	SourceId     string
+	EventLogUrl  string
+	DiagInterval int64
 }
 
 type FirmwareConfigurations struct {
-	Enable              bool
-	ConfigFilepath      string
-	DownlaodFilepath    string
-	Http                HttpConfigurations
+	Enable           bool
+	ConfigFilepath   string
+	DownlaodFilepath string
+	Http             HttpConfigurations
 }
 
 func (v GatewayConfigurations) ToString() []string {
@@ -143,14 +145,14 @@ func (v HttpConfigurations) ToString() []string {
 	return strings
 }
 
-func (v ServiceConfigurations) Url(args...string) (*url.URL,  error) {
+func (v ServiceConfigurations) Url(args ...string) (*url.URL, error) {
 	var s string = ""
 	for _, v := range args {
 		s += "/" + v
 	}
 
 	var u *url.URL = nil
-	var err  error
+	var err error
 	if len(s) == 0 {
 		u = new(url.URL)
 	} else {
@@ -175,15 +177,18 @@ func (v ServiceConfigurations) Url(args...string) (*url.URL,  error) {
 	return u, nil
 }
 
-func (v HttpConfigurations) Url(args...string) (*url.URL,  error) {
+func (v HttpConfigurations) Url(args ...string) (*url.URL, error) {
 
 	var s string = v.Path
 	for _, v := range args {
+		if len(v) == 0 {
+			continue
+		}
 		s += "/" + v
 	}
 
 	var u *url.URL = nil
-	var err  error
+	var err error
 	if len(s) == 0 {
 		u = new(url.URL)
 	} else {
@@ -368,7 +373,7 @@ func IsFlagPassed(name string) bool {
 	return found
 }
 
-func GetFlagString(option *string, name string, param *string, deffunc func() string ) {
+func GetFlagString(option *string, name string, param *string, deffunc func() string) {
 	if IsFlagPassed(name) {
 		if param == nil {
 			return
@@ -376,12 +381,12 @@ func GetFlagString(option *string, name string, param *string, deffunc func() st
 		*option = *param
 	} else if deffunc != nil {
 		*option = deffunc()
-	//} else {
-	//	if len(*option) == 0 {
-	//		if param != nil && 0 < len(*param) {
-	//			*option = *param
-	//		}
-	//	}
+		//} else {
+		//	if len(*option) == 0 {
+		//		if param != nil && 0 < len(*param) {
+		//			*option = *param
+		//		}
+		//	}
 	}
 }
 

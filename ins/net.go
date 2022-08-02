@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"crypto/tls"
 	"crypto/x509"
+	"encoding/base64"
 	"encoding/binary"
 	"errors"
 	"fmt"
@@ -13,8 +14,6 @@ import (
 	"io/ioutil"
 	"net"
 	"net/http"
-	"net/url"
-	"strings"
 	"time"
 )
 
@@ -479,17 +478,36 @@ func SendMessage(data []byte, conn net.Conn) (int, error) {
 }
 
 // HTTP를 통한 데이터 전송
-func HttpPost(rawurl string, headers map[string]string, data []byte, handler func(*resty.Response)) (int, error) {
+func HttpPost(requestUrl *HttpConfigurations, querypath []string, headers map[string]string, data []byte, handler func(*resty.Response)) (int, error) {
+
+	u, err := requestUrl.Url(querypath...)
+	if err != nil {
+		return -1, err
+	}
+
+	rawurl := u.String()
+
 	client := resty.New()
-	if u, err := url.Parse(rawurl); err == nil {
-		if strings.EqualFold(u.Scheme, "https") {
-			tr := &http.Transport{
+	if requestUrl.EnableTls {
+		var tr *http.Transport = nil
+		if 0 < len(requestUrl.TlsCert) {
+			tr = &http.Transport{
+				TLSClientConfig: NewTLSConfig(&requestUrl.CaCert, &requestUrl.TlsCert, &requestUrl.TlsKey),
+			}
+		} else {
+			tr = &http.Transport{
 				TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
 			}
-			client.SetTransport(tr)
 		}
+		client.SetTransport(tr)
 	}
+
 	client.SetCloseConnection(true)
+
+	if 0 < len(requestUrl.Authorization) {
+		encoded := base64.StdEncoding.EncodeToString([]byte(requestUrl.Authorization))
+		headers["Authorization"] = fmt.Sprintf("Bearer %s", encoded)
+	}
 
 	if _, ok := headers["Content-Type"]; ok == false {
 		headers["Content-Type"] = "application/json"

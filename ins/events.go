@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/go-resty/resty/v2"
+	resty "github.com/go-resty/resty/v2"
 	"net/http"
 )
 
@@ -27,7 +27,7 @@ func (v *EventLog) EncodeLog() ([]byte, error) {
 	return data, nil
 }
 
-func ReportEvent(url string, log EventLog) error {
+func ReportEvent(reportUrl *HttpConfigurations, log EventLog) error {
 
 	//data, _e := json.Marshal(log)
 	data, _e := log.EncodeLog()
@@ -37,14 +37,17 @@ func ReportEvent(url string, log EventLog) error {
 
 	headers := make(map[string]string)
 	headers["Content-Type"] = "application/json"
-/*
-	if 0 < len(Config.Report.Authorization) {
-		encoded := base64.StdEncoding.EncodeToString([]byte(Config.Report.Authorization))
-		headers["Authorization"] = fmt.Sprintf("Bearer %s", encoded)
-	}
-*/
 
-	statusCode, err := HttpPost(url, headers, data, func(resp *resty.Response) {
+	u, err := reportUrl.Url()
+	if err != nil {
+		return err
+	}
+
+	url := u.String()
+
+	querypath := []string{}
+
+	statusCode, err := HttpPost(reportUrl, querypath, headers, data, func(resp *resty.Response) {
 	})
 	if err != nil {
 		return err
@@ -57,20 +60,20 @@ func ReportEvent(url string, log EventLog) error {
 	return errors.New(fmt.Sprintf("%d %s - %s", statusCode, http.StatusText(statusCode), url))
 }
 
-func ReportLog(url string, sourceId string, evtGwType string, evtType string, status string, message string, content string) error {
-	evt := EventLog {
+func ReportLog(reportUrl *HttpConfigurations, sourceId string, evtGwType string, evtType string, status string, message string, content string) error {
+	evt := EventLog{
 		GatewayType: evtGwType,
-		EventType: evtType,
-		GatewayId: sourceId,
-		EventTime: TimeYYmmddHHMMSS(nil),
-		Status: status,
-		Message: message,
-		Content: content,
+		EventType:   evtType,
+		GatewayId:   sourceId,
+		EventTime:   TimeYYmmddHHMMSS(nil),
+		Status:      status,
+		Message:     message,
+		Content:     content,
 	}
 
-	if len(url) == 0 {
+	if reportUrl == nil {
 		return nil
 	}
 
-	return ReportEvent(url, evt)
+	return ReportEvent(reportUrl, evt)
 }

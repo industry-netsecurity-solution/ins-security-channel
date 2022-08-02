@@ -5,7 +5,7 @@ import (
 	"encoding/base64"
 	"errors"
 	"fmt"
-	"github.com/go-resty/resty/v2"
+	resty "github.com/go-resty/resty/v2"
 	"github.com/industry-netsecurity-solution/ins-security-channel/ins"
 	"net/http"
 	"net/url"
@@ -53,16 +53,15 @@ type RequestURL struct {
 	url.URL
 }
 
-
-func (v *RequestURL) DoRequest(param *RequestParam, handler func(resp *resty.Response) error) (int, error) {
+func (v *RequestURL) DoRequest(tr *http.Transport, param *RequestParam, handler func(resp *resty.Response) error) (int, error) {
 
 	httpurl := (*v).String()
 
 	client := resty.New()
 	if strings.EqualFold((*v).Scheme, "https") {
-		tr := &http.Transport{
-			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
-		}
+		//tr := &http.Transport{
+		//	TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+		//}
 		client.SetTransport(tr)
 	}
 	client.SetCloseConnection(true)
@@ -134,11 +133,24 @@ func (v HttpRequest) DoRequest(param *RequestParam, handler func(resp *resty.Res
 		return -1, err
 	}
 
-	r := &RequestURL {
+	r := &RequestURL{
 		*u,
 	}
 
-	return r.DoRequest(param, handler)
+	var tr *http.Transport = nil
+	if v.EnableTls {
+		if 0 < len(v.TlsCert) {
+			tr = &http.Transport{
+				TLSClientConfig: ins.NewTLSConfig(&v.CaCert, &v.TlsCert, &v.TlsKey),
+			}
+		} else {
+			tr = &http.Transport{
+				TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+			}
+		}
+	}
+
+	return r.DoRequest(tr, param, handler)
 }
 
 /*
@@ -222,4 +234,4 @@ func (v HttpRequest) DoRequest(param *RequestParam, handler func(resp *resty.Res
 
 	return status, nil
 }
- */
+*/
