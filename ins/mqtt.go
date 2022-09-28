@@ -12,9 +12,9 @@ func GetMQTTClient(config *MQTTConfigurations) (MQTT.Client, error) {
 	opts := MQTT.NewClientOptions()
 	opts.AddBroker(config.Broker)
 	opts.SetClientID(config.ClientId)
-	if 0 < len (config.User) {
+	if 0 < len(config.User) {
 		opts.SetUsername(config.User)
-		if 0 < len (config.Password) {
+		if 0 < len(config.Password) {
 			opts.SetPassword(config.Password)
 		}
 	}
@@ -34,4 +34,3 @@ func GetMQTTClient(config *MQTTConfigurations) (MQTT.Client, error) {
 
 	return client, nil
 }
-

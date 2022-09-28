@@ -83,6 +83,72 @@ func NewTLSConfig(cacertFile *string, certFile *string, keyFile *string) *tls.Co
 	}
 }
 
+func NewTLSServerConfig(cacertFile *string, certFile *string, keyFile *string) *tls.Config {
+	// Import trusted certificates from CAfile.pem.
+	// Alternatively, manually add CA certificates to
+	// default openssl CA bundle.
+	certpool := x509.NewCertPool()
+
+	if (cacertFile != nil) && (0 < len(*cacertFile)) {
+		pemCerts, err := ioutil.ReadFile(*cacertFile)
+		if err == nil {
+			certpool.AppendCertsFromPEM(pemCerts)
+		}
+	}
+
+	var certificates []tls.Certificate = nil
+	// Import client certificate/key pair
+	if (certFile != nil && 0 < len(*certFile)) && (keyFile != nil && 0 < len(*keyFile)) {
+		cert, err := tls.LoadX509KeyPair(*certFile, *keyFile)
+		if err != nil {
+			logger.Error(err)
+			return nil
+		}
+		if len(cert.Certificate) == 0 {
+			return nil
+		}
+		// Just to print out the client certificate..
+		cert.Leaf, err = x509.ParseCertificate(cert.Certificate[0])
+		if err != nil {
+			logger.Error(err)
+			return nil
+		}
+		certificates = []tls.Certificate{cert}
+		//logger.Println(cert.Leaf)
+	}
+
+	// Create net.Config with desired net properties
+	return &tls.Config{
+		MinVersion:       tls.VersionTLS12,
+		CurvePreferences: []tls.CurveID{tls.CurveP521, tls.CurveP384, tls.CurveP256},
+		CipherSuites: []uint16{
+			tls.TLS_AES_128_GCM_SHA256,
+			tls.TLS_AES_256_GCM_SHA384,
+			tls.TLS_CHACHA20_POLY1305_SHA256,
+			tls.TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,
+			tls.TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,
+			tls.TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384,
+			//tls.TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA,
+			//tls.TLS_RSA_WITH_AES_256_GCM_SHA384,
+			//tls.TLS_RSA_WITH_AES_256_CBC_SHA,
+		},
+
+		// RootCAs = certs used to verify server cert.
+		RootCAs: certpool,
+		// ClientAuth = whether to request cert from server.
+		// Since the server is set up for SSL, this happens
+		// anyways.
+		ClientAuth: tls.NoClientCert,
+		// ClientCAs = certs used to validate client cert.
+		ClientCAs: nil,
+		// InsecureSkipVerify = verify that cert contents
+		// match server. IP matches what is in cert etc.
+		InsecureSkipVerify: true,
+		// Certificates = list of certs client sends to server.
+		Certificates: certificates,
+	}
+}
+
 func RecvTL32V(conn net.Conn, order binary.ByteOrder) (*TL32V, error) {
 	tagArray := make([]byte, 2)
 	lengthArray := make([]byte, 4)
@@ -224,6 +290,7 @@ func ReadyServer(serviceConfig *ServiceConfigurations, ud interface{}, callback 
 		return -1
 	}
 
+	var err error = nil
 	var listener net.Listener = nil
 	var localurl string
 
@@ -235,14 +302,19 @@ func ReadyServer(serviceConfig *ServiceConfigurations, ud interface{}, callback 
 
 	if serviceConfig.EnableTls {
 		var config *tls.Config = nil
-		//cer, err := tls.LoadX509KeyPair("server.pem", "server.key")
-		cer, err := tls.LoadX509KeyPair(serviceConfig.TlsCert, serviceConfig.TlsKey)
-		if err != nil {
-			panic(err)
-			return -1
-		}
+		/*
+			//cer, err := tls.LoadX509KeyPair("server.pem", "server.key")
+			cer, err := tls.LoadX509KeyPair(serviceConfig.TlsCert, serviceConfig.TlsKey)
+			if err != nil {
+				panic(err)
+				return -1
+			}
 
-		config = &tls.Config{Certificates: []tls.Certificate{cer}}
+			config = &tls.Config{Certificates: []tls.Certificate{cer}}
+		*/
+
+		config = NewTLSServerConfig(&serviceConfig.CaCert, &serviceConfig.TlsCert, &serviceConfig.TlsKey)
+
 		listener, err = tls.Listen("tcp", localurl, config)
 		if err != nil {
 			panic(err)
