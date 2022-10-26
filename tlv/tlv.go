@@ -8,21 +8,21 @@ import (
 )
 
 type TL16V struct {
-	Type []byte
+	Type   []byte
 	Length uint16
-	Value interface{}
+	Value  interface{}
 }
 
 type TL32V struct {
-	Type []byte
+	Type   []byte
 	Length uint32
-	Value interface{}
+	Value  interface{}
 }
 
 type TL64V struct {
-	Type []byte
+	Type   []byte
 	Length uint64
-	Value interface{}
+	Value  interface{}
 }
 
 func (obj TL16V) Encode(order binary.ByteOrder) ([]byte, error) {
@@ -38,7 +38,7 @@ func (obj TL16V) Encode(order binary.ByteOrder) ([]byte, error) {
 
 	vb := bytes.Buffer{}
 
-	switch t:= obj.Value.(type) {
+	switch t := obj.Value.(type) {
 	case []byte:
 		vb.Write(obj.Value.([]byte))
 	case []TL16V:
@@ -77,7 +77,7 @@ func (obj TL32V) Encode(order binary.ByteOrder) ([]byte, error) {
 
 	vb := bytes.Buffer{}
 
-	switch t:= obj.Value.(type) {
+	switch t := obj.Value.(type) {
 	case []byte:
 		buffer.Write(obj.Value.([]byte))
 	case []TL32V:
@@ -116,7 +116,7 @@ func (obj TL64V) Encode(order binary.ByteOrder) ([]byte, error) {
 
 	vb := bytes.Buffer{}
 
-	switch t:= obj.Value.(type) {
+	switch t := obj.Value.(type) {
 	case []byte:
 		buffer.Write(obj.Value.([]byte))
 	case []TL64V:
@@ -142,7 +142,6 @@ func (obj TL64V) Encode(order binary.ByteOrder) ([]byte, error) {
 	return buffer.Bytes(), nil
 }
 
-
 func (obj TL16V) Decode(order binary.ByteOrder, data []byte) (int64, error) {
 	if data == nil || len(data) < 4 {
 		return -1, errors.New("not enough data length")
@@ -157,7 +156,7 @@ func (obj TL16V) Decode(order binary.ByteOrder, data []byte) (int64, error) {
 	obj.Length = order.Uint16(l)
 	length += int64(len(l))
 
-	v := data[4:4+obj.Length]
+	v := data[4 : 4+obj.Length]
 	obj.Value = v
 	length += int64(len(v))
 
@@ -178,11 +177,11 @@ func (obj TL32V) Decode(order binary.ByteOrder, data []byte) (int64, error) {
 	obj.Length = order.Uint32(l)
 	length += int64(len(l))
 
-	v := data[6:6+obj.Length]
+	v := data[6 : 6+obj.Length]
 	obj.Value = v
 	length += int64(len(v))
 
-	return  length, nil
+	return length, nil
 }
 
 func (obj TL64V) Decode(order binary.ByteOrder, data []byte) (int64, error) {
@@ -199,11 +198,11 @@ func (obj TL64V) Decode(order binary.ByteOrder, data []byte) (int64, error) {
 	obj.Length = order.Uint64(l)
 	length += int64(len(l))
 
-	v := data[10:10+obj.Length]
+	v := data[10 : 10+obj.Length]
 	obj.Value = v
 	length += int64(len(v))
 
-	return  length, nil
+	return length, nil
 }
 
 func DecTL16V(order binary.ByteOrder, data []byte) (*TL16V, error) {

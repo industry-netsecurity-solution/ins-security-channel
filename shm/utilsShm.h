@@ -74,6 +74,7 @@ typedef struct radarunit_ {
 
 typedef struct radar {
 	struct timeval tv;
+	uint8_t   id;
 	RadarUnit u1;
 	RadarUnit u2;
 	RadarUnit u3;

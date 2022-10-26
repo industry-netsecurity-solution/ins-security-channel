@@ -52,6 +52,7 @@ typedef struct radarunit_ {
 
 typedef struct radar {
 	struct timeval tv;
+	uint8_t id[2];
 	RadarUnit u1;
 	RadarUnit u2;
 	RadarUnit u3;
@@ -139,6 +140,9 @@ int32_t getAccelerometerThreshold(AccelerometerThreshold *value);
 int32_t setAccelerometer(Accelerometer *value);
 int32_t getAccelerometer(Accelerometer *value);
 
+int32_t setRadar(Radar *value);
+int32_t getRadar(Radar *value);
+
 int32_t setTegraStats(TegraStats *value);
 int32_t getTegraStats(TegraStats *value);
 
@@ -213,6 +217,7 @@ type CRadarUnit struct {
 
 type CRadar struct {
 	Tv CTimeval
+	Id [2]uint8
 	U1 CRadarUnit
 	U2 CRadarUnit
 	U3 CRadarUnit
@@ -468,7 +473,7 @@ func GetAccelerometer(value *CAccelerometer) int32 {
 func GetRadar(value *CRadar) int32 {
 
 	radar := C.Radar{}
-	if C.getAccelerometer(&radar) != 0 {
+	if C.getRadar(&radar) != 0 {
 		return -1
 	}
 
@@ -476,6 +481,13 @@ func GetRadar(value *CRadar) int32 {
 		Sec:  int64(radar.tv.tv_sec),
 		Usec: int64(radar.tv.tv_usec),
 	}
+
+	idPtr := unsafe.Pointer(&radar.id[0])
+	bs := C.GoBytes(idPtr, 2)
+	for i, v := range bs {
+		value.Id[i] = v
+	}
+
 	value.U1 = CRadarUnit{
 		Id:     uint8(radar.u1.id),
 		X:      uint8(radar.u1.x),
@@ -527,6 +539,18 @@ func SetRadar(value *CRadar) int32 {
 		tv_sec:  C.long(value.Tv.Sec),
 		tv_usec: C.long(value.Tv.Usec),
 	}
+
+	var bs []byte = make([]byte, len(value.Id))
+	for i, v := range value.Id {
+		bs[i] = v
+	}
+
+	idPtr := unsafe.Pointer(&radar.id[0])
+	cs := C.CBytes(bs)
+
+	C.memcpy(idPtr, cs, C.ulong(len(bs)))
+
+	C.free(cs)
 
 	radar.u1 = C.RadarUnit{
 		id:      C.uint8_t(value.U1.Id),
