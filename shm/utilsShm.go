@@ -1,4 +1,5 @@
 package shm
+
 import "C"
 
 /*
@@ -38,6 +39,25 @@ typedef struct accelerometer_ {
 	int16_t vt;
 } Accelerometer;
 
+typedef struct radarunit_ {
+	uint8_t id;
+	uint8_t x;
+	uint8_t y;
+	uint8_t dist;
+	uint8_t d_speed;
+	uint8_t o_speed;
+	uint8_t size;
+	uint8_t flag;
+} RadarUnit;
+
+typedef struct radar {
+	struct timeval tv;
+	RadarUnit u1;
+	RadarUnit u2;
+	RadarUnit u3;
+	RadarUnit u4;
+} Radar;
+
 typedef struct positionphase {
 	int32_t update;
 	int32_t camera;
@@ -60,7 +80,7 @@ typedef struct splittime_ {
 	int32_t  camera;
 } SplitTime;
 
-typedef struct segraStats_ {
+typedef struct tegraStats_ {
 	struct timeval tv;
 	uint32_t ram;
 	uint32_t swap;
@@ -88,6 +108,13 @@ typedef struct diagnosisStats_ {
 	int32_t fan;
 } DiagnosisStats;
 
+typedef struct contrlscreen_ {
+	struct timeval manualTime;
+	struct timeval gpioTime;
+	int32_t screen_manual;
+	int32_t screen_gpio;
+} ControlScreen;
+
 typedef struct timeval Timeval;
 
 #pragma pack(pop)
@@ -112,6 +139,9 @@ int32_t getAccelerometerThreshold(AccelerometerThreshold *value);
 int32_t setAccelerometer(Accelerometer *value);
 int32_t getAccelerometer(Accelerometer *value);
 
+int32_t setTegraStats(TegraStats *value);
+int32_t getTegraStats(TegraStats *value);
+
 int32_t setPositionPhase(PositionPhase *value);
 int32_t getPositionPhase(PositionPhase *value, int32_t camera);
 
@@ -127,30 +157,36 @@ int32_t setDiagnosisCamera(DiagnosisStats *value);
 int32_t setDiagnosisAccelerometer(DiagnosisStats *value);
 int32_t setDiagnosisFan(DiagnosisStats *value);
 
+int32_t setControlScreen(ControlScreen *value);
+int32_t getControlScreen(ControlScreen *value);
+
+int32_t setManualScreen(ControlScreen *value);
+int32_t setGpioScreen(ControlScreen *value);
+
 */
 import "C"
 import "unsafe"
 
 type CTimeval struct {
-	Sec int64
+	Sec  int64
 	Usec int64
 }
 
 type CWarning struct {
-	StartTime CTimeval
-	EvtTime CTimeval
-	Camera int32
-	Event int32
+	StartTime  CTimeval
+	EvtTime    CTimeval
+	Camera     int32
+	Event      int32
 	FrameIndex int32
-	DataLen uint8;
-	Data [128]uint8;
+	DataLen    uint8
+	Data       [128]uint8
 }
 
 type CAccelerometerThreshold struct {
 	Total int32
-	X int32
-	Y int32
-	Z int32
+	X     int32
+	Y     int32
+	Z     int32
 }
 
 type CAccelerometer struct {
@@ -164,19 +200,38 @@ type CAccelerometer struct {
 	Vt int16
 }
 
+type CRadarUnit struct {
+	Id     uint8
+	X      uint8
+	Y      uint8
+	Dist   uint8
+	DSpeed uint8
+	OSpeed uint8
+	Size   uint8
+	Flag   uint8
+}
+
+type CRadar struct {
+	Tv CTimeval
+	U1 CRadarUnit
+	U2 CRadarUnit
+	U3 CRadarUnit
+	U4 CRadarUnit
+}
+
 type CCrashRisk struct {
-	AlertTime     CTimeval
-	RecvTime      CTimeval
+	AlertTime CTimeval
+	RecvTime  CTimeval
 	SendGwId  [64]uint8
-	UwbTagId      uint32
-	Speed         uint32
-	Count         uint32
+	UwbTagId  uint32
+	Speed     uint32
+	Count     uint32
 }
 
 type CSplitTime struct {
 	SplitTime CTimeval
-	Fragment uint32
-	Camera int32
+	Fragment  uint32
+	Camera    int32
 }
 
 type CTegraStats struct {
@@ -217,9 +272,9 @@ func getMaxAllocSize(key C.key_t) C.size_t {
 func SetWarningApproach(value *CWarning) C.int32_t {
 
 	warning := C.Warning{}
-	warning.startTime = C.Timeval{ tv_sec: C.long(value.StartTime.Sec),
-									tv_usec: C.long(value.StartTime.Usec)}
-	warning.evtTime = C.Timeval{ tv_sec: C.long(value.EvtTime.Sec),
+	warning.startTime = C.Timeval{tv_sec: C.long(value.StartTime.Sec),
+		tv_usec: C.long(value.StartTime.Usec)}
+	warning.evtTime = C.Timeval{tv_sec: C.long(value.EvtTime.Sec),
 		tv_usec: C.long(value.EvtTime.Usec)}
 	warning.camera = -1
 	warning.event = C.int(value.Event)
@@ -257,11 +312,11 @@ func GetWarningApproach(value *CWarning, camera int32) int32 {
 	}
 
 	value.StartTime = CTimeval{
-		Sec: int64(warning.startTime.tv_sec),
+		Sec:  int64(warning.startTime.tv_sec),
 		Usec: int64(warning.startTime.tv_usec)}
 
 	value.EvtTime = CTimeval{
-		Sec: int64(warning.evtTime.tv_sec),
+		Sec:  int64(warning.evtTime.tv_sec),
 		Usec: int64(warning.evtTime.tv_usec)}
 
 	value.Camera = int32(warning.camera)
@@ -285,7 +340,7 @@ func GetWarningApproach(value *CWarning, camera int32) int32 {
 func SetSplitTime(value *CSplitTime) C.int32_t {
 
 	splittime := C.SplitTime{}
-	splittime.splitTime = C.Timeval{ tv_sec: C.long(value.SplitTime.Sec),
+	splittime.splitTime = C.Timeval{tv_sec: C.long(value.SplitTime.Sec),
 		tv_usec: C.long(value.SplitTime.Usec)}
 	splittime.fragment = C.uint32_t(value.Fragment)
 	splittime.camera = C.int(value.Camera)
@@ -305,7 +360,7 @@ func GetSplitTime(value *CSplitTime, camera int32) int32 {
 	}
 
 	value.SplitTime = CTimeval{
-		Sec: int64(splittime.splitTime.tv_sec),
+		Sec:  int64(splittime.splitTime.tv_sec),
 		Usec: int64(splittime.splitTime.tv_usec)}
 	value.Fragment = uint32(splittime.fragment)
 	value.Camera = int32(splittime.camera)
@@ -319,9 +374,9 @@ func GetSplitTime(value *CSplitTime, camera int32) int32 {
 func SetWarningCrashRisk(value *CCrashRisk) C.int32_t {
 
 	warning := C.CrashRisk{}
-	warning.alertTime = C.Timeval{ tv_sec: C.long(value.AlertTime.Sec),
+	warning.alertTime = C.Timeval{tv_sec: C.long(value.AlertTime.Sec),
 		tv_usec: C.long(value.AlertTime.Usec)}
-	warning.recvTime = C.Timeval{ tv_sec: C.long(value.RecvTime.Sec),
+	warning.recvTime = C.Timeval{tv_sec: C.long(value.RecvTime.Sec),
 		tv_usec: C.long(value.RecvTime.Usec)}
 
 	var bs []byte = make([]byte, len(value.SendGwId))
@@ -357,11 +412,11 @@ func GetWarningCrashRisk(value *CCrashRisk) int32 {
 	}
 
 	value.AlertTime = CTimeval{
-		Sec: int64(warning.alertTime.tv_sec),
+		Sec:  int64(warning.alertTime.tv_sec),
 		Usec: int64(warning.alertTime.tv_usec)}
 
 	value.RecvTime = CTimeval{
-		Sec: int64(warning.recvTime.tv_sec),
+		Sec:  int64(warning.recvTime.tv_sec),
 		Usec: int64(warning.recvTime.tv_usec)}
 
 	gwIdPtr := unsafe.Pointer(&warning.sendGwId[0])
@@ -398,7 +453,7 @@ func GetAccelerometer(value *CAccelerometer) int32 {
 		return -1
 	}
 
-	value.Tv = CTimeval{ Sec: int64(accelerometer.tv.tv_sec), Usec: int64(accelerometer.tv.tv_usec)}
+	value.Tv = CTimeval{Sec: int64(accelerometer.tv.tv_sec), Usec: int64(accelerometer.tv.tv_usec)}
 	value.X = int16(accelerometer.x)
 	value.Y = int16(accelerometer.y)
 	value.Z = int16(accelerometer.z)
@@ -410,6 +465,117 @@ func GetAccelerometer(value *CAccelerometer) int32 {
 	return 0
 }
 
+func GetRadar(value *CRadar) int32 {
+
+	radar := C.Radar{}
+	if C.getAccelerometer(&radar) != 0 {
+		return -1
+	}
+
+	value.Tv = CTimeval{
+		Sec:  int64(radar.tv.tv_sec),
+		Usec: int64(radar.tv.tv_usec),
+	}
+	value.U1 = CRadarUnit{
+		Id:     uint8(radar.u1.id),
+		X:      uint8(radar.u1.x),
+		Y:      uint8(radar.u1.y),
+		Dist:   uint8(radar.u1.dist),
+		DSpeed: uint8(radar.u1.d_speed),
+		OSpeed: uint8(radar.u1.o_speed),
+		Size:   uint8(radar.u1.size),
+		Flag:   uint8(radar.u1.flag),
+	}
+	value.U2 = CRadarUnit{
+		Id:     uint8(radar.u2.id),
+		X:      uint8(radar.u2.x),
+		Y:      uint8(radar.u2.y),
+		Dist:   uint8(radar.u2.dist),
+		DSpeed: uint8(radar.u2.d_speed),
+		OSpeed: uint8(radar.u2.o_speed),
+		Size:   uint8(radar.u2.size),
+		Flag:   uint8(radar.u2.flag),
+	}
+	value.U3 = CRadarUnit{
+		Id:     uint8(radar.u3.id),
+		X:      uint8(radar.u3.x),
+		Y:      uint8(radar.u3.y),
+		Dist:   uint8(radar.u3.dist),
+		DSpeed: uint8(radar.u3.d_speed),
+		OSpeed: uint8(radar.u3.o_speed),
+		Size:   uint8(radar.u3.size),
+		Flag:   uint8(radar.u3.flag),
+	}
+	value.U4 = CRadarUnit{
+		Id:     uint8(radar.u4.id),
+		X:      uint8(radar.u4.x),
+		Y:      uint8(radar.u4.y),
+		Dist:   uint8(radar.u4.dist),
+		DSpeed: uint8(radar.u4.d_speed),
+		OSpeed: uint8(radar.u4.o_speed),
+		Size:   uint8(radar.u4.size),
+		Flag:   uint8(radar.u4.flag),
+	}
+
+	return 0
+}
+
+func SetRadar(value *CRadar) int32 {
+	radar := C.Radar{}
+
+	radar.tv = C.Timeval{
+		tv_sec:  C.long(value.Tv.Sec),
+		tv_usec: C.long(value.Tv.Usec),
+	}
+
+	radar.u1 = C.RadarUnit{
+		id:      C.uint8_t(value.U1.Id),
+		x:       C.uint8_t(value.U1.X),
+		y:       C.uint8_t(value.U1.Y),
+		dist:    C.uint8_t(value.U1.Dist),
+		d_speed: C.uint8_t(value.U1.DSpeed),
+		o_speed: C.uint8_t(value.U1.OSpeed),
+		size:    C.uint8_t(value.U1.Size),
+		flag:    C.uint8_t(value.U1.Flag),
+	}
+
+	radar.u2 = C.RadarUnit{
+		id:      C.uint8_t(value.U2.Id),
+		x:       C.uint8_t(value.U2.X),
+		y:       C.uint8_t(value.U2.Y),
+		dist:    C.uint8_t(value.U2.Dist),
+		d_speed: C.uint8_t(value.U2.DSpeed),
+		o_speed: C.uint8_t(value.U2.OSpeed),
+		size:    C.uint8_t(value.U2.Size),
+		flag:    C.uint8_t(value.U2.Flag),
+	}
+
+	radar.u3 = C.RadarUnit{
+		id:      C.uint8_t(value.U3.Id),
+		x:       C.uint8_t(value.U3.X),
+		y:       C.uint8_t(value.U3.Y),
+		dist:    C.uint8_t(value.U3.Dist),
+		d_speed: C.uint8_t(value.U3.DSpeed),
+		o_speed: C.uint8_t(value.U3.OSpeed),
+		size:    C.uint8_t(value.U3.Size),
+		flag:    C.uint8_t(value.U3.Flag),
+	}
+
+	radar.u4 = C.RadarUnit{
+		id:      C.uint8_t(value.U4.Id),
+		x:       C.uint8_t(value.U4.X),
+		y:       C.uint8_t(value.U4.Y),
+		dist:    C.uint8_t(value.U4.Dist),
+		d_speed: C.uint8_t(value.U4.DSpeed),
+		o_speed: C.uint8_t(value.U4.OSpeed),
+		size:    C.uint8_t(value.U4.Size),
+		flag:    C.uint8_t(value.U4.Flag),
+	}
+
+	ret := C.setRadar(&radar)
+
+	return int32(ret)
+}
 
 /**
  * Jetson Nano 상태 정보를 공유메모리에 저장한다.
@@ -417,7 +583,7 @@ func GetAccelerometer(value *CAccelerometer) int32 {
 func SetTegraStats(value *CTegraStats) C.int32_t {
 
 	tegra := C.TegraStats{}
-	tegra.tv = C.Timeval{ tv_sec: C.long(value.Tv.Sec),
+	tegra.tv = C.Timeval{tv_sec: C.long(value.Tv.Sec),
 		tv_usec: C.long(value.Tv.Usec)}
 	tegra.ram = C.uint32_t(value.Ram)
 	tegra.swap = C.uint32_t(value.Swap)
@@ -443,7 +609,7 @@ func GetTegraStats(value *CTegraStats) int32 {
 	}
 
 	value.Tv = CTimeval{
-		Sec: int64(tegra.tv.tv_sec),
+		Sec:  int64(tegra.tv.tv_sec),
 		Usec: int64(tegra.tv.tv_usec)}
 
 	value.Ram = uint32(tegra.ram)
@@ -464,23 +630,23 @@ func GetTegraStats(value *CTegraStats) int32 {
 func SetDiagnosisStats(value *CDiagnosisStats) C.int32_t {
 
 	diag := C.DiagnosisStats{}
-	diag.tvBattery = C.Timeval{ tv_sec: C.long(value.TvBattery.Sec),
+	diag.tvBattery = C.Timeval{tv_sec: C.long(value.TvBattery.Sec),
 		tv_usec: C.long(value.TvBattery.Usec)}
 	diag.batteryLevel = C.int32_t(value.BatteryLevel)
-	diag.tvUsbStorage = C.Timeval{ tv_sec: C.long(value.TvUsbStorage.Sec),
+	diag.tvUsbStorage = C.Timeval{tv_sec: C.long(value.TvUsbStorage.Sec),
 		tv_usec: C.long(value.TvUsbStorage.Usec)}
 	diag.usbStorage = C.int32_t(value.UsbStorage)
-	diag.tvCamera = C.Timeval{ tv_sec: C.long(value.TvCamera.Sec),
+	diag.tvCamera = C.Timeval{tv_sec: C.long(value.TvCamera.Sec),
 		tv_usec: C.long(value.TvCamera.Usec)}
 	diag.camera00 = C.int32_t(value.Camera00)
 	diag.camera01 = C.int32_t(value.Camera01)
 	diag.camera02 = C.int32_t(value.Camera02)
 	diag.camera03 = C.int32_t(value.Camera03)
-	diag.tvAccelerometer = C.Timeval{ tv_sec: C.long(value.TvAccelerometer.Sec),
+	diag.tvAccelerometer = C.Timeval{tv_sec: C.long(value.TvAccelerometer.Sec),
 		tv_usec: C.long(value.TvAccelerometer.Usec)}
 	diag.accelerometer = C.int32_t(value.Accelerometer)
 
-	diag.tvFan = C.Timeval{ tv_sec: C.long(value.TvFan.Sec),
+	diag.tvFan = C.Timeval{tv_sec: C.long(value.TvFan.Sec),
 		tv_usec: C.long(value.TvFan.Usec)}
 	diag.fan = C.int32_t(value.Fan)
 
@@ -499,17 +665,17 @@ func GetDiagnosisStats(value *CDiagnosisStats) int32 {
 	}
 
 	value.TvBattery = CTimeval{
-		Sec: int64(diag.tvBattery.tv_sec),
+		Sec:  int64(diag.tvBattery.tv_sec),
 		Usec: int64(diag.tvBattery.tv_usec)}
 	value.BatteryLevel = int32(diag.batteryLevel)
 
 	value.TvUsbStorage = CTimeval{
-		Sec: int64(diag.tvUsbStorage.tv_sec),
+		Sec:  int64(diag.tvUsbStorage.tv_sec),
 		Usec: int64(diag.tvUsbStorage.tv_usec)}
 	value.UsbStorage = int32(diag.usbStorage)
 
 	value.TvCamera = CTimeval{
-		Sec: int64(diag.tvCamera.tv_sec),
+		Sec:  int64(diag.tvCamera.tv_sec),
 		Usec: int64(diag.tvCamera.tv_usec)}
 	value.Camera00 = int32(diag.camera00)
 	value.Camera01 = int32(diag.camera01)
@@ -517,12 +683,12 @@ func GetDiagnosisStats(value *CDiagnosisStats) int32 {
 	value.Camera03 = int32(diag.camera03)
 
 	value.TvAccelerometer = CTimeval{
-		Sec: int64(diag.tvAccelerometer.tv_sec),
+		Sec:  int64(diag.tvAccelerometer.tv_sec),
 		Usec: int64(diag.tvAccelerometer.tv_usec)}
 	value.Accelerometer = int32(diag.accelerometer)
 
 	value.TvFan = CTimeval{
-		Sec: int64(diag.tvFan.tv_sec),
+		Sec:  int64(diag.tvFan.tv_sec),
 		Usec: int64(diag.tvFan.tv_usec)}
 	value.Fan = int32(diag.fan)
 
@@ -533,35 +699,35 @@ func SetDiagnosisBattery(value *CDiagnosisStats) int32 {
 	diag := CDiagnosisStats{}
 	if GetDiagnosisStats(&diag) == 0 {
 		diag.TvBattery = CTimeval{
-			Sec: int64(value.TvBattery.Sec),
+			Sec:  int64(value.TvBattery.Sec),
 			Usec: int64(value.TvBattery.Usec)}
 		diag.BatteryLevel = int32(value.BatteryLevel)
 
 		return int32(SetDiagnosisStats(&diag))
 	}
 
-	return -1;
+	return -1
 }
 
 func SetDiagnosisUsbStorage(value *CDiagnosisStats) int32 {
 	diag := CDiagnosisStats{}
 	if GetDiagnosisStats(&diag) == 0 {
 		diag.TvUsbStorage = CTimeval{
-			Sec: int64(value.TvUsbStorage.Sec),
+			Sec:  int64(value.TvUsbStorage.Sec),
 			Usec: int64(value.TvUsbStorage.Usec)}
 		diag.UsbStorage = int32(value.UsbStorage)
 
 		return int32(SetDiagnosisStats(&diag))
 	}
 
-	return -1;
+	return -1
 }
 
 func SetDiagnosisCamera(value *CDiagnosisStats) int32 {
 	diag := CDiagnosisStats{}
 	if GetDiagnosisStats(&diag) == 0 {
 		diag.TvCamera = CTimeval{
-			Sec: int64(value.TvCamera.Sec),
+			Sec:  int64(value.TvCamera.Sec),
 			Usec: int64(value.TvCamera.Usec)}
 		diag.Camera00 = int32(value.Camera00)
 		diag.Camera01 = int32(value.Camera01)
@@ -571,33 +737,33 @@ func SetDiagnosisCamera(value *CDiagnosisStats) int32 {
 		return int32(SetDiagnosisStats(&diag))
 	}
 
-	return -1;
+	return -1
 }
 
 func SetDiagnosisAccelerometer(value *CDiagnosisStats) int32 {
 	diag := CDiagnosisStats{}
 	if GetDiagnosisStats(&diag) == 0 {
 		diag.TvAccelerometer = CTimeval{
-			Sec: int64(value.TvAccelerometer.Sec),
+			Sec:  int64(value.TvAccelerometer.Sec),
 			Usec: int64(value.TvAccelerometer.Usec)}
 		diag.Accelerometer = int32(value.Accelerometer)
 
 		return int32(SetDiagnosisStats(&diag))
 	}
 
-	return -1;
+	return -1
 }
 
 func SetDiagnosisFan(value *CDiagnosisStats) int32 {
 	diag := CDiagnosisStats{}
 	if GetDiagnosisStats(&diag) == 0 {
 		diag.TvFan = CTimeval{
-			Sec: int64(value.TvFan.Sec),
+			Sec:  int64(value.TvFan.Sec),
 			Usec: int64(value.TvFan.Usec)}
 		diag.Fan = int32(value.Fan)
 
 		return int32(SetDiagnosisStats(&diag))
 	}
 
-	return -1;
+	return -1
 }

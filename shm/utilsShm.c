@@ -10,11 +10,19 @@ size_t getMaxAllocSize(key_t key) {
 		return 256;
 	} else if(key == (key_t) SK_POSITIONPHASE_01) {
 		return 256;
+	} else if(key == (key_t) SK_POSITIONPHASE_02) {
+		return 256;
+	} else if(key == (key_t) SK_POSITIONPHASE_03) {
+		return 256;
 	} else if(key == (key_t) SK_ACCELEROMETER_THRESHOLD) {
 		return 256;
 	} else if(key == (key_t) SK_EVENT_APPROACH_00) {
 		return 256;
 	} else if(key == (key_t) SK_EVENT_APPROACH_01) {
+		return 256;
+	} else if(key == (key_t) SK_EVENT_APPROACH_02) {
+		return 256;
+	} else if(key == (key_t) SK_EVENT_APPROACH_03) {
 		return 256;
 	} else if(key == (key_t) SK_EVENT_APPROACH_FF) {
 		return 256;
@@ -22,15 +30,27 @@ size_t getMaxAllocSize(key_t key) {
 		return 256;
 	} else if(key == (key_t) SK_EVENT_CRASH_01) {
 		return 256;
+	} else if(key == (key_t) SK_EVENT_CRASH_02) {
+		return 256;
+	} else if(key == (key_t) SK_EVENT_CRASH_03) {
+		return 256;
 	} else if(key == (key_t) SK_EVENT_CRASH_RISK) {
 		return 256;
 	} else if(key == (key_t) SK_EVENT_SPLIT_TIME_00) {
 		return 256;
 	} else if(key == (key_t) SK_EVENT_SPLIT_TIME_01) {
 		return 256;
+	} else if(key == (key_t) SK_EVENT_SPLIT_TIME_02) {
+		return 256;
+	} else if(key == (key_t) SK_EVENT_SPLIT_TIME_03) {
+		return 256;
 	} else if(key == (key_t) SK_TEGRASTATS) {
 		return 256;
 	} else if(key == (key_t) SK_DIAGNOSISSTATS) {
+		return 256;
+	} else if(key == (key_t) SK_CONTROL_SCREEN) {
+		return 256;
+	} else if(key == (key_t) SK_RADAR) {
 		return 256;
 	}
 
@@ -55,6 +75,10 @@ int32_t setWarningApproach(Warning *value) {
 		size = getMaxAllocSize((key_t)SK_EVENT_APPROACH_00);
 	} else if(value->camera == 1) {
 		size = getMaxAllocSize((key_t)SK_EVENT_APPROACH_01);
+	} else if(value->camera == 2) {
+		size = getMaxAllocSize((key_t)SK_EVENT_APPROACH_02);
+	} else if(value->camera == 3) {
+		size = getMaxAllocSize((key_t)SK_EVENT_APPROACH_03);
 	} else if(value->camera == -1) {
 		size = getMaxAllocSize((key_t)SK_EVENT_APPROACH_FF);
 	} else {
@@ -71,6 +95,14 @@ int32_t setWarningApproach(Warning *value) {
 		}
 	} else if(value->camera == 1) {
 		if((shmId = shmget((key_t)SK_EVENT_APPROACH_01, shm_size, IPC_CREAT|0666)) == -1) {
+			return -1;
+		}
+	} else if(value->camera == 2) {
+		if((shmId = shmget((key_t)SK_EVENT_APPROACH_02, shm_size, IPC_CREAT|0666)) == -1) {
+			return -1;
+		}
+	} else if(value->camera == 3) {
+		if((shmId = shmget((key_t)SK_EVENT_APPROACH_03, shm_size, IPC_CREAT|0666)) == -1) {
 			return -1;
 		}
 	} else if(value->camera == -1) {
@@ -111,6 +143,10 @@ int32_t getWarningApproach(Warning *value, int32_t camera) {
 		size = getMaxAllocSize((key_t)SK_EVENT_APPROACH_00);
 	} else if(camera == 1) {
 		size = getMaxAllocSize((key_t)SK_EVENT_APPROACH_01);
+	} else if(camera == 2) {
+		size = getMaxAllocSize((key_t)SK_EVENT_APPROACH_02);
+	} else if(camera == 3) {
+		size = getMaxAllocSize((key_t)SK_EVENT_APPROACH_03);
 	} else if(camera == -1) {
 		size = getMaxAllocSize((key_t)SK_EVENT_APPROACH_FF);
 	} else {
@@ -127,6 +163,14 @@ int32_t getWarningApproach(Warning *value, int32_t camera) {
 		}
 	} else if(camera == 1) {
 		if((shmId = shmget((key_t)SK_EVENT_APPROACH_01, shm_size, IPC_CREAT|0666)) == -1) {
+			return -1;
+		}
+	} else if(camera == 2) {
+		if((shmId = shmget((key_t)SK_EVENT_APPROACH_02, shm_size, IPC_CREAT|0666)) == -1) {
+			return -1;
+		}
+	} else if(camera == 3) {
+		if((shmId = shmget((key_t)SK_EVENT_APPROACH_03, shm_size, IPC_CREAT|0666)) == -1) {
 			return -1;
 		}
 	} else if(camera == -1) {
@@ -169,6 +213,10 @@ int32_t setWarningCrash(Warning *value) {
 		size = getMaxAllocSize((key_t)SK_EVENT_CRASH_00);
 	} else if(value->camera == 1) {
 		size = getMaxAllocSize((key_t)SK_EVENT_CRASH_01);
+	} else if(value->camera == 2) {
+		size = getMaxAllocSize((key_t)SK_EVENT_CRASH_02);
+	} else if(value->camera == 3) {
+		size = getMaxAllocSize((key_t)SK_EVENT_CRASH_03);
 	} else {
 		return -1;
 	}
@@ -183,6 +231,14 @@ int32_t setWarningCrash(Warning *value) {
 		}
 	} else if(value->camera == 1) {
 		if((shmId = shmget((key_t)SK_EVENT_CRASH_01, shm_size, IPC_CREAT|0666)) == -1) {
+			return -1;
+		}
+	} else if(value->camera == 2) {
+		if((shmId = shmget((key_t)SK_EVENT_CRASH_02, shm_size, IPC_CREAT|0666)) == -1) {
+			return -1;
+		}
+	} else if(value->camera == 3) {
+		if((shmId = shmget((key_t)SK_EVENT_CRASH_03, shm_size, IPC_CREAT|0666)) == -1) {
 			return -1;
 		}
 	} else {
@@ -219,6 +275,10 @@ int32_t getWarningCrash(Warning *value, int32_t camera) {
 		size = getMaxAllocSize((key_t)SK_EVENT_CRASH_00);
 	} else if(camera == 1) {
 		size = getMaxAllocSize((key_t)SK_EVENT_CRASH_01);
+	} else if(camera == 2) {
+		size = getMaxAllocSize((key_t)SK_EVENT_CRASH_02);
+	} else if(camera == 3) {
+		size = getMaxAllocSize((key_t)SK_EVENT_CRASH_03);
 	} else {
 		return -1;
 	}
@@ -233,6 +293,14 @@ int32_t getWarningCrash(Warning *value, int32_t camera) {
 		}
 	} else if(camera == 1) {
 		if((shmId = shmget((key_t)SK_EVENT_CRASH_01, shm_size, IPC_CREAT|0666)) == -1) {
+			return -1;
+		}
+	} else if(camera == 2) {
+		if((shmId = shmget((key_t)SK_EVENT_CRASH_02, shm_size, IPC_CREAT|0666)) == -1) {
+			return -1;
+		}
+	} else if(camera == 3) {
+		if((shmId = shmget((key_t)SK_EVENT_CRASH_03, shm_size, IPC_CREAT|0666)) == -1) {
 			return -1;
 		}
 	} else {
@@ -345,6 +413,10 @@ int32_t setSplitTime(SplitTime *value) {
 		size = getMaxAllocSize((key_t)SK_EVENT_SPLIT_TIME_00);
 	} else if(value->camera == 1) {
 		size = getMaxAllocSize((key_t)SK_EVENT_SPLIT_TIME_01);
+	} else if(value->camera == 2) {
+		size = getMaxAllocSize((key_t)SK_EVENT_SPLIT_TIME_02);
+	} else if(value->camera == 3) {
+		size = getMaxAllocSize((key_t)SK_EVENT_SPLIT_TIME_03);
 	} else {
 		return -1;
 	}
@@ -359,6 +431,14 @@ int32_t setSplitTime(SplitTime *value) {
 		}
 	} else if(value->camera == 1) {
 		if((shmId = shmget((key_t)SK_EVENT_SPLIT_TIME_01, shm_size, IPC_CREAT|0666)) == -1) {
+			return -1;
+		}
+	} else if(value->camera == 2) {
+		if((shmId = shmget((key_t)SK_EVENT_SPLIT_TIME_02, shm_size, IPC_CREAT|0666)) == -1) {
+			return -1;
+		}
+	} else if(value->camera == 3) {
+		if((shmId = shmget((key_t)SK_EVENT_SPLIT_TIME_03, shm_size, IPC_CREAT|0666)) == -1) {
 			return -1;
 		}
 	} else {
@@ -395,6 +475,10 @@ int32_t getSplitTime(SplitTime *value, int32_t camera) {
 		size = getMaxAllocSize((key_t)SK_EVENT_SPLIT_TIME_00);
 	} else if(camera == 1) {
 		size = getMaxAllocSize((key_t)SK_EVENT_SPLIT_TIME_01);
+	} else if(camera == 2) {
+		size = getMaxAllocSize((key_t)SK_EVENT_SPLIT_TIME_02);
+	} else if(camera == 3) {
+		size = getMaxAllocSize((key_t)SK_EVENT_SPLIT_TIME_03);
 	} else {
 		return -1;
 	}
@@ -409,6 +493,14 @@ int32_t getSplitTime(SplitTime *value, int32_t camera) {
 		}
 	} else if(camera == 1) {
 		if((shmId = shmget((key_t)SK_EVENT_SPLIT_TIME_01, shm_size, IPC_CREAT|0666)) == -1) {
+			return -1;
+		}
+	} else if(camera == 2) {
+		if((shmId = shmget((key_t)SK_EVENT_SPLIT_TIME_02, shm_size, IPC_CREAT|0666)) == -1) {
+			return -1;
+		}
+	} else if(camera == 3) {
+		if((shmId = shmget((key_t)SK_EVENT_SPLIT_TIME_03, shm_size, IPC_CREAT|0666)) == -1) {
 			return -1;
 		}
 	} else {
@@ -573,6 +665,76 @@ int32_t getAccelerometer(Accelerometer *value) {
 }
 
 /**
+ * 레이다 접근 감지 센서 값을 공유메모리에 저장한다.
+ */
+int32_t setRadar(Radar *value) {
+	int shmId;
+	int8_t *shmPtr;
+
+	size_t shm_size = sizeof(Radar);
+	size_t size = 0;
+
+	if(value == NULL) {
+		return -1;
+	}
+
+	size = getMaxAllocSize((key_t)SK_RADAR);
+
+	if(shm_size < size) {
+		shm_size = size;
+	}
+
+	if((shmId = shmget((key_t)SK_RADAR, shm_size, IPC_CREAT|0666)) == -1) {
+		return -1;
+	}
+
+	if((shmPtr = (int8_t *)shmat(shmId, (const void *)NULL, 0)) == (void *)-1) {
+		return -1;
+	}
+
+	memcpy(shmPtr, value, sizeof(Radar));
+
+	shmdt(shmPtr);
+
+	return 0;
+}
+
+/**
+ * 레이다 접근 감지 센서 값을 읽어온다.
+ */
+int32_t getRadar(Radar *value) {
+	int shmId;
+	int8_t *shmPtr;
+
+	size_t shm_size = sizeof(Radar);
+	size_t size = 0;
+
+	if(value == NULL) {
+		return -1;
+	}
+
+	size = getMaxAllocSize((key_t)SK_RADAR);
+
+	if(shm_size < size) {
+		shm_size = size;
+	}
+
+	if((shmId = shmget((key_t)SK_RADAR, shm_size, IPC_CREAT|0666)) == -1) {
+		return -1;
+	}
+
+	if((shmPtr = (int8_t *)shmat(shmId, (const void *)NULL, 0)) == (void *)-1) {
+		return -1;
+	}
+
+	memcpy(value, shmPtr, sizeof(Radar));
+
+	shmdt(shmPtr);
+
+	return 0;
+}
+
+/**
  * 접근 감지 비율을 공유메모리에 저장한다.
  */
 int32_t setPositionPhase(PositionPhase *value) {
@@ -589,6 +751,10 @@ int32_t setPositionPhase(PositionPhase *value) {
 		size = getMaxAllocSize((key_t)SK_POSITIONPHASE_00);
 	} else if(value->camera == 1) {
 		size = getMaxAllocSize((key_t)SK_POSITIONPHASE_01);
+	} else if(value->camera == 2) {
+		size = getMaxAllocSize((key_t)SK_POSITIONPHASE_02);
+	} else if(value->camera == 3) {
+		size = getMaxAllocSize((key_t)SK_POSITIONPHASE_03);
 	} else {
 		return -1;
 	}
@@ -603,6 +769,14 @@ int32_t setPositionPhase(PositionPhase *value) {
 		}
 	} else if(value->camera == 1) {
 		if((shmId = shmget((key_t)SK_POSITIONPHASE_01, shm_size, IPC_CREAT|0666)) == -1) {
+			return -1;
+		}
+	} else if(value->camera == 2) {
+		if((shmId = shmget((key_t)SK_POSITIONPHASE_02, shm_size, IPC_CREAT|0666)) == -1) {
+			return -1;
+		}
+	} else if(value->camera == 3) {
+		if((shmId = shmget((key_t)SK_POSITIONPHASE_03, shm_size, IPC_CREAT|0666)) == -1) {
 			return -1;
 		}
 	} else {
@@ -639,6 +813,10 @@ int32_t getPositionPhase(PositionPhase *value, int32_t camera) {
 		size = getMaxAllocSize((key_t)SK_POSITIONPHASE_00);
 	} else if(camera == 1) {
 		size = getMaxAllocSize((key_t)SK_POSITIONPHASE_01);
+	} else if(camera == 2) {
+		size = getMaxAllocSize((key_t)SK_POSITIONPHASE_02);
+	} else if(camera == 3) {
+		size = getMaxAllocSize((key_t)SK_POSITIONPHASE_03);
 	} else {
 		return -1;
 	}
@@ -653,6 +831,14 @@ int32_t getPositionPhase(PositionPhase *value, int32_t camera) {
 		}
 	} else if(camera == 1) {
 		if((shmId = shmget((key_t)SK_POSITIONPHASE_01, shm_size, IPC_CREAT|0666)) == -1) {
+			return -1;
+		}
+	} else if(camera == 2) {
+		if((shmId = shmget((key_t)SK_POSITIONPHASE_02, shm_size, IPC_CREAT|0666)) == -1) {
+			return -1;
+		}
+	} else if(camera == 3) {
+		if((shmId = shmget((key_t)SK_POSITIONPHASE_03, shm_size, IPC_CREAT|0666)) == -1) {
 			return -1;
 		}
 	} else {
@@ -1023,3 +1209,143 @@ int32_t setDiagnosisFan(DiagnosisStats *value) {
 
 	return 0;
 }
+
+/**
+ * 화면 출력 상태를 조정한다.
+ */
+int32_t setControlScreen(ControlScreen *value) {
+	int shmId;
+	int8_t *shmPtr;
+	size_t shm_size = sizeof(ControlScreen);
+	size_t size = 0;
+
+	if(value == NULL) {
+		return -1;
+	}
+
+	size = getMaxAllocSize((key_t)SK_CONTROL_SCREEN);
+
+	if(shm_size < size) {
+		shm_size = size;
+	}
+
+    if((shmId = shmget((key_t)SK_CONTROL_SCREEN, shm_size, IPC_CREAT|0666)) == -1) {
+        return -1;
+    }
+
+	if((shmPtr = (int8_t *)shmat(shmId, (const void *)NULL, 0)) == (void *)-1) {
+		return -1;
+	}
+
+	memcpy(shmPtr, value, sizeof(ControlScreen));
+
+	shmdt(shmPtr);
+
+	return 0;
+}
+
+int32_t getControlScreen(ControlScreen *value) {
+	int shmId;
+	int8_t *shmPtr;
+	size_t shm_size = sizeof(ControlScreen);
+	size_t size = 0;
+	ControlScreen *pp;
+
+	if(value == NULL) {
+		return -1;
+	}
+
+	size = getMaxAllocSize((key_t)SK_CONTROL_SCREEN);
+
+	if(shm_size < size) {
+		shm_size = size;
+	}
+
+    if((shmId = shmget((key_t)SK_CONTROL_SCREEN, shm_size, IPC_CREAT|0666)) == -1) {
+        return -1;
+    }
+
+	if((shmPtr = (int8_t *)shmat(shmId, (const void *)NULL, 0)) == (void *)-1) {
+		return -1;
+	}
+
+	// 공유메모리 주소
+	pp = (ControlScreen *)shmPtr;
+	memcpy(value, pp, sizeof(ControlScreen));
+
+    shmdt(shmPtr);
+    return 0;
+}
+
+/*
+ * 사용자가 터치 스크린으로 조작한 화면 방향
+ */
+int32_t setManualScreen(ControlScreen *value) {
+	int shmId;
+	int8_t *shmPtr;
+	size_t shm_size = sizeof(ControlScreen);
+	size_t size = 0;
+	ControlScreen *pp;
+
+	if(value == NULL) {
+		return -1;
+	}
+
+	size = getMaxAllocSize((key_t)SK_CONTROL_SCREEN);
+
+	if(shm_size < size) {
+		shm_size = size;
+	}
+
+    if((shmId = shmget((key_t)SK_CONTROL_SCREEN, shm_size, IPC_CREAT|0666)) == -1) {
+        return -1;
+    }
+
+	if((shmPtr = (int8_t *)shmat(shmId, (const void *)NULL, 0)) == (void *)-1) {
+		return -1;
+	}
+
+	pp = (ControlScreen *)shmPtr;
+	pp->manualTime = value->manualTime;
+	pp->screen_manual = value->screen_manual;
+
+	shmdt(shmPtr);
+    return 0;
+}
+
+/*
+ * GPIO에 의해 조작한 화면 방향
+ */
+int32_t setGpioScreen(ControlScreen *value) {
+	int shmId;
+	int8_t *shmPtr;
+	size_t shm_size = sizeof(ControlScreen);
+	size_t size = 0;
+	ControlScreen *pp;
+
+	if(value == NULL) {
+		return -1;
+	}
+
+	size = getMaxAllocSize((key_t)SK_CONTROL_SCREEN);
+
+	if(shm_size < size) {
+		shm_size = size;
+	}
+
+    if((shmId = shmget((key_t)SK_CONTROL_SCREEN, shm_size, IPC_CREAT|0666)) == -1) {
+        return -1;
+    }
+
+	if((shmPtr = (int8_t *)shmat(shmId, (const void *)NULL, 0)) == (void *)-1) {
+		return -1;
+	}
+
+	pp = (ControlScreen *)shmPtr;
+	pp->gpioTime = value->gpioTime;
+	pp->screen_gpio = value->screen_gpio;
+
+	shmdt(shmPtr);
+    return 0;
+}
+
