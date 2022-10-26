@@ -369,6 +369,8 @@ func GetTransmissionMethod4YMTECH(order binary.ByteOrder, data []byte) int {
 		return METHOD_MQTT
 	} else if bytes.HasPrefix(data, BB_RAW_ACCELEROMETER) {
 		return METHOD_MQTT
+	} else if bytes.HasPrefix(data, BB_RADAR_APPROACH_FILE) {
+		return METHOD_MQTT
 	} else if bytes.HasPrefix(data, BB_UWB_LOCATION) {
 		// 제조현장 지게차 UWB 위치 정보
 		return METHOD_MQTT
