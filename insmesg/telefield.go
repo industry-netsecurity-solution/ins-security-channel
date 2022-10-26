@@ -19,14 +19,14 @@ func MakeWrappedPacketFor0x8F8F(data []byte, additional ins.Map) *bytes.Buffer {
 	l3payload.Write(data)
 
 	// GW 식별
-	gwid := additional.Get(ins.MapKey([]byte {0x80, 0x01}))
+	gwid := additional.Get(ins.MapKey([]byte{0x80, 0x01}))
 	if gwid == nil {
 		l3payload.Write(ins.EncTagLnV(binary.LittleEndian, []byte{0x80, 0x01}, 32, []byte{}))
 	} else {
 		l3payload.Write(ins.EncTagLnV(binary.LittleEndian, []byte{0x80, 0x01}, 32, gwid.([]byte)))
 	}
 	// 시간 추가
-	unix32 := additional.Get(ins.MapKey([]byte {0x80, 0x02}))
+	unix32 := additional.Get(ins.MapKey([]byte{0x80, 0x02}))
 	if unix32 == nil {
 		unix32 = uint32(time.Now().Unix())
 	}
@@ -35,7 +35,7 @@ func MakeWrappedPacketFor0x8F8F(data []byte, additional ins.Map) *bytes.Buffer {
 	// level 2 payload
 	l2payload := bytes.Buffer{}
 	//0x30, 01, payloadLength, payload
-	l2payload.Write(ins.EncTagLnV(binary.LittleEndian, ins.BB_RADAR_APPROACH, 32, l3payload.Bytes()))
+	l2payload.Write(ins.EncTagLnV(binary.LittleEndian, ins.BB_RADAR_APPROACH_EVENT, 32, l3payload.Bytes()))
 
 	buffer := &bytes.Buffer{}
 
