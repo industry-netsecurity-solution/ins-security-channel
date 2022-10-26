@@ -127,6 +127,9 @@ var BB_EVENT_COLLISION = []byte{0x00, 0x09}
 // RTLS 서버 & 충돌 예측 서버
 var CGW_COLLISION_RISK = []byte{0x00, 0x10}
 
+// 레이다 접근 감지 파일
+var BB_RADAR_APPROACH_FILE = []byte{0x00, 0x11}
+
 // 접근 감지
 var BB_APPROACH_OBJECT = []byte{0x00, 0x0A}
 
@@ -148,7 +151,6 @@ var GW_RELAY_STATUS_CONSTRUCTION = []byte{0x00, 0x87}
 
 // 텔레필드 레이다(RADAR)
 var BB_RADAR_APPROACH_EVENT = []byte{0x20, 0x01}
-var BB_RADAR_APPROACH_FILE = []byte{0x20, 0x02}
 
 // 에이브레인 작업자 식별
 var BB_WORKER_IDENTITY = []byte{0x30, 0x01}

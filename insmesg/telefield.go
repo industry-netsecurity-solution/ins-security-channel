@@ -34,7 +34,8 @@ func MakeWrappedPacketFor0x8F8F(data []byte, additional ins.Map) *bytes.Buffer {
 
 	// level 2 payload
 	l2payload := bytes.Buffer{}
-	//0x30, 01, payloadLength, payload
+
+	//0x20, 01, payloadLength, payload
 	l2payload.Write(ins.EncTagLnV(binary.LittleEndian, ins.BB_RADAR_APPROACH_EVENT, 32, l3payload.Bytes()))
 
 	buffer := &bytes.Buffer{}
