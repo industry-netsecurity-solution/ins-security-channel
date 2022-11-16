@@ -31,13 +31,15 @@ type MQTTConfigurations struct {
 }
 
 type ServiceConfigurations struct {
-	EnableTls bool
-	CaCert    string
-	TlsCert   string
-	TlsKey    string
-	Address   string
-	Port      int64
-	Timeout   int64
+	EnableTls    bool
+	CaCert       string
+	TlsCert      string
+	TlsKey       string
+	Address      string
+	Port         int64
+	Timeout      int64
+	ReadTimeout  int64
+	WriteTimeout int64
 }
 
 type HttpConfigurations struct {
