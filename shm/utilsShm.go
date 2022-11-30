@@ -41,11 +41,11 @@ typedef struct accelerometer_ {
 
 typedef struct radarunit_ {
 	uint8_t id;
-	uint8_t x;
+	int8_t x;
 	uint8_t y;
 	uint8_t dist;
-	uint8_t d_speed;
-	uint8_t o_speed;
+	int8_t d_speed;
+	int8_t o_speed;
 	uint8_t size;
 	uint8_t flag;
 } RadarUnit;
@@ -206,11 +206,11 @@ type CAccelerometer struct {
 
 type CRadarUnit struct {
 	Id     uint8
-	X      uint8
+	X      int8 // -127 ~ 127 : -12.7m ~ 12.7m
 	Y      uint8
-	Dist   uint8
-	DSpeed uint8
-	OSpeed uint8
+	Dist   uint8 // 0 ~ 255 : 0.0m ~ 25.5m
+	DSpeed int8  // -127 ~ 127 : -12.7m/s ~ 12.7m/s
+	OSpeed int8  // -127 ~ 127 : -12.7m/s ~ 12.7m/s
 	Size   uint8
 	Flag   uint8
 }
@@ -490,41 +490,41 @@ func GetRadar(value *CRadar) int32 {
 
 	value.U1 = CRadarUnit{
 		Id:     uint8(radar.u1.id),
-		X:      uint8(radar.u1.x),
+		X:      int8(radar.u1.x),
 		Y:      uint8(radar.u1.y),
 		Dist:   uint8(radar.u1.dist),
-		DSpeed: uint8(radar.u1.d_speed),
-		OSpeed: uint8(radar.u1.o_speed),
+		DSpeed: int8(radar.u1.d_speed),
+		OSpeed: int8(radar.u1.o_speed),
 		Size:   uint8(radar.u1.size),
 		Flag:   uint8(radar.u1.flag),
 	}
 	value.U2 = CRadarUnit{
 		Id:     uint8(radar.u2.id),
-		X:      uint8(radar.u2.x),
+		X:      int8(radar.u2.x),
 		Y:      uint8(radar.u2.y),
 		Dist:   uint8(radar.u2.dist),
-		DSpeed: uint8(radar.u2.d_speed),
-		OSpeed: uint8(radar.u2.o_speed),
+		DSpeed: int8(radar.u2.d_speed),
+		OSpeed: int8(radar.u2.o_speed),
 		Size:   uint8(radar.u2.size),
 		Flag:   uint8(radar.u2.flag),
 	}
 	value.U3 = CRadarUnit{
 		Id:     uint8(radar.u3.id),
-		X:      uint8(radar.u3.x),
+		X:      int8(radar.u3.x),
 		Y:      uint8(radar.u3.y),
 		Dist:   uint8(radar.u3.dist),
-		DSpeed: uint8(radar.u3.d_speed),
-		OSpeed: uint8(radar.u3.o_speed),
+		DSpeed: int8(radar.u3.d_speed),
+		OSpeed: int8(radar.u3.o_speed),
 		Size:   uint8(radar.u3.size),
 		Flag:   uint8(radar.u3.flag),
 	}
 	value.U4 = CRadarUnit{
 		Id:     uint8(radar.u4.id),
-		X:      uint8(radar.u4.x),
+		X:      int8(radar.u4.x),
 		Y:      uint8(radar.u4.y),
 		Dist:   uint8(radar.u4.dist),
-		DSpeed: uint8(radar.u4.d_speed),
-		OSpeed: uint8(radar.u4.o_speed),
+		DSpeed: int8(radar.u4.d_speed),
+		OSpeed: int8(radar.u4.o_speed),
 		Size:   uint8(radar.u4.size),
 		Flag:   uint8(radar.u4.flag),
 	}
@@ -554,44 +554,44 @@ func SetRadar(value *CRadar) int32 {
 
 	radar.u1 = C.RadarUnit{
 		id:      C.uint8_t(value.U1.Id),
-		x:       C.uint8_t(value.U1.X),
+		x:       C.int8_t(value.U1.X),
 		y:       C.uint8_t(value.U1.Y),
 		dist:    C.uint8_t(value.U1.Dist),
-		d_speed: C.uint8_t(value.U1.DSpeed),
-		o_speed: C.uint8_t(value.U1.OSpeed),
+		d_speed: C.int8_t(value.U1.DSpeed),
+		o_speed: C.int8_t(value.U1.OSpeed),
 		size:    C.uint8_t(value.U1.Size),
 		flag:    C.uint8_t(value.U1.Flag),
 	}
 
 	radar.u2 = C.RadarUnit{
 		id:      C.uint8_t(value.U2.Id),
-		x:       C.uint8_t(value.U2.X),
+		x:       C.int8_t(value.U2.X),
 		y:       C.uint8_t(value.U2.Y),
 		dist:    C.uint8_t(value.U2.Dist),
-		d_speed: C.uint8_t(value.U2.DSpeed),
-		o_speed: C.uint8_t(value.U2.OSpeed),
+		d_speed: C.int8_t(value.U2.DSpeed),
+		o_speed: C.int8_t(value.U2.OSpeed),
 		size:    C.uint8_t(value.U2.Size),
 		flag:    C.uint8_t(value.U2.Flag),
 	}
 
 	radar.u3 = C.RadarUnit{
 		id:      C.uint8_t(value.U3.Id),
-		x:       C.uint8_t(value.U3.X),
+		x:       C.int8_t(value.U3.X),
 		y:       C.uint8_t(value.U3.Y),
 		dist:    C.uint8_t(value.U3.Dist),
-		d_speed: C.uint8_t(value.U3.DSpeed),
-		o_speed: C.uint8_t(value.U3.OSpeed),
+		d_speed: C.int8_t(value.U3.DSpeed),
+		o_speed: C.int8_t(value.U3.OSpeed),
 		size:    C.uint8_t(value.U3.Size),
 		flag:    C.uint8_t(value.U3.Flag),
 	}
 
 	radar.u4 = C.RadarUnit{
 		id:      C.uint8_t(value.U4.Id),
-		x:       C.uint8_t(value.U4.X),
+		x:       C.int8_t(value.U4.X),
 		y:       C.uint8_t(value.U4.Y),
 		dist:    C.uint8_t(value.U4.Dist),
-		d_speed: C.uint8_t(value.U4.DSpeed),
-		o_speed: C.uint8_t(value.U4.OSpeed),
+		d_speed: C.int8_t(value.U4.DSpeed),
+		o_speed: C.int8_t(value.U4.OSpeed),
 		size:    C.uint8_t(value.U4.Size),
 		flag:    C.uint8_t(value.U4.Flag),
 	}
