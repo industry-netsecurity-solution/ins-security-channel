@@ -65,14 +65,44 @@ func AES256GSMDecrypt(secretKey []byte, ciphertext []byte) ([]byte, error) {
 
 	return plaintext, nil
 }
-func GenSecretkey(passphrase string) ([]byte, error) {
+
+func GetGCM(secretKey []byte) (cipher.AEAD, error) {
+
+	if len(secretKey) != 32 {
+		return nil, fmt.Errorf("secret key is not for AES-256: must be 256 bits")
+	}
+
+	// prepare AES-256-GSM cipher
+	block, err := aes.NewCipher(secretKey)
+	if err != nil {
+		return nil, err
+	}
+
+	aesgcm, err := cipher.NewGCM(block)
+	if err != nil {
+		return nil, err
+	}
+
+	return aesgcm, nil
+}
+
+func GenSecretkeyByPassphrase(passphrase []byte) ([]byte, error) {
 	hash := sha256.New()
-	_, err := hash.Write([]byte(passphrase))
+	_, err := hash.Write(passphrase)
 	if err != nil {
 		return nil, err
 	}
 
 	secretKey := hash.Sum(nil)
+
+	return secretKey, nil
+}
+
+func GenSecretkeyByRandom(size int) ([]byte, error) {
+	secretKey := make([]byte, size)
+	if _, err := io.ReadFull(rand.Reader, secretKey); err != nil {
+		return nil, err
+	}
 
 	return secretKey, nil
 }
