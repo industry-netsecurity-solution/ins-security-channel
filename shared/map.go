@@ -5,13 +5,13 @@ import (
 )
 
 type Pair struct {
-	Key interface{}
+	Key   interface{}
 	Value interface{}
 }
 
 type ConcurrentMap struct {
 	sync.RWMutex
-	dic     map[interface{}]interface{}
+	dic map[interface{}]interface{}
 }
 
 func NewConcurrentMap() *ConcurrentMap {
@@ -47,7 +47,7 @@ func (m *ConcurrentMap) Has(key interface{}) bool {
 	defer m.RUnlock()
 
 	_, ok := m.dic[key]
-	return  ok
+	return ok
 }
 
 func (m *ConcurrentMap) Get(key interface{}) (interface{}, bool) {
@@ -55,7 +55,7 @@ func (m *ConcurrentMap) Get(key interface{}) (interface{}, bool) {
 	defer m.RUnlock()
 
 	value, ok := m.dic[key]
-	return  value, ok
+	return value, ok
 }
 
 func (m *ConcurrentMap) Set(key interface{}, value interface{}) (interface{}, bool) {
@@ -79,13 +79,13 @@ func (m *ConcurrentMap) Len() int {
 	return len(m.dic)
 }
 
-func (m *ConcurrentMap) Range(cb func(interface{}, interface{}) bool ) {
+func (m *ConcurrentMap) Range(cb func(interface{}, interface{}) bool) {
 	m.RLock()
 	defer m.RUnlock()
 
 	for k, v := range m.dic {
 		if cb(k, v) == false {
-			return;
+			return
 		}
 	}
 }
