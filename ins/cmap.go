@@ -8,7 +8,7 @@ import (
 )
 
 type Pair struct {
-	Key interface{}
+	Key   interface{}
 	Value interface{}
 }
 
@@ -40,15 +40,20 @@ func (m Map) Len() int {
 	return len(m)
 }
 
-func (m Map) Range(cb func(key interface{}, value interface{}) bool ) {
+func (m Map) Range(cb func(key interface{}, value interface{}) bool) {
 	for k, v := range m {
 		if cb(k, v) == false {
-			return;
+			return
 		}
 	}
 }
 
-func ( d Map ) SetPair(pair...Pair) {
+func (d Map) GetPair(key interface{}) (Pair, bool) {
+	value, ok := d[key]
+	return Pair{key, value}, ok
+}
+
+func (d Map) SetPair(pair ...Pair) {
 	for _, p := range pair {
 		d[p.Key] = p.Value
 	}
@@ -90,18 +95,25 @@ func (m Map) GetValues() []interface{} {
 	return result
 }
 
-func ( d Map ) Set(key interface{}, value interface{}) {
+func (d Map) Set(key interface{}, value interface{}) (interface{}, bool) {
+	var old interface{} = nil
+	var ok bool
+	if old, ok = d[key]; ok {
+	}
+
 	d[key] = value
+
+	return old, ok
 }
 
-func ( d Map ) Get(key interface{}) interface{} {
+func (d Map) Get(key interface{}) interface{} {
 	if value, ok := d[key]; ok {
 		return value
 	}
 	return nil
 }
 
-func ( d Map ) Has(key interface{}) bool {
+func (d Map) Has(key interface{}) bool {
 	_, ok := d[key]
 	return ok
 }
