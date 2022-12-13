@@ -10,16 +10,16 @@ import (
 )
 
 type MessageDescription struct {
-	IsAllow         bool
-	Source        []interface{}
-	MesgType        int
-	MesgId          interface{}
+	IsAllow  bool
+	Source   []interface{}
+	MesgType int
+	MesgId   interface{}
 }
 
 /*
  * 제조현장 스마트 게이트웨이 파일 전송을 확인한다.
  */
-func IsAllowYM0x0001TO0006(order binary.ByteOrder, whiteGateway, whiteDevice *shared.ConcurrentMap, tl32v *ins.TL32V) (bool, error) {
+func IsAllowYM0x0001TO0006(order binary.ByteOrder, whiteGateway, whiteDevice shared.ConcurrentMap, tl32v *ins.TL32V) (bool, error) {
 
 	if whiteGateway == nil {
 		return true, nil
@@ -46,7 +46,7 @@ func IsAllowYM0x0001TO0006(order binary.ByteOrder, whiteGateway, whiteDevice *sh
 	return true, nil
 }
 
-func IsAllowUWBLocation(order binary.ByteOrder, whiteGateway, whiteDevice *shared.ConcurrentMap, tl32v *ins.TL32V) (bool, error) {
+func IsAllowUWBLocation(order binary.ByteOrder, whiteGateway, whiteDevice shared.ConcurrentMap, tl32v *ins.TL32V) (bool, error) {
 
 	if whiteGateway == nil {
 		return true, nil
@@ -73,7 +73,7 @@ func IsAllowUWBLocation(order binary.ByteOrder, whiteGateway, whiteDevice *share
 	return true, nil
 }
 
-func IsAllowEventCollision(order binary.ByteOrder, whiteGateway, whiteDevice *shared.ConcurrentMap, tl32v *ins.TL32V) (bool, error) {
+func IsAllowEventCollision(order binary.ByteOrder, whiteGateway, whiteDevice shared.ConcurrentMap, tl32v *ins.TL32V) (bool, error) {
 
 	if whiteGateway == nil {
 		return true, nil
@@ -100,7 +100,7 @@ func IsAllowEventCollision(order binary.ByteOrder, whiteGateway, whiteDevice *sh
 	return true, nil
 }
 
-func IsAllowApproachObject(order binary.ByteOrder, whiteGateway, whiteDevice *shared.ConcurrentMap, tl32v *ins.TL32V) (bool, error) {
+func IsAllowApproachObject(order binary.ByteOrder, whiteGateway, whiteDevice shared.ConcurrentMap, tl32v *ins.TL32V) (bool, error) {
 
 	if whiteGateway == nil {
 		return true, nil
@@ -127,7 +127,7 @@ func IsAllowApproachObject(order binary.ByteOrder, whiteGateway, whiteDevice *sh
 	return true, nil
 }
 
-func IsAllowEventCollisionRisk(order binary.ByteOrder, whiteGateway, whiteDevice *shared.ConcurrentMap, tl32v *ins.TL32V) (bool, error) {
+func IsAllowEventCollisionRisk(order binary.ByteOrder, whiteGateway, whiteDevice shared.ConcurrentMap, tl32v *ins.TL32V) (bool, error) {
 
 	if whiteGateway == nil {
 		return true, nil
@@ -154,7 +154,7 @@ func IsAllowEventCollisionRisk(order binary.ByteOrder, whiteGateway, whiteDevice
 	return true, nil
 }
 
-func IsAllowCenterStatusInFactory(order binary.ByteOrder, whiteGateway, whiteDevice *shared.ConcurrentMap, tl32v *ins.TL32V) (bool, error) {
+func IsAllowCenterStatusInFactory(order binary.ByteOrder, whiteGateway, whiteDevice shared.ConcurrentMap, tl32v *ins.TL32V) (bool, error) {
 
 	if whiteGateway == nil {
 		return true, nil
@@ -181,7 +181,7 @@ func IsAllowCenterStatusInFactory(order binary.ByteOrder, whiteGateway, whiteDev
 	return true, nil
 }
 
-func IsAllowRelayStatusInFactory(order binary.ByteOrder, whiteGateway, whiteDevice *shared.ConcurrentMap, tl32v *ins.TL32V) (bool, error) {
+func IsAllowRelayStatusInFactory(order binary.ByteOrder, whiteGateway, whiteDevice shared.ConcurrentMap, tl32v *ins.TL32V) (bool, error) {
 
 	if whiteGateway == nil {
 		return true, nil
@@ -211,7 +211,7 @@ func IsAllowRelayStatusInFactory(order binary.ByteOrder, whiteGateway, whiteDevi
 /*
  * 제조현장 스마트 게이트웨이 상태 정보를 확인한다.
  */
-func IsAllowSmartStatusInFactory(order binary.ByteOrder, whiteGateway, whiteDevice *shared.ConcurrentMap, tl32v *ins.TL32V) (bool, error) {
+func IsAllowSmartStatusInFactory(order binary.ByteOrder, whiteGateway, whiteDevice shared.ConcurrentMap, tl32v *ins.TL32V) (bool, error) {
 
 	if whiteGateway == nil {
 		return true, nil
@@ -238,7 +238,7 @@ func IsAllowSmartStatusInFactory(order binary.ByteOrder, whiteGateway, whiteDevi
 	return true, nil
 }
 
-func IsAllowCenterStatusInDangerzone(order binary.ByteOrder, whiteGateway, whiteDevice *shared.ConcurrentMap, tl32v *ins.TL32V) (bool, error) {
+func IsAllowCenterStatusInDangerzone(order binary.ByteOrder, whiteGateway, whiteDevice shared.ConcurrentMap, tl32v *ins.TL32V) (bool, error) {
 
 	if whiteGateway == nil {
 		return true, nil
@@ -265,7 +265,7 @@ func IsAllowCenterStatusInDangerzone(order binary.ByteOrder, whiteGateway, white
 	return true, nil
 }
 
-func IsAllowSmartStatusInDangerzone(order binary.ByteOrder, whiteGateway, whiteDevice *shared.ConcurrentMap, tl32v *ins.TL32V) (bool, error) {
+func IsAllowSmartStatusInDangerzone(order binary.ByteOrder, whiteGateway, whiteDevice shared.ConcurrentMap, tl32v *ins.TL32V) (bool, error) {
 
 	if whiteGateway == nil {
 		return true, nil
@@ -292,7 +292,7 @@ func IsAllowSmartStatusInDangerzone(order binary.ByteOrder, whiteGateway, whiteD
 	return true, nil
 }
 
-func IsAllowPortableStatusInConstruction(order binary.ByteOrder, whiteGateway, whiteDevice *shared.ConcurrentMap, tl32v *ins.TL32V) (bool, error) {
+func IsAllowPortableStatusInConstruction(order binary.ByteOrder, whiteGateway, whiteDevice shared.ConcurrentMap, tl32v *ins.TL32V) (bool, error) {
 
 	if whiteGateway == nil {
 		return true, nil
@@ -319,7 +319,7 @@ func IsAllowPortableStatusInConstruction(order binary.ByteOrder, whiteGateway, w
 	return true, nil
 }
 
-func IsAllowRelayStatusInConstruction(order binary.ByteOrder, whiteGateway, whiteDevice *shared.ConcurrentMap, tl32v *ins.TL32V) (bool, error) {
+func IsAllowRelayStatusInConstruction(order binary.ByteOrder, whiteGateway, whiteDevice shared.ConcurrentMap, tl32v *ins.TL32V) (bool, error) {
 
 	if whiteGateway == nil {
 		return true, nil
@@ -346,12 +346,12 @@ func IsAllowRelayStatusInConstruction(order binary.ByteOrder, whiteGateway, whit
 	return true, nil
 }
 
-func IsAllowYM0xFFFF(order binary.ByteOrder, whiteGateway, whiteDevice *shared.ConcurrentMap, tl32v *ins.TL32V) (bool, error) {
+func IsAllowYM0xFFFF(order binary.ByteOrder, whiteGateway, whiteDevice shared.ConcurrentMap, tl32v *ins.TL32V) (bool, error) {
 
 	return true, nil
 }
 
-func IsAllowYMTECH(order binary.ByteOrder, whiteGateway, whiteDevice *shared.ConcurrentMap, tl32v *ins.TL32V) (bool, error) {
+func IsAllowYMTECH(order binary.ByteOrder, whiteGateway, whiteDevice shared.ConcurrentMap, tl32v *ins.TL32V) (bool, error) {
 
 	data, err := ins.DecTL32V(binary.LittleEndian, tl32v.Value)
 	if err != nil {
@@ -409,7 +409,7 @@ func IsAllowYMTECH(order binary.ByteOrder, whiteGateway, whiteDevice *shared.Con
 	return true, nil
 }
 
-func IsAllowELSSEN(order binary.ByteOrder, whiteGateway, whiteDevice *shared.ConcurrentMap, tl32v *ins.TL32V) (bool, error) {
+func IsAllowELSSEN(order binary.ByteOrder, whiteGateway, whiteDevice shared.ConcurrentMap, tl32v *ins.TL32V) (bool, error) {
 	buf := bytes.NewBuffer(tl32v.Value)
 	_, _ = buf.ReadByte()
 	deviceId := make([]byte, 6)
@@ -424,7 +424,7 @@ func IsAllowELSSEN(order binary.ByteOrder, whiteGateway, whiteDevice *shared.Con
 	return true, nil
 }
 
-func IsAllowTELEFIELD(order binary.ByteOrder, whiteGateway, whiteDevice *shared.ConcurrentMap, tl32v *ins.TL32V) (bool, error) {
+func IsAllowTELEFIELD(order binary.ByteOrder, whiteGateway, whiteDevice shared.ConcurrentMap, tl32v *ins.TL32V) (bool, error) {
 	buf := bytes.NewBuffer(tl32v.Value)
 	deviceId := make([]byte, 2)
 	buf.Read(deviceId)
@@ -438,7 +438,7 @@ func IsAllowTELEFIELD(order binary.ByteOrder, whiteGateway, whiteDevice *shared.
 	return true, nil
 }
 
-func IsAllowABRAIN(order binary.ByteOrder, whiteGateway, whiteDevice *shared.ConcurrentMap, tl32v *ins.TL32V) (bool, error) {
+func IsAllowABRAIN(order binary.ByteOrder, whiteGateway, whiteDevice shared.ConcurrentMap, tl32v *ins.TL32V) (bool, error) {
 	buf := bytes.NewBuffer(tl32v.Value)
 
 	status := make([]byte, 1)
@@ -456,7 +456,7 @@ func IsAllowABRAIN(order binary.ByteOrder, whiteGateway, whiteDevice *shared.Con
 	return true, nil
 }
 
-func IsAllowWRAPPED(order binary.ByteOrder, whiteGateway, whiteDevice *shared.ConcurrentMap, tl32v *ins.TL32V) (bool, error) {
+func IsAllowWRAPPED(order binary.ByteOrder, whiteGateway, whiteDevice shared.ConcurrentMap, tl32v *ins.TL32V) (bool, error) {
 
 	wrappedData, err := ins.DecTL32V(binary.LittleEndian, tl32v.Value)
 	if err != nil {
@@ -524,7 +524,7 @@ func IsAllowWRAPPED(order binary.ByteOrder, whiteGateway, whiteDevice *shared.Co
 	return true, nil
 }
 
-func IsAllowMessage(order binary.ByteOrder, whiteGateway, whiteDevice *shared.ConcurrentMap, tl32v *ins.TL32V) (bool, error) {
+func IsAllowMessage(order binary.ByteOrder, whiteGateway, whiteDevice shared.ConcurrentMap, tl32v *ins.TL32V) (bool, error) {
 
 	if bytes.HasPrefix(tl32v.Type, ins.CODE_WRAPPED) {
 		return IsAllowWRAPPED(order, whiteGateway, whiteDevice, tl32v)

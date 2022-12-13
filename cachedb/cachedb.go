@@ -6,17 +6,18 @@ import (
 	"errors"
 	"fmt"
 	_ "github.com/mattn/go-sqlite3"
+	"sync"
 )
 
-
 type CacheDB struct {
-	conn         *sql.DB
-	tables        int
+	sync.RWMutex
+	conn   *sql.DB
+	tables int
 }
 
 type Data struct {
-	Id            int64
-	Data        []byte
+	Id   int64
+	Data []byte
 }
 
 func ConnectDB(datasource string) (*CacheDB, error) {
@@ -41,10 +42,16 @@ func ConnectDB(datasource string) (*CacheDB, error) {
 }
 
 func (v *CacheDB) Close() {
+	v.Lock()
+	defer v.Unlock()
+
 	v.conn.Close()
 }
 
 func (v *CacheDB) InitDB(num int) error {
+	v.Lock()
+	defer v.Unlock()
+
 	for i := 0; i < num; i++ {
 		tname := fmt.Sprintf("T%02d", i)
 
@@ -54,13 +61,15 @@ func (v *CacheDB) InitDB(num int) error {
 			return err
 		}
 
-		v.tables = i+1
+		v.tables = i + 1
 	}
 
 	return nil
 }
 
 func (v *CacheDB) AutoVacuum() error {
+	v.Lock()
+	defer v.Unlock()
 
 	query := "PRAGMA auto_vacuum=1"
 	_, err := v.conn.Exec(query)
@@ -72,6 +81,8 @@ func (v *CacheDB) AutoVacuum() error {
 }
 
 func (v *CacheDB) Reduce() error {
+	v.Lock()
+	defer v.Unlock()
 
 	query := "VACUUM"
 	_, err := v.conn.Exec(query)
@@ -94,6 +105,9 @@ func getInsertQuery(db *CacheDB, table int) (string, error) {
 }
 
 func (v *CacheDB) InsertData(table int, id int64, data []byte) (int64, error) {
+	v.Lock()
+	defer v.Unlock()
+
 	if v.tables <= table {
 		return -1, errors.New("Not support table.")
 	}
@@ -121,7 +135,10 @@ func getNextDataQuery(db *CacheDB, table int) (string, error) {
 	return query, nil
 }
 
-func (v *CacheDB) GetNextData(table int, curr int64) (int64, []byte, error){
+func (v *CacheDB) GetNextData(table int, curr int64) (int64, []byte, error) {
+	v.Lock()
+	defer v.Unlock()
+
 	// 데이터 조회
 	query, err := getNextDataQuery(v, table)
 	if err != nil {
@@ -163,7 +180,10 @@ func getNextLimitDataQuery(db *CacheDB, table int, limit int64) (string, error) 
 	return query, nil
 }
 
-func (v *CacheDB) GetNextLimitData(table int, curr int64, limit int64) (*list.List, error){
+func (v *CacheDB) GetNextLimitData(table int, curr int64, limit int64) (*list.List, error) {
+	v.Lock()
+	defer v.Unlock()
+
 	// 데이터 조회
 	query, err := getNextLimitDataQuery(v, table, limit)
 	if err != nil {
@@ -189,7 +209,6 @@ func (v *CacheDB) GetNextLimitData(table int, curr int64, limit int64) (*list.Li
 	return results, nil
 }
 
-
 func getCountQuery(db *CacheDB, table int, min, max int64) (string, error) {
 	if db.tables <= table {
 		return "", errors.New("Not support table.")
@@ -212,7 +231,10 @@ func getCountQuery(db *CacheDB, table int, min, max int64) (string, error) {
 	return query, nil
 }
 
-func (v *CacheDB) Count(table int, min, max int64) (int64, error){
+func (v *CacheDB) Count(table int, min, max int64) (int64, error) {
+	v.Lock()
+	defer v.Unlock()
+
 	// 데이터 조회
 	query, err := getCountQuery(v, table, min, max)
 	if err != nil {
@@ -260,6 +282,9 @@ func getDeleteQuery(db *CacheDB, table int) (string, error) {
 }
 
 func (v *CacheDB) DeleteData(table int, id int64) (int64, error) {
+	v.Lock()
+	defer v.Unlock()
+
 	query, err := getDeleteQuery(v, table)
 	if err != nil {
 		return -1, err
