@@ -98,7 +98,7 @@ func GenSecretkeyByPassphrase(passphrase []byte) ([]byte, error) {
 	return secretKey, nil
 }
 
-func GenSecretkeyByRandom(size int) ([]byte, error) {
+func GenRandomData(size int) ([]byte, error) {
 	secretKey := make([]byte, size)
 	if _, err := io.ReadFull(rand.Reader, secretKey); err != nil {
 		return nil, err
