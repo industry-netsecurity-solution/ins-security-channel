@@ -17,10 +17,10 @@ func SplitFileName(file string) (string, string) {
 		return name, ""
 	}
 
-	return   name[0:index], name[index+1:]
+	return name[0:index], name[index+1:]
 }
 
-func statTimes(name string) (atime, mtime, ctime time.Time, mod uint32, err error) {
+func StatTimes(name string) (atime, mtime, ctime time.Time, mod uint32, err error) {
 	fi, err := os.Stat(name)
 	if err != nil {
 		return
@@ -42,7 +42,7 @@ func CopyFile(sourcePath, destPath string, overwrite bool) (bool, error) {
 		return false, err
 	}
 
-	inputFile, err := os.OpenFile(sourcePath, os.O_RDWR,0644)
+	inputFile, err := os.OpenFile(sourcePath, os.O_RDWR, 0644)
 	if err != nil {
 		return false, fmt.Errorf("couldn't open source file: %s", err)
 	}
@@ -67,7 +67,7 @@ func CopyFile(sourcePath, destPath string, overwrite bool) (bool, error) {
 		return false, fmt.Errorf("writing to output file failed: %s", err)
 	}
 
-	atime, mtime, _, mod, err := statTimes(sourcePath)
+	atime, mtime, _, mod, err := StatTimes(sourcePath)
 	if err != nil {
 		return true, err
 	}
@@ -92,7 +92,7 @@ func CopyFile(sourcePath, destPath string, overwrite bool) (bool, error) {
    GoLang: os.Rename() give error "invalid cross-device link" for Docker container with Volumes.
    MoveFile(source, destination) will work moving file between folders
 */
-func MoveFile(sourcePath, destPath string, overwrite bool) (bool, error ){
+func MoveFile(sourcePath, destPath string, overwrite bool) (bool, error) {
 	isCopy, err := CopyFile(sourcePath, destPath, overwrite)
 	if err != nil {
 		return isCopy, fmt.Errorf("couldn't move file: %s", err)
@@ -115,7 +115,7 @@ func MoveFile(sourcePath, destPath string, overwrite bool) (bool, error ){
  * 파일이 잠겨있는지 확인한다.
  */
 func CheckFLockedPID(filepath string) error {
-	pidFile, err := os.OpenFile(filepath, os.O_RDWR,0644)
+	pidFile, err := os.OpenFile(filepath, os.O_RDWR, 0644)
 	if err != nil {
 		/*
 			switch err.(type) {
@@ -152,7 +152,7 @@ func CheckFLockedPID(filepath string) error {
  * 파일을 잠그고 PID를 기록한다.
  */
 func MakeFLockedPID(filepath string) (*os.File, error) {
-	pidFile, err := os.OpenFile(filepath, os.O_WRONLY|syscall.O_TRUNC|syscall.O_CREAT,0644)
+	pidFile, err := os.OpenFile(filepath, os.O_WRONLY|syscall.O_TRUNC|syscall.O_CREAT, 0644)
 	if err != nil {
 		return nil, err
 	}
@@ -169,4 +169,3 @@ func MakeFLockedPID(filepath string) (*os.File, error) {
 
 	return pidFile, nil
 }
-

@@ -19,12 +19,22 @@ import (
 func TimeYYmmddHHMMSS(t *time.Time) string {
 	if t == nil {
 		tm := time.Now()
-		t = &tm;
+		t = &tm
 	}
 
 	return fmt.Sprintf("%d-%02d-%02dT%02d:%02d:%02d",
 		t.Year(), t.Month(), t.Day(),
 		t.Hour(), t.Minute(), t.Second())
+}
+
+func TimeYYmmdd(t *time.Time) string {
+	if t == nil {
+		tm := time.Now()
+		t = &tm
+	}
+
+	return fmt.Sprintf("%04d-%02d-%02d",
+		t.Year(), t.Month(), t.Day())
 }
 
 //func GetType(myvar interface{}) string {
@@ -122,7 +132,7 @@ func SumMD5(filepath string) (string, error) {
 	return SumHash(filepath, hash)
 }
 
-func Pack(args...interface{}) interface{} {
+func Pack(args ...interface{}) interface{} {
 	if args == nil {
 		return nil
 	}
@@ -133,7 +143,7 @@ func Pack(args...interface{}) interface{} {
 	return nil
 }
 
-func PackAsString(args...interface{}) string {
+func PackAsString(args ...interface{}) string {
 	if str, err := AsString(Pack(args...)); err == nil {
 		return str
 	}
@@ -167,7 +177,7 @@ func ListToSlice(src *list.List) []interface{} {
 
 func SliceToList(src []interface{}) *list.List {
 	results := list.New()
-	for _, e := range src  {
+	for _, e := range src {
 		results.PushBack(e)
 	}
 
@@ -175,15 +185,15 @@ func SliceToList(src []interface{}) *list.List {
 }
 
 func AppendSliceToList(dst *list.List, src []interface{}) *list.List {
-	for _, e := range src  {
+	for _, e := range src {
 		dst.PushBack(e)
 	}
 
 	return dst
 }
 
-func AppendToList(dst *list.List, src...interface{}) *list.List {
-	for _, e := range src  {
+func AppendToList(dst *list.List, src ...interface{}) *list.List {
+	for _, e := range src {
 		dst.PushBack(e)
 	}
 
