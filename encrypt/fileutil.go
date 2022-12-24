@@ -12,16 +12,16 @@ import (
 	"os"
 )
 
-func Encrypt(dst io.Writer, src io.Reader, gcm cipher.AEAD) (written int64, err error) {
-	return EncryptBuffer(dst, src, nil, gcm)
+func Encrypt(dst io.Writer, src io.Reader, aesgcm cipher.AEAD) (written int64, err error) {
+	return EncryptBuffer(dst, src, nil, aesgcm)
 }
 
 // copyBuffer is the actual implementation of Copy and CopyBuffer.
 // if buf is nil, one is allocated.
-func EncryptBuffer(dst io.Writer, src io.Reader, buf []byte, gcm cipher.AEAD) (written int64, err error) {
+func EncryptBuffer(dst io.Writer, src io.Reader, buf []byte, aesgcm cipher.AEAD) (written int64, err error) {
 
 	var nonce []byte = nil
-	if gcm == nil {
+	if aesgcm == nil {
 		// If the reader has a WriteTo method, use it to do the copy.
 		// Avoids an allocation and a copy.
 		if wt, ok := src.(io.WriterTo); ok {
@@ -59,9 +59,9 @@ func EncryptBuffer(dst io.Writer, src io.Reader, buf []byte, gcm cipher.AEAD) (w
 		if nr > 0 {
 			if writeNonce {
 				writeNonce = false
-				outBuf = gcm.Seal(nonce, nonce, buf[:nr], nil)
+				outBuf = aesgcm.Seal(nonce, nonce, buf[:nr], nil)
 			} else {
-				outBuf = gcm.Seal(nil, nonce, buf[:nr], nil)
+				outBuf = aesgcm.Seal(nil, nonce, buf[:nr], nil)
 			}
 			logger.Debugf("Block: %d byte", nr)
 			nr = len(outBuf)
@@ -93,16 +93,16 @@ func EncryptBuffer(dst io.Writer, src io.Reader, buf []byte, gcm cipher.AEAD) (w
 	return written, err
 }
 
-func Decrypt(dst io.Writer, src io.Reader, gcm cipher.AEAD) (written int64, err error) {
-	return DecryptBuffer(dst, src, nil, gcm)
+func Decrypt(dst io.Writer, src io.Reader, aesgcm cipher.AEAD) (written int64, err error) {
+	return DecryptBuffer(dst, src, nil, aesgcm)
 }
 
 // copyBuffer is the actual implementation of Copy and CopyBuffer.
 // if buf is nil, one is allocated.
-func DecryptBuffer(dst io.Writer, src io.Reader, buf []byte, gcm cipher.AEAD) (written int64, err error) {
+func DecryptBuffer(dst io.Writer, src io.Reader, buf []byte, aesgcm cipher.AEAD) (written int64, err error) {
 
 	var nonce []byte
-	if gcm == nil {
+	if aesgcm == nil {
 		// If the reader has a WriteTo method, use it to do the copy.
 		// Avoids an allocation and a copy.
 		if wt, ok := src.(io.WriterTo); ok {
@@ -114,7 +114,7 @@ func DecryptBuffer(dst io.Writer, src io.Reader, buf []byte, gcm cipher.AEAD) (w
 		}
 	}
 
-	nonceSize := gcm.NonceSize()
+	nonceSize := aesgcm.NonceSize()
 
 	blocksize := (32 * 1024) + 16
 	if buf == nil {
@@ -146,12 +146,12 @@ func DecryptBuffer(dst io.Writer, src io.Reader, buf []byte, gcm cipher.AEAD) (w
 				copy(nonce, nonceslice)
 				logger.Debugf("Nonce 생성: %s", hex.EncodeToString(nonce[:8]))
 
-				outBuf, err = gcm.Open(nil, nonce, ciphertext, nil)
+				outBuf, err = aesgcm.Open(nil, nonce, ciphertext, nil)
 				if err != nil {
 					logger.Error(err)
 				}
 			} else {
-				outBuf, err = gcm.Open(nil, nonce, buf[:nr], nil)
+				outBuf, err = aesgcm.Open(nil, nonce, buf[:nr], nil)
 				if err != nil {
 					logger.Error(err)
 				}
@@ -186,7 +186,7 @@ func DecryptBuffer(dst io.Writer, src io.Reader, buf []byte, gcm cipher.AEAD) (w
 	return written, err
 }
 
-func EncryptFile(sourcePath, destPath string, gcm cipher.AEAD, overwrite bool) (bool, error) {
+func EncryptFile(sourcePath, destPath string, aesgcm cipher.AEAD, overwrite bool) (bool, error) {
 	_, err := os.Stat(destPath)
 	if overwrite == false && err == nil {
 		return false, err
@@ -203,7 +203,7 @@ func EncryptFile(sourcePath, destPath string, gcm cipher.AEAD, overwrite bool) (
 		return false, fmt.Errorf("couldn't open dest file: %s", err)
 	}
 
-	if _, err = Encrypt(outputFile, inputFile, gcm); err != nil {
+	if _, err = Encrypt(outputFile, inputFile, aesgcm); err != nil {
 		outputFile.Close()
 		return false, err
 	}
@@ -234,7 +234,7 @@ func EncryptFile(sourcePath, destPath string, gcm cipher.AEAD, overwrite bool) (
 	return true, nil
 }
 
-func DecryptFile(sourcePath, destPath string, gcm cipher.AEAD, overwrite bool) (bool, error) {
+func DecryptFile(sourcePath, destPath string, aesgcm cipher.AEAD, overwrite bool) (bool, error) {
 	_, err := os.Stat(destPath)
 	if overwrite == false && err == nil {
 		return false, err
@@ -251,7 +251,7 @@ func DecryptFile(sourcePath, destPath string, gcm cipher.AEAD, overwrite bool) (
 		return false, fmt.Errorf("couldn't open dest file: %s", err)
 	}
 
-	if _, err = Decrypt(outputFile, inputFile, gcm); err != nil {
+	if _, err = Decrypt(outputFile, inputFile, aesgcm); err != nil {
 		outputFile.Close()
 		return false, err
 	}
