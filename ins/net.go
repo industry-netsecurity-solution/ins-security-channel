@@ -54,6 +54,7 @@ func NewTLSConfig(cacertFile *string, certFile *string, keyFile *string) *tls.Co
 	// Create net.Config with desired net properties
 	return &tls.Config{
 		MinVersion:       tls.VersionTLS12,
+		MaxVersion:       tls.VersionTLS12,
 		CurvePreferences: []tls.CurveID{tls.CurveP521, tls.CurveP384, tls.CurveP256},
 		CipherSuites: []uint16{
 			tls.TLS_AES_128_GCM_SHA256,
@@ -120,6 +121,7 @@ func NewTLSServerConfig(cacertFile *string, certFile *string, keyFile *string) *
 	// Create net.Config with desired net properties
 	return &tls.Config{
 		MinVersion:       tls.VersionTLS12,
+		MaxVersion:       tls.VersionTLS12,
 		CurvePreferences: []tls.CurveID{tls.CurveP521, tls.CurveP384, tls.CurveP256},
 		CipherSuites: []uint16{
 			tls.TLS_AES_128_GCM_SHA256,
