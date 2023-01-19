@@ -100,7 +100,7 @@ var GW_NAME_RELAY_PLATFORM string = "지능플랫폼 데이터릴레이"
 // 지능형 플랫폼 서버
 var GW_NAME_SERVER_PLATFORM string = "지능형프르랫폼 서버"
 
-//================================================================
+// ================================================================
 // 중첩 메시지
 var BB_WRAPPED = []byte{0xF0, 0x00}
 
@@ -822,6 +822,9 @@ func GetMessageName4Wrap(order binary.ByteOrder, data []byte) string {
 		return NAME_BB_REAR_APPROACH
 	} else if bytes.HasPrefix(data, BB_RAW_ACCELEROMETER) {
 		return NAME_BB_RAW_ACCELEROMETER
+	} else if bytes.HasPrefix(data, BB_RADAR_APPROACH_FILE) {
+		// 레이다 접근 파일
+		return NAME_BB_RADAR_APPROACH_FILE
 	} else if bytes.HasPrefix(data, BB_UWB_LOCATION) {
 		// 제조현장 지게차 UWB 위치 정보
 		return NAME_BB_UWB_LOCATION
