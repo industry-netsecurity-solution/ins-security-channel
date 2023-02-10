@@ -15,8 +15,8 @@ type Pair struct {
 type Map map[interface{}]interface{}
 
 func NewMap() *Map {
-	d := new(Map)
-	return d
+	d := Map{}
+	return &d
 }
 
 func (m Map) RemoveAll() {

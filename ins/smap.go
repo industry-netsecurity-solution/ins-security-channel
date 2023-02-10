@@ -8,15 +8,15 @@ import (
 )
 
 type SPair struct {
-	Key string
+	Key   string
 	Value interface{}
 }
 
 type SMap map[string]interface{}
 
-func NewSMap() SMap {
-	d := make(SMap)
-	return d
+func NewSMap() *SMap {
+	d := SMap{}
+	return &d
 }
 
 func (m SMap) RemoveAll() {
@@ -40,15 +40,15 @@ func (m SMap) Len() int {
 	return len(m)
 }
 
-func (m SMap) Range(cb func(key interface{}, value interface{}) bool ) {
+func (m SMap) Range(cb func(key interface{}, value interface{}) bool) {
 	for k, v := range m {
 		if cb(k, v) == false {
-			return;
+			return
 		}
 	}
 }
 
-func ( d SMap ) SetPair(pair...SPair) {
+func (d SMap) SetPair(pair ...SPair) {
 	for _, p := range pair {
 		d[p.Key] = p.Value
 	}
@@ -90,18 +90,18 @@ func (m SMap) GetValues() []interface{} {
 	return result
 }
 
-func ( d SMap ) Set(key string, value interface{}) {
+func (d SMap) Set(key string, value interface{}) {
 	d[key] = value
 }
 
-func ( d SMap ) Get(key string) interface{} {
+func (d SMap) Get(key string) interface{} {
 	if value, ok := d[key]; ok {
 		return value
 	}
 	return nil
 }
 
-func ( d SMap ) Has(key string) bool {
+func (d SMap) Has(key string) bool {
 	_, ok := d[key]
 	return ok
 }
