@@ -37,7 +37,7 @@ func EncryptBuffer(dst io.Writer, src io.Reader, buf []byte, aesgcm cipher.AEAD)
 		if _, err := io.ReadFull(rand.Reader, nonce); err != nil {
 			return 0, err
 		}
-		logger.Debugf("Nonce 생성: %s", hex.EncodeToString(nonce[:8]))
+		logger.Debugf("Nonce 생성: %s", hex.EncodeToString(nonce))
 	}
 
 	writeNonce := true
@@ -60,6 +60,10 @@ func EncryptBuffer(dst io.Writer, src io.Reader, buf []byte, aesgcm cipher.AEAD)
 			if writeNonce {
 				writeNonce = false
 				outBuf = aesgcm.Seal(nonce, nonce, buf[:nr], nil)
+
+				logger.Debugf("Nonce: %s", hex.EncodeToString(nonce))
+				logger.Debugf("Input(plaintext): %s", hex.EncodeToString(buf[:nr]))
+				logger.Debugf("Output(encrypted): %s", hex.EncodeToString(outBuf))
 			} else {
 				outBuf = aesgcm.Seal(nil, nonce, buf[:nr], nil)
 			}
@@ -141,15 +145,18 @@ func DecryptBuffer(dst io.Writer, src io.Reader, buf []byte, aesgcm cipher.AEAD)
 
 		if nr > 0 {
 			if nonce == nil {
-				nonceslice, ciphertext := buf[:nonceSize], buf[nonceSize:]
+				nonceslice, ciphertext := buf[:nonceSize], buf[nonceSize:nr]
 				nonce = make([]byte, len(nonceslice))
 				copy(nonce, nonceslice)
-				logger.Debugf("Nonce 생성: %s", hex.EncodeToString(nonce[:8]))
+				logger.Debugf("Nonce 확인: %s", hex.EncodeToString(nonce))
 
 				outBuf, err = aesgcm.Open(nil, nonce, ciphertext, nil)
 				if err != nil {
 					logger.Error(err)
 				}
+				logger.Debugf("Nonce: %s", hex.EncodeToString(nonce))
+				logger.Debugf("Input(encrypted): %s", hex.EncodeToString(ciphertext))
+				logger.Debugf("Output(plaintext): %s", hex.EncodeToString(outBuf))
 			} else {
 				outBuf, err = aesgcm.Open(nil, nonce, buf[:nr], nil)
 				if err != nil {
