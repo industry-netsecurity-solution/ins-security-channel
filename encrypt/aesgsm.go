@@ -85,7 +85,7 @@ func GetGCM(secretKey []byte) (cipher.AEAD, error) {
 		return nil, fmt.Errorf("secret key is not for AES-256: must be 256 bits")
 	}
 
-	// prepare AES-256-GSM cipher
+	// prepare AES-256-GCM cipher
 	block, err := aes.NewCipher(secretKey)
 	if err != nil {
 		return nil, err
