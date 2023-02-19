@@ -59,7 +59,7 @@ func EncryptBuffer(dst io.Writer, src io.Reader, buf []byte, aesgcm cipher.AEAD)
 		if nr > 0 {
 			if writeNonce {
 				writeNonce = false
-				outBuf = aesgcm.Seal(nonce, nonce, buf[:nr], nil)
+				outBuf = aesgcm.Seal(nil, nonce, buf[:nr], nil)
 
 				logger.Debugf("Nonce: %s", hex.EncodeToString(nonce))
 				logger.Debugf("Input(plaintext): %s", hex.EncodeToString(buf[:nr]))
