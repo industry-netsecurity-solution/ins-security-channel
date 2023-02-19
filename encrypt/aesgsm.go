@@ -35,7 +35,7 @@ func AES256GSMEncrypt(secretKey []byte, plaintext []byte) ([]byte, error) {
 	}
 
 	// encrypt plaintext
-	ciphertext := aesgcm.Seal(nil, nonce, plaintext, nil)
+	ciphertext := aesgcm.Seal(nonce, nonce, plaintext, nil)
 
 	logger.Debugf("secretKey: %s", hex.EncodeToString(secretKey))
 	logger.Debugf("Nonce: %s", hex.EncodeToString(nonce))
