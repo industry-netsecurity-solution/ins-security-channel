@@ -33,7 +33,8 @@ func EncryptBuffer(dst io.Writer, src io.Reader, buf []byte, aesgcm cipher.AEAD)
 		}
 	} else {
 		// make random nonce
-		nonce = make([]byte, 12)
+		nonceSize := aesgcm.NonceSize()
+		nonce = make([]byte, nonceSize)
 		if _, err := io.ReadFull(rand.Reader, nonce); err != nil {
 			return 0, err
 		}
@@ -63,7 +64,7 @@ func EncryptBuffer(dst io.Writer, src io.Reader, buf []byte, aesgcm cipher.AEAD)
 
 				logger.Debugf("Nonce: %s", hex.EncodeToString(nonce))
 				logger.Debugf("Input(plaintext): %s", hex.EncodeToString(buf[:nr]))
-				logger.Debugf("Output(encrypted): %s", hex.EncodeToString(outBuf))
+				logger.Debugf("Output(encrypted): %s", hex.EncodeToString(outBuf[len(nonce):]))
 			} else {
 				outBuf = aesgcm.Seal(nil, nonce, buf[:nr], nil)
 			}

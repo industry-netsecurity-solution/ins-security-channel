@@ -29,7 +29,8 @@ func AES256GSMEncrypt(secretKey []byte, plaintext []byte) ([]byte, error) {
 	}
 
 	// make random nonce
-	nonce := make([]byte, aesgcm.NonceSize())
+	nonceSize := aesgcm.NonceSize()
+	nonce := make([]byte, nonceSize)
 	if _, err := io.ReadFull(rand.Reader, nonce); err != nil {
 		return nil, err
 	}
@@ -40,7 +41,7 @@ func AES256GSMEncrypt(secretKey []byte, plaintext []byte) ([]byte, error) {
 	logger.Debugf("secretKey: %s", hex.EncodeToString(secretKey))
 	logger.Debugf("Nonce: %s", hex.EncodeToString(nonce))
 	logger.Debugf("Input(plaintext): %s", hex.EncodeToString(plaintext))
-	logger.Debugf("Output(encrypted): %s", hex.EncodeToString(ciphertext))
+	logger.Debugf("Output(encrypted): %s", hex.EncodeToString(ciphertext[nonceSize:]))
 
 	return ciphertext, nil // nonce is included in ciphertext. no need to return
 }
@@ -73,7 +74,7 @@ func AES256GSMDecrypt(secretKey []byte, ciphertext []byte) ([]byte, error) {
 
 	logger.Debugf("SecretKey: %s", hex.EncodeToString(secretKey))
 	logger.Debugf("Nonce: %s", hex.EncodeToString(nonce))
-	logger.Debugf("Input(encrypted): %s", hex.EncodeToString(ciphertext[nonceSize:]))
+	logger.Debugf("Input(encrypted): %s", hex.EncodeToString(pureCiphertext))
 	logger.Debugf("Output(plaintext): %s", hex.EncodeToString(plaintext))
 
 	return plaintext, nil
