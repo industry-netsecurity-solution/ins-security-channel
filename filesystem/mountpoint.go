@@ -31,6 +31,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"reflect"
 	"sort"
 	"strconv"
 	"strings"
@@ -121,6 +122,7 @@ func (err *ErrProtectorNotFound) Error() string {
 }
 
 // Mount contains information for a specific mounted filesystem.
+//
 //	Path           - Absolute path where the directory is mounted
 //	FilesystemType - Type of the mounted filesystem, e.g. "ext4"
 //	Device         - Device for filesystem (empty string if we cannot find one)
@@ -136,8 +138,9 @@ func (err *ErrProtectorNotFound) Error() string {
 // setup first. Specifically, the directories created look like:
 // <mountpoint>
 // └── .fscrypt
-//     ├── policies
-//     └── protectors
+//
+//	├── policies
+//	└── protectors
 //
 // These "policies" and "protectors" directories will contain files that are
 // the corresponding metadata structures for policies and protectors. The public
@@ -160,7 +163,6 @@ type Mount struct {
 	Subtree        string
 	ReadOnly       bool
 }
-
 
 // PathSorter allows mounts to be sorted by Path.
 type PathSorter []*Mount
@@ -187,15 +189,14 @@ var (
 	uuidDirectory = "/dev/disk/by-uuid"
 )
 
-
-
 // Unescape octal-encoded escape sequences in a string from the mountinfo file.
 // The kernel encodes the ' ', '\t', '\n', and '\\' bytes this way.  This
 // function exactly inverts what the kernel does, including by preserving
 // invalid UTF-8.
 func unescapeString(str string) string {
 	var sb strings.Builder
-	for i := 0; i < len(str); i++ {
+	count := len(str)
+	for i := 0; i < count; i++ {
 		b := str[i]
 		if b == '\\' && i+3 < len(str) {
 			if parsed, err := strconv.ParseInt(str[i+1:i+4], 8, 8); err == nil {
@@ -223,6 +224,7 @@ func getDeviceName(num DeviceNumber) string {
 // Parse one line of /proc/self/mountinfo.
 //
 // The line contains the following space-separated fields:
+//
 //	[0] mount ID
 //	[1] parent ID
 //	[2] major:minor
@@ -245,7 +247,8 @@ func parseMountInfoLine(line string) *Mount {
 	// Count the optional fields.  In case new fields are appended later,
 	// don't simply assume that n == len(fields) - 4.
 	n := 6
-	for fields[n] != "-" {
+	// for fields[n] != "-" {
+	for strings.EqualFold(fields[n], "-") == false {
 		n++
 		if n >= len(fields) {
 			return nil
@@ -263,7 +266,11 @@ func parseMountInfoLine(line string) *Mount {
 	}
 	mnt.Subtree = unescapeString(fields[3])
 	mnt.Path = unescapeString(fields[4])
-	for _, opt := range strings.Split(fields[5], ",") {
+
+	tokens := strings.Split(fields[5], ",")
+	count := len(tokens)
+	for i := 0; i < count; i++ {
+		opt := tokens[i]
 		if opt == "ro" {
 			mnt.ReadOnly = true
 		}
@@ -301,11 +308,11 @@ func addUncontainedSubtreesRecursive(dst map[string]bool,
 // preferably a read-write mount.  However, that doesn't work in containers
 // where the "/" subtree might not be mounted.  Here's a real-world example:
 //
-//              mnt.Subtree               mnt.Path
-//              -----------               --------
-//              /var/lib/lxc/base/rootfs  /
-//              /var/cache/pacman/pkg     /var/cache/pacman/pkg
-//              /srv/repo/x86_64          /srv/http/x86_64
+//	mnt.Subtree               mnt.Path
+//	-----------               --------
+//	/var/lib/lxc/base/rootfs  /
+//	/var/cache/pacman/pkg     /var/cache/pacman/pkg
+//	/srv/repo/x86_64          /srv/http/x86_64
 //
 // In this case, all mnt.Subtree are independent.  To handle this case, we must
 // choose the Mount whose mnt.Path contains the others, i.e. the first one.
@@ -316,10 +323,10 @@ func addUncontainedSubtreesRecursive(dst map[string]bool,
 // needed to correctly handle bind mounts.  For example, in the following case,
 // the first Mount should be chosen:
 //
-//              mnt.Subtree               mnt.Path
-//              -----------               --------
-//              /foo                      /foo
-//              /foo/dir                  /dir
+//	mnt.Subtree               mnt.Path
+//	-----------               --------
+//	/foo                      /foo
+//	/foo/dir                  /dir
 //
 // To solve this, we divide the mounts into non-overlapping trees of mnt.Path.
 // Then, we choose one of these trees which contains (exactly or via path
@@ -332,7 +339,11 @@ func findMainMount(filesystemMounts []*Mount) *Mount {
 	// Also build the set of all mounted subtrees.
 	mountsByPath := make(map[string]*mountpointTreeNode)
 	allSubtrees := make(map[string]bool)
-	for _, mnt := range filesystemMounts {
+
+	mlen := len(filesystemMounts)
+	//for _, mnt := range filesystemMounts {
+	for i := 0; i < mlen; i++ {
+		mnt := filesystemMounts[i]
 		mountsByPath[mnt.Path] = &mountpointTreeNode{mount: mnt}
 		allSubtrees[mnt.Subtree] = true
 	}
@@ -421,12 +432,24 @@ func readMountInfo(r io.Reader) error {
 	// where the fscrypt metadata is stored.  Store all main Mounts in
 	// mountsByDevice so that they can be found by device number later.
 	allMountsByDevice := make(map[DeviceNumber][]*Mount)
-	for _, mnt := range mountsByPath {
+
+	pathKeys := reflect.ValueOf(mountsByPath).MapKeys()
+	pathCount := len(pathKeys)
+	//for _, mnt := range mountsByPath {
+	for i := 0; i < pathCount; i++ {
+		mnt := mountsByPath[pathKeys[i].String()]
 		allMountsByDevice[mnt.DeviceNumber] =
 			append(allMountsByDevice[mnt.DeviceNumber], mnt)
 	}
-	for deviceNumber, filesystemMounts := range allMountsByDevice {
-		mountsByDevice[deviceNumber] = findMainMount(filesystemMounts)
+
+	devKeys := reflect.ValueOf(allMountsByDevice).MapKeys()
+	devCount := len(devKeys)
+	//for deviceNumber, filesystemMounts := range allMountsByDevice {
+	//	mountsByDevice[deviceNumber] = findMainMount(filesystemMounts)
+	//}
+	for i := 0; i < devCount; i++ {
+		key := devKeys[i].Interface().(DeviceNumber)
+		mountsByDevice[key] = findMainMount(allMountsByDevice[key])
 	}
 	return nil
 }

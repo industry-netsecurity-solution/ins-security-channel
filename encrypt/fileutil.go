@@ -57,7 +57,16 @@ func EncryptBuffer(dst io.Writer, src io.Reader, buf []byte, aesgcm cipher.AEAD)
 	for {
 		var outBuf []byte = nil
 		nr, er := src.Read(buf)
-		if nr > 0 {
+		if er != nil {
+			if er != io.EOF {
+				err = er
+			}
+			break
+		}
+
+		if nr < 0 {
+			break
+		} else if nr > 0 && nr <= len(buf) {
 			if writeNonce {
 				writeNonce = false
 				outBuf = aesgcm.Seal(nonce, nonce, buf[:nr], nil)
@@ -87,12 +96,6 @@ func EncryptBuffer(dst io.Writer, src io.Reader, buf []byte, aesgcm cipher.AEAD)
 				err = io.ErrShortWrite
 				break
 			}
-		}
-		if er != nil {
-			if er != io.EOF {
-				err = er
-			}
-			break
 		}
 	}
 	return written, err
@@ -143,8 +146,16 @@ func DecryptBuffer(dst io.Writer, src io.Reader, buf []byte, aesgcm cipher.AEAD)
 		} else {
 			nr, er = src.Read(buf[:blocksize])
 		}
+		if er != nil {
+			if er != io.EOF {
+				err = er
+			}
+			break
+		}
 
-		if nr > 0 {
+		if nr < 0 {
+			break
+		} else if nr > 0 && nr <= len(buf) {
 			if nonce == nil {
 				nonceslice, ciphertext := buf[:nonceSize], buf[nonceSize:nr]
 				nonce = make([]byte, len(nonceslice))
@@ -183,12 +194,6 @@ func DecryptBuffer(dst io.Writer, src io.Reader, buf []byte, aesgcm cipher.AEAD)
 				err = io.ErrShortWrite
 				break
 			}
-		}
-		if er != nil {
-			if er != io.EOF {
-				err = er
-			}
-			break
 		}
 	}
 	return written, err

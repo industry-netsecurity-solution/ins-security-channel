@@ -1,6 +1,5 @@
 package ps
 
-
 import (
 	"fmt"
 	"io"
@@ -20,9 +19,9 @@ type Process struct {
 	pgrp  int
 	sid   int
 
-	binary  string // binary name might be truncated
+	binary     string // binary name might be truncated
 	executable string
-	CmdLine string
+	CmdLine    string
 }
 
 func (p *Process) Pid() int {
@@ -112,7 +111,6 @@ func NewUnixProcess(pid int) (*Process, error) {
 	return p, p.Refresh()
 }
 
-
 // Path returns path to process executable
 func (p *Process) Path() (string, error) {
 	return filepath.EvalSymlinks(fmt.Sprintf("/proc/%d/exe", p.pid))
@@ -129,7 +127,16 @@ func (p *Process) Refresh() error {
 	// First, parse out the image name
 	data := string(dataBytes)
 	binStart := strings.IndexRune(data, '(') + 1
+	if binStart < 0 || len(data) < binStart {
+		return err
+	}
 	binEnd := strings.IndexRune(data[binStart:], ')')
+	if binEnd < 0 || len(data) < binEnd {
+		return err
+	}
+	if len(data) < (binStart + binEnd) {
+		return err
+	}
 	p.binary = data[binStart : binStart+binEnd]
 
 	//
@@ -147,6 +154,9 @@ func (p *Process) Refresh() error {
 	}
 
 	// Move past the image name and start parsing the rest
+	if len(data) < (binStart + binEnd + 2) {
+		return err
+	}
 	data = data[binStart+binEnd+2:]
 	_, err = fmt.Sscanf(data,
 		"%c %d %d %d",
