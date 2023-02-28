@@ -196,15 +196,17 @@ var (
 func unescapeString(str string) string {
 	var sb strings.Builder
 	count := len(str)
-	for i := 0; i < count; i++ {
-		b := str[i]
-		if b == '\\' && i+3 < len(str) {
-			if parsed, err := strconv.ParseInt(str[i+1:i+4], 8, 8); err == nil {
-				b = uint8(parsed)
-				i += 3
+	if 0 < count {
+		for i := 0; i < count; i++ {
+			b := str[i]
+			if b == '\\' && i+3 < len(str) {
+				if parsed, err := strconv.ParseInt(str[i+1:i+4], 8, 8); err == nil {
+					b = uint8(parsed)
+					i += 3
+				}
 			}
+			sb.WriteByte(b)
 		}
-		sb.WriteByte(b)
 	}
 	return sb.String()
 }
