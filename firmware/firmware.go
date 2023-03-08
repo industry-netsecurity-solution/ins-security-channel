@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	resty "github.com/go-resty/resty/v2"
 	"github.com/google/uuid"
 	"github.com/industry-netsecurity-solution/ins-security-channel/ins"
 	"github.com/industry-netsecurity-solution/ins-security-channel/logger"
