@@ -5,9 +5,7 @@ import (
 	"crypto/cipher"
 	"crypto/rand"
 	"crypto/sha256"
-	"encoding/hex"
 	"fmt"
-	"github.com/industry-netsecurity-solution/ins-security-channel/logger"
 	"io"
 )
 
@@ -38,11 +36,6 @@ func AES256GSMEncrypt(secretKey []byte, plaintext []byte) ([]byte, error) {
 	// encrypt plaintext
 	ciphertext := aesgcm.Seal(nonce, nonce, plaintext, nil)
 
-	logger.Debugf("secretKey: %s", hex.EncodeToString(secretKey))
-	logger.Debugf("Nonce: %s", hex.EncodeToString(nonce))
-	logger.Debugf("Input(plaintext): %s", hex.EncodeToString(plaintext))
-	logger.Debugf("Output(encrypted): %s", hex.EncodeToString(ciphertext[nonceSize:]))
-
 	return ciphertext, nil // nonce is included in ciphertext. no need to return
 }
 
@@ -71,11 +64,6 @@ func AES256GSMDecrypt(secretKey []byte, ciphertext []byte) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-
-	logger.Debugf("SecretKey: %s", hex.EncodeToString(secretKey))
-	logger.Debugf("Nonce: %s", hex.EncodeToString(nonce))
-	logger.Debugf("Input(encrypted): %s", hex.EncodeToString(pureCiphertext))
-	logger.Debugf("Output(plaintext): %s", hex.EncodeToString(plaintext))
 
 	return plaintext, nil
 }

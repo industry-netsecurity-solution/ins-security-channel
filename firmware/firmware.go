@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/go-resty/resty/v2"
 	"github.com/google/uuid"
 	"github.com/industry-netsecurity-solution/ins-security-channel/ins"
 	"github.com/industry-netsecurity-solution/ins-security-channel/logger"
@@ -53,13 +52,13 @@ import (
 //}
 
 type FIrmware struct {
-	GwId              string   `json:"gwid"`
-	GwType            string   `json:"gwtype"`
-	Model             string   `json:"model"`
-	Manufacturer      string   `json:"manufacturer"`
-	Version           string   `json:"version"`
-	Date              string   `json:"date,omitempty"`
-	hash              string   `json:"hash,omitempty"`
+	GwId         string `json:"gwid"`
+	GwType       string `json:"gwtype"`
+	Model        string `json:"model"`
+	Manufacturer string `json:"manufacturer"`
+	Version      string `json:"version"`
+	Date         string `json:"date,omitempty"`
+	hash         string `json:"hash,omitempty"`
 }
 
 func CheckUpdate(Conf ins.FirmwareConfigurations) (*bytes.Buffer, error) {
@@ -94,7 +93,7 @@ func CheckUpdate(Conf ins.FirmwareConfigurations) (*bytes.Buffer, error) {
 			return err
 		}
 
-		logger.Println("Received firmware configuration:", string(contents))
+		logger.Infoln("Received firmware configuration:", string(contents))
 
 		return nil
 	}); e != nil {
@@ -156,7 +155,7 @@ func DownloadFirmware(Conf ins.FirmwareConfigurations, firmwareConfig *bytes.Buf
 	if _, e := httpRequest.DoRequest(firmwareParam, func(resp *resty.Response) error {
 		headers := resp.Header()
 		disposition := headers.Get("Content-Disposition")
-		_ , params , err = mime.ParseMediaType(disposition)
+		_, params, err = mime.ParseMediaType(disposition)
 
 		return nil
 	}); e != nil {
@@ -190,38 +189,36 @@ func DownloadFirmware(Conf ins.FirmwareConfigurations, firmwareConfig *bytes.Buf
 	}
 
 	var newpath string
-	if filename, ok :=  params["filename"]; ok {
+	if filename, ok := params["filename"]; ok {
 		newpath = fmt.Sprintf("%s/%s", Conf.DownlaodFilepath, filename)
 	} else {
 		newpath = fmt.Sprintf("%s/firmware.bin", Conf.DownlaodFilepath)
 	}
 
-
 	if _, err := ins.Copy(tempfirmname, newpath); err != nil {
 		_ = os.Remove(tempfirmname)
-		logger.Println("Remove:", tempfirmname)
+		logger.Infoln("Remove:", tempfirmname)
 
 		_ = os.Remove(tempconfname)
-		logger.Println("Remove:", tempconfname)
-		return err;
+		logger.Infoln("Remove:", tempconfname)
+		return err
 	}
 	_ = os.Remove(tempfirmname)
-	logger.Println("Firmmware file downlaod:", newpath)
+	logger.Infoln("Firmmware file downlaod:", newpath)
 
 	if _, err := ins.Copy(tempconfname, Conf.ConfigFilepath); err != nil {
 		_ = os.Remove(newpath)
-		logger.Println("Remove:", newpath)
+		logger.Infoln("Remove:", newpath)
 
 		_ = os.Remove(tempconfname)
-		logger.Println("Remove:", tempconfname)
-		return err;
+		logger.Infoln("Remove:", tempconfname)
+		return err
 	}
 	_ = os.Remove(tempconfname)
-	logger.Println("Firmmware config downlaod:", Conf.ConfigFilepath)
+	logger.Infoln("Firmmware config downlaod:", Conf.ConfigFilepath)
 
 	return nil
 }
-
 
 func UpdateFirmware(Conf ins.FirmwareConfigurations) error {
 
@@ -238,7 +235,7 @@ func UpdateFirmware(Conf ins.FirmwareConfigurations) error {
 			return nil
 		}
 
-		logger.Println("Try download:", string(firmwareConfig.Bytes()))
+		logger.Infoln("Try download:", string(firmwareConfig.Bytes()))
 		err = DownloadFirmware(Conf, firmwareConfig)
 	}
 	return err
