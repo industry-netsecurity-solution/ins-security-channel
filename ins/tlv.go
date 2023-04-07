@@ -7,21 +7,21 @@ import (
 )
 
 type TL16V struct {
-	Type []byte
+	Type   []byte
 	Length uint16
-	Value []byte
+	Value  []byte
 }
 
 type TL32V struct {
-	Type []byte
+	Type   []byte
 	Length uint32
-	Value []byte
+	Value  []byte
 }
 
 type TL64V struct {
-	Type []byte
+	Type   []byte
 	Length uint64
-	Value []byte
+	Value  []byte
 }
 
 func (v TL32V) Size() int {
@@ -49,7 +49,10 @@ func DecTL16V(order binary.ByteOrder, data []byte) (*TL16V, error) {
 	tlv := TL16V{}
 	tlv.Type = data[0:2]
 	tlv.Length = order.Uint16(data[2:4])
-	tlv.Value = data[4:4+tlv.Length]
+	if len(data) < int(tlv.Length+4) {
+		return nil, errors.New("not enough data length")
+	}
+	tlv.Value = data[4 : 4+tlv.Length]
 
 	return &tlv, nil
 }
@@ -62,7 +65,10 @@ func DecTL32V(order binary.ByteOrder, data []byte) (*TL32V, error) {
 	tlv := TL32V{}
 	tlv.Type = data[0:2]
 	tlv.Length = order.Uint32(data[2:6])
-	tlv.Value = data[6:6+tlv.Length]
+	if len(data) < int(tlv.Length+6) {
+		return nil, errors.New("not enough data length")
+	}
+	tlv.Value = data[6 : 6+tlv.Length]
 
 	return &tlv, nil
 }
@@ -75,7 +81,10 @@ func DecTL64V(order binary.ByteOrder, data []byte) (*TL64V, error) {
 	tlv := TL64V{}
 	tlv.Type = data[0:2]
 	tlv.Length = order.Uint64(data[2:10])
-	tlv.Value = data[10:10+tlv.Length]
+	if len(data) < int(tlv.Length+10) {
+		return nil, errors.New("not enough data length")
+	}
+	tlv.Value = data[10 : 10+tlv.Length]
 
 	return &tlv, nil
 }

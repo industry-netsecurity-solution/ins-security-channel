@@ -158,6 +158,8 @@ var BB_WORKER_IDENTITY = []byte{0x30, 0x01}
 const ELSSEN_WEARABLE_DEVICE int = 1
 const ELSSEN_SAFETY_HOOK int = 2
 const ELSSEN_TOXIC_GAS int = 3
+const ELSSEN_TOXIC_GAS_THRESHOLD int = 4
+const ELSSEN_WEARABLE_ALARM_ONOFF int = 5
 
 // 건설 현장 생체
 var GW_ELSSEN_WEARABLE_DEVICE = []byte{0x10, byte(ELSSEN_WEARABLE_DEVICE)}
@@ -167,6 +169,12 @@ var GW_ELSSEN_SAFETY_HOOK = []byte{0x10, byte(ELSSEN_SAFETY_HOOK)}
 
 // 건설 현장 유해가스
 var GW_ELSSEN_TOXIC_GAS = []byte{0x10, byte(ELSSEN_TOXIC_GAS)}
+
+// 건설 현장 유해가스 임계값
+var GW_ELSSEN_TOXIC_GAS_THRESHOLD = []byte{0x10, byte(ELSSEN_TOXIC_GAS_THRESHOLD)}
+
+// 건설 현장 유해가스 임계값
+var GW_ELSSEN_WEARABLE_ALARM_ONOFF = []byte{0x10, byte(ELSSEN_WEARABLE_ALARM_ONOFF)}
 
 // 중계 -> 집중
 var BB_RELAY_DISTANCE = []byte{0x01, 0x08}
@@ -233,6 +241,12 @@ var NAME_GW_ELSSEN_SAFETY_HOOK = "safetyhook"
 // 건설 현장 유해가스
 var NAME_GW_ELSSEN_TOXIC_GAS = "toxicgas"
 
+// 건설 현장 유해가스 임계값
+var NAME_GW_ELSSEN_TOXIC_GAS_THRESHOLD = "toxicgas.threshold"
+
+// 건설 현장 웨어러블 알람 설정
+var NAME_GW_ELSSEN_WEARABLE_ALARM_ONOFF = "wearable.alarm.onoff"
+
 var NAME_UNKNOWN = "unknown"
 
 var TYPE_CODE_WRAPPED = "Wrapped"
@@ -294,6 +308,12 @@ var TYPE_GW_ELSSEN_SAFETY_HOOK = "안전고리"
 
 // 건설 현장 유해가스
 var TYPE_GW_ELSSEN_TOXIC_GAS = "유해가스"
+
+// 건설 현장 유해가스 임계값
+var TYPE_GW_ELSSEN_TOXIC_GAS_THRESHOLD = "유해가스 임계"
+
+// 건설 현장 웨어러블 알람 설정
+var TYPE_GW_ELSSEN_WEARABLE_ALARM_ONOFF = "웨어러블 알람 On/Off"
 
 var TYPE_UNKNOWN = "알 수 없음"
 
@@ -531,6 +551,10 @@ func GetMessageType4ELSSEN(order binary.ByteOrder, data []byte) string {
 		return TYPE_GW_ELSSEN_SAFETY_HOOK
 	case 3:
 		return TYPE_GW_ELSSEN_TOXIC_GAS
+	case 4:
+		return TYPE_GW_ELSSEN_TOXIC_GAS_THRESHOLD
+	case 5:
+		return TYPE_GW_ELSSEN_WEARABLE_ALARM_ONOFF
 	}
 
 	return TYPE_UNKNOWN
@@ -786,6 +810,10 @@ func GetMessageName4ELSSEN(order binary.ByteOrder, data []byte) string {
 		return NAME_GW_ELSSEN_SAFETY_HOOK
 	case 3:
 		return NAME_GW_ELSSEN_TOXIC_GAS
+	case 4:
+		return NAME_GW_ELSSEN_TOXIC_GAS_THRESHOLD
+	case 5:
+		return NAME_GW_ELSSEN_WEARABLE_ALARM_ONOFF
 	}
 
 	return NAME_UNKNOWN
