@@ -54,6 +54,9 @@ func ReportSecurityLog(reportUrl *ins.HttpConfigurations, evtType, eventSource, 
 	if reportUrl == nil {
 		return nil
 	}
+	if u, err = reportUrl.Url(); err != nil {
+		return err
+	}
 
 	// 기존의 Config file로 firmware 업데이트가 있는지 검사한다.
 	reportParam := request.NewRequestParam()
