@@ -470,6 +470,38 @@ func GetAccelerometer(value *CAccelerometer) int32 {
 	return 0
 }
 
+func SetAccelerometer(value *CAccelerometer) int32 {
+
+	type CAccelerometer struct {
+		Tv CTimeval
+		X  int16
+		Y  int16
+		Z  int16
+		Vx int16
+		Vy int16
+		Vz int16
+		Vt int16
+	}
+
+	accel := C.Accelerometer{
+		tv: C.Timeval{
+			tv_sec:  C.long(value.Tv.Sec),
+			tv_usec: C.long(value.Tv.Usec),
+		},
+		x:  C.int16_t(value.X),
+		y:  C.int16_t(value.Y),
+		z:  C.int16_t(value.Z),
+		vx: C.int16_t(value.Vx),
+		vy: C.int16_t(value.Vy),
+		vz: C.int16_t(value.Vz),
+		vt: C.int16_t(value.Vt),
+	}
+
+	ret := C.setAccelerometer(&accel)
+
+	return int32(ret)
+}
+
 func GetRadar(value *CRadar) int32 {
 
 	radar := C.Radar{}
